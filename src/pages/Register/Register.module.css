@@ -1,0 +1,176 @@
+.registerContainer {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgb(243, 244, 246);
+  }
+  
+  .leftSide {
+    display: none;
+    width: 50%;
+    height: 100%;
+    align-items: center;
+    justify-content: center;
+    background-image: url('/src/assets/Register/background.png');
+    background-size: cover;
+    background-position: center;
+  }
+  
+  .logoCard {
+    width: 29rem;
+    height: 32.5rem;
+    padding: 3rem;
+    border-radius: 0.75rem;
+    background-color: rgba(255, 255, 255, 0.7);
+    box-shadow: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .logoText {
+    font-size: 3rem;
+    font-weight: 600;
+    text-align: center;
+  }
+  
+  .logoBlue {
+    color: #3252DF;
+  }
+  
+  .logoDark {
+    color: #152C5B;
+  }
+  
+  .rightSide {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 1.5rem;
+    background-color: white;
+    overflow-y: auto;
+  }
+  
+  .registerTitle {
+    font-size: 28px;
+    font-weight: 600;
+    font-family: 'Be Vietnam Pro', sans-serif;
+    color: black;
+    margin-bottom: 0.75rem;
+    text-align: center;
+    display: block; /* Ensure the heading is displayed */
+    position: relative; /* Make sure it has proper positioning */
+    z-index: 1; /* Ensure it's above other elements if needed */
+  }
+  
+  .formContainer {
+    display: grid;
+    gap: 0.5rem; /* Reduced from 1rem to save space */
+  }
+  
+  .inputField {
+    width: 100%;
+  }
+  
+  .inputField :global(.input) {
+    width: 100%;
+    height: 38px; /* Reduced from 44px to save space */
+    border: 1px solid rgb(209, 213, 219);
+    padding: 0 1rem;
+    color: black;
+    background-color: white;
+    border-radius: 0.5rem;
+  }
+  
+  .inputField :global(.inputGroup) {
+    margin-bottom: 8px; /* Reduced from 16px to save space */
+  }
+  
+  .inputField :global(.label) {
+    color: black;
+    font-size: 14px; /* Reduced from 16px to save space */
+    font-family: 'Poppins', sans-serif;
+    text-align: left;
+    margin-bottom: 2px; /* Reduced from default */
+  }
+  
+  .termsText {
+    font-size: 14px; /* Reduced from 14px to save space */
+    color: rgb(75, 85, 99);
+    margin-top: 0.5rem; /* Reduced from 0.75rem */
+    text-align: center;
+  }
+  
+  .link {
+    color: rgb(37, 99, 235);
+    text-decoration: underline;
+  }
+  
+  .registerButton {
+    width: 100% !important;
+    min-height: 46px !important; /* Reduced from 50px */
+    background-color: #003dfc !important;
+    color: white !important;
+    font-size: 16px !important; /* Reduced from 18px */
+    font-weight: 500 !important;
+    font-family: 'Poppins', sans-serif !important;
+    margin-top: 0.75rem !important; /* Reduced from 1.25rem */
+    border-radius: 0.5rem !important;
+  }
+  
+  .registerButton:disabled {
+    background-color: rgb(156, 163, 175) !important;
+  }
+  
+  .errorMessage {
+    text-align: center;
+    color: rgb(239, 68, 68);
+    margin-top: 0.25rem;
+    font-size: 12px;
+  }
+  
+  .loginText {
+    text-align: center;
+    font-size: 14px; /* Reduced from 14px */
+    color: black;
+    margin-top: 0.5rem; /* Reduced from 0.75rem */
+  }
+  
+  /* Media query for medium screens and larger */
+  @media (min-width: 768px) {
+    .leftSide {
+      display: flex;
+    }
+    
+    .rightSide {
+      width: 50%;
+      padding: 1rem 3rem; /* Adjusted from 0 4rem */
+      max-height: 100vh;
+      justify-content: flex-start;
+      padding-top: 2rem;
+    }
+    
+    .registerTitle {
+      margin-top: 0;
+    }
+  }
+  
+  /* For taller screens, restore some spacing */
+  @media (min-height: 800px) {
+    .rightSide {
+      justify-content: center;
+    }
+    
+    .inputField :global(.inputGroup) {
+      margin-bottom: 12px;
+    }
+    
+    .registerTitle {
+      font-size: 32px;
+      margin-bottom: 1rem;
+    }
+  }

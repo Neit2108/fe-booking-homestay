@@ -1,0 +1,76 @@
+.overlay {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 50;
+  }
+  
+  .backgroundLayer {
+    position: absolute;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(2px);
+    background-size: cover;
+    background-position: center;
+  }
+  
+  .modalContent {
+    background-color: white;
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    width: 500px;
+    max-height: 400px;
+    position: relative;
+    z-index: 10;
+  }
+  
+  .brand {
+    font-size: 1.875rem;
+    font-weight: 500;
+    margin-top: 0;
+  }
+  
+  .brandBlue {
+    color: #3252DF;
+  }
+  
+  .brandDark {
+    color: #152C5B;
+  }
+  
+  .errorIcon {
+    width: 4rem;
+    height: 4rem;
+    margin: 1rem auto;
+  }
+  
+  .errorTitle {
+    color: #e74c3c;
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-top: 0.5rem;
+    margin-bottom: 0.25rem;
+  }
+  
+  .errorMessage {
+    color: rgb(75, 85, 99);
+    margin-bottom: 1rem;
+  }
+  
+  .buttonGroup {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+  
+  .retryButton {
+    background-color: #e74c3c !important;
+    color: white !important;
+    padding: 0.5rem 1.5rem !important;
+    border-radius: 0.5rem !important;
+  }

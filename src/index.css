@@ -1,0 +1,100 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap&subset=vietnamese');
+
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  font-family: 'Be Vietnam Pro', sans-serif;
+}
+
+#root,
+#__next {
+  height: 100%;
+  width: 100%;
+}
+
+/* Ensure the page fills the browser screen */
+.min-h-screen {
+  min-height: 100vh;
+}
+
+/* Improve spacing between components */
+.max-w-\[1141px\],
+.max-w-\[1142px\],
+.max-w-\[1140px\],
+.max-w-\[1058px\],
+.max-w-\[1039px\],
+.max-w-\[1011px\],
+.max-w-\[995px\] {
+  width: 100%;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Improve responsive behavior */
+@media (max-width: 768px) {
+  .max-md\:flex-col {
+    flex-direction: column;
+  }
+
+  .max-md\:w-full {
+    width: 100%;
+  }
+
+  .max-md\:ml-0 {
+    margin-left: 0;
+  }
+}
+
+/* Custom styles for the homepage */
+.bg-accent {
+  background-color: rgba(50, 82, 223, 1);
+}
+
+.text-accent {
+  color: rgba(50, 82, 223, 1);
+}
+
+.text-primary {
+  color: rgba(21, 44, 91, 1);
+}
+
+/* Adjust padding for sticky footer */
+.pb-60 {
+  padding-bottom: 2rem;
+}
+
+/* Ensure content doesn't get hidden behind the sticky footer */
+.pb-16 {
+  padding-bottom: 4rem;
+}
+
+/* Active state utilities */
+.active\:scale-98:active {
+  transform: scale(0.98);
+}
+
+.active\:scale-95:active {
+  transform: scale(0.95);
+}
+
+/* Button press effect */
+button:active {
+  transform: translateY(1px);
+}
+
+/* Add pointer cursor to all buttons */
+button {
+  cursor: pointer;
+}
+
+/* Underline animation for nav links */
+.group:hover .group-hover\:scale-x-100 {
+  transform: scaleX(1);
+}
