@@ -23,7 +23,7 @@ const UserProvider = ({ children }) => {
     console.log("User state updated:", user);
   }, [user]);
 
-  const fetchUserProfile = useCallback(async () => {
+  async function fetchUserProfile() {
     try {
       const token = localStorage.getItem("token");
       if (!token) return;
@@ -31,41 +31,43 @@ const UserProvider = ({ children }) => {
       const response = await axios.get("https://localhost:7284/user/profile", {
         headers: { Authorization: `Bearer ${token}` },
       });
-      
+
       if (response.status !== 200) {
         console.error("Lỗi khi lấy dữ liệu user:", response.statusText);
         return;
       }
-      
-      console.log("Dữ liệu từ API profile:", response.data.data);
 
-      // Update user state và localStorage với dữ liệu kết hợp
-      setUser(prevUser => {
-        // Ensure prevUser exists (use empty object if null)
-        const currentUser = prevUser || {};
-        
+      console.log("Dữ liệu từ API:", response.data.data);
+
+      // Check what fields are actually in the API response
+      const profileData = response.data.data;
+      console.log("API fields:", Object.keys(profileData));
+
+      setUser((prevUser) => {
         const updatedUser = {
-          ...currentUser, // Giữ nguyên dữ liệu từ login
-          fullName: response.data.data.name || currentUser.fullName, 
-          email: response.data.data.email,
-          phone: response.data.data.phone,
-          address: response.data.data.add,
-          birthday: response.data.data.birthday,
-          gender: response.data.data.gender,
-          avatarUrl: response.data.data.avatar || currentUser.avatarUrl,
-          bio: response.data.data.bio,
+          ...prevUser, // Giữ nguyên dữ liệu từ login
+          fullName: profileData.name || prevUser?.fullName,
+          email: profileData.email,
+          phone: profileData.phone, // This one works correctly
+          address: profileData.address || profileData.add, // Try both field names
+          birthday: profileData.birthday || profileData.dob, // Try alternate field name
+          gender: profileData.gender,
+          avatarUrl: profileData.avatar || prevUser?.avatarUrl,
+          bio: profileData.bio || profileData.about, // Try alternate field name
+          token: localStorage.getItem("token"), // Giữ nguyên token từ localStorage
         };
-        
-        // Cập nhật localStorage với dữ liệu kết hợp
+
+        // Log what fields we're actually using
+        console.log("Updated user data:", updatedUser);
+
+        // Update localStorage with the combined data
         localStorage.setItem("user", JSON.stringify(updatedUser));
         return updatedUser;
       });
-      
-      // Don't log here - it will show the old state
     } catch (error) {
       console.error("Lỗi lấy dữ liệu user:", error);
     }
-  }, []);
+  }
 
   const login = async (userData) => {
     // Lưu dữ liệu đăng nhập
@@ -75,9 +77,11 @@ const UserProvider = ({ children }) => {
 
     // Lấy thêm dữ liệu profile và cập nhật
     await fetchUserProfile();
-    
+
     // This log will NOT show the updated state, since state updates are async
-    console.log("Đã gọi login và fetchUserProfile - hãy kiểm tra log trong useEffect");
+    console.log(
+      "Đã gọi login và fetchUserProfile - hãy kiểm tra log trong useEffect"
+    );
   };
 
   const logout = () => {
@@ -87,7 +91,9 @@ const UserProvider = ({ children }) => {
   };
 
   return (
-    <UserContext.Provider value={{ user, loading, login, logout, fetchUserProfile }}>
+    <UserContext.Provider
+      value={{ user, setUser, loading, login, logout, fetchUserProfile }}
+    >
       {children}
     </UserContext.Provider>
   );

@@ -1,7 +1,8 @@
 import axios from "axios";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
+import { UserContext } from "../../context/UserContext";
 
-function ProfileDetails({ user }) {
+function ProfileDetails() {
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
@@ -11,14 +12,24 @@ function ProfileDetails({ user }) {
     description: "",
   });
 
+  const { user, setUser } = useContext(UserContext);
+
   useEffect(() => {
     if (user) {
+      console.log("Available user fields:", Object.keys(user));
+      console.log("User object:", user);
+
       setFormData({
         name: user.fullName || "",
         phone: user.phone || "",
-        birthday: user.birthday || "",
-        gender: user.gender ? user.gender.toString() : "1",
-        address: user.add || "",
+        birthday: user.birthday ? user.birthday.split("T")[0] : "2024-01-01",
+        gender:
+          user.gender !== null && user.gender !== undefined
+            ? user.gender.toString()
+            : "1",
+        // Use user.address NOT user.add
+        address: user.address || "",
+        // Use user.bio for description field
         description: user.bio || "",
       });
     }
@@ -29,7 +40,7 @@ function ProfileDetails({ user }) {
     console.log(`Field ${name} updated with:`, value);
     setFormData((prev) => ({
       ...prev,
-      [name]: value, // Cập nhật đúng field theo name
+      [name]: value,
     }));
   };
 
@@ -47,7 +58,7 @@ function ProfileDetails({ user }) {
       const token = localStorage.getItem("token");
       const response = await axios.put(
         "https://localhost:7284/user/update-profile",
-        requestBody, 
+        requestBody,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -57,28 +68,37 @@ function ProfileDetails({ user }) {
       );
 
       if (response.status === 200) {
-      // Gọi lại API để lấy dữ liệu mới
-        const updatedUser = await axios.get("https://localhost:7284/user/profile", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      
-      if (updatedUser.status === 200) {
-        setFormData({
-          name: updatedUser.data.data.name || "",
-          phone: updatedUser.data.data.phone || "",
-          birthday: updatedUser.data.data.birthday || "",
-          gender: updatedUser.data.data.gender ? updatedUser.data.data.gender.toString() : "1",
-          address: updatedUser.data.data.add || "",
-          description: updatedUser.data.data.bio || "",
-        });
+        const updatedProfile = response.data.data;
+        // setUser((prevUser) => ({
+        //   ...prevUser,
+        //   fullName: updatedProfile.fullName,
+        //   email: updatedProfile.email,
+        //   phone: updatedProfile.phoneNumber,
+        //   address: updatedProfile.address,
+        //   birthday: updatedProfile.birthDate,
+        //   gender: updatedProfile.gender,
+        //   bio: updatedProfile.bio,
+        // }));
+        // localStorage.setItem("user", JSON.stringify(updatedProfile));
+        // alert("Cập nhật thông tin thành công!");
+        setUser((prevUser) => {
+          const updatedUser = {
+            ...prevUser, 
+            fullName: updatedProfile.name,
+            email: updatedProfile.email,
+            phone: updatedProfile.phone,
+            address: updatedProfile.add,
+            birthday: updatedProfile.birthday,
+            gender: updatedProfile.gender,
+            bio: updatedProfile.bio,
+            token: localStorage.getItem("token"), // Giữ nguyên token từ localStorage
+          };
+          console.log("Updated user data:", updatedUser);
 
-        alert("Cập nhật thông tin thành công!");
+          localStorage.setItem("user", JSON.stringify(updatedUser));
+          return updatedUser;
+        });
       }
-      console.log(updatedUser.data.data.bio);
-      console.log(formData.description);
-      console.log(setFormData);
-    }
-      
     } catch (error) {
       console.error("Lỗi khi cập nhật hồ sơ:", error);
       alert("Lỗi kết nối đến máy chủ.");
@@ -169,7 +189,7 @@ function ProfileDetails({ user }) {
           name="description"
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
           rows="4"
-          value={formData.description ?? "not found"}
+          value={formData.description}
           onChange={handleChange}
         />
       </div>
@@ -177,9 +197,19 @@ function ProfileDetails({ user }) {
       <div className="mt-6 flex justify-end">
         <button
           onClick={handleSaveProfile}
-          className="px-6 py-2 bg-accent text-white rounded-md hover:bg-blue-700 transition-colors duration-200"
+          className="px-6 py-2 bg-accent text-white rounded-md hover:bg-blue-700 transition-colors duration-200 mr-3"
         >
           Lưu
+        </button>
+
+        <button
+          onClick={() => {
+            fetchUserProfile();
+            console.log("Manual profile refresh triggered");
+          }}
+          className="px-6 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 transition-colors duration-200"
+        >
+          Refresh Profile Data
         </button>
       </div>
     </div>

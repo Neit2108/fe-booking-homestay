@@ -14,8 +14,8 @@ const Login = () => {
   });
 
   const navigate = useNavigate();
-  const {login} = useContext(UserContext);
-  
+  const { login } = useContext(UserContext);
+
   const goToRegister = () => {
     console.log(`Navigation to register: 2025-03-24 10:10:47 by Neit2108`);
     navigate("/register");
@@ -29,39 +29,36 @@ const Login = () => {
     }));
   };
 
+  // In Login.jsx - make sure to fully wait for the login process
   const handleLogin = async () => {
     console.log("Dữ liệu gửi lên:", formData);
-  
+
     try {
       const response = await axios.post(
         "https://localhost:7284/Account/Auth/Login",
         formData,
         { headers: { "Content-Type": "application/json" } }
       );
-  
+
       if (response.data.token) {
         const userData = {
           token: response.data.token,
           fullName: response.data.fullName,
           avatarUrl: response.data.avatarUrl,
         };
-  
-        await login(userData); // Đợi login() hoàn thành
-  
+
+        await login(userData); // Wait for login to complete
+
         console.log("Đăng nhập thành công, đang chuyển hướng...");
-  
-        setTimeout(() => {
-          navigate("/");
-        }, 300);
+        navigate("/"); // Navigate after login is fully complete
       } else {
-        alert("Đăng nhập thất bại hihih");
+        alert("Đăng nhập thất bại");
       }
     } catch (error) {
       alert("Đăng nhập thất bại");
       console.log(error.response);
     }
   };
-  
 
   return (
     <div className={styles.loginContainer}>

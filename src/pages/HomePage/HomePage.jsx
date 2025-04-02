@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import axios from "axios";
 import Navbar from "../../components/Navbar/Navbar";
 import Hero from "../../components/Hero/Hero";
 import BookingForm from "../../components/BookingForm/BookingForm";
@@ -6,10 +7,18 @@ import PropertyCard from "../../components/PropertyCard/PropertyCard";
 import LocationList from "../../components/LocationList/LocationList";
 import Footer from "../../components/Footer/Footer";
 import Modal from "../../components/Modal/Modal";
+import Loader from "../../components/Loading/Loader";
 
 function HomePage() {
   const [isMapOpen, setIsMapOpen] = useState(false);
+  const [mostPickedProperty, setMostPickedProperty] = useState(null);
+  const [properties, setProperties] = useState([]);
+  const [housesSection1, setHousesSection1] = useState([]);
+  const [housesSection2, setHousesSection2] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
+  // Hàm mở/đóng modal map
   function openMapDialog() {
     setIsMapOpen(true);
   }
@@ -18,100 +27,101 @@ function HomePage() {
     setIsMapOpen(false);
   }
 
-  const mostPickedProperty = {
-    image: "src/assets/Home/Property/BlueOriginFarm.png",
-    price: "$50",
-    name: "Blue Origin Fams",
-    location: "Galle, Sri Lanka",
-  };
+  // Gọi API khi component mount
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
 
-  const properties = [
-    {
-      image: "src/assets/Home/Property/OceanLand.png",
-      price: "$22",
-      name: "Ocean Land",
-      location: "Trincomalee, Sri Lanka",
-    },
-    {
-      image: "src/assets/Home/Property/StarkHouse.png",
-      price: "$856",
-      name: "Stark House",
-      location: "Dehiwala, Sri Lanka",
-    },
-    {
-      image: "src/assets/Home/Property/VinnaVill.png",
-      price: "$62",
-      name: "Vinna Vill",
-      location: "Beruwala, Sri Lanka",
-    },
-    {
-      image: "src/assets/Home/Property/Bobox.png",
-      price: "$72",
-      name: "Bobox",
-      location: "Kandy, Sri Lanka",
-    },
-  ];
+        // Gọi API top-rating cho phần "Most Picked"
+        const topRatedResponse = await axios.get("https://localhost:7284/places/top-rating", {
+          params: { limit: 5 },
+        });
+        const topPlaces = topRatedResponse.data;
+        console.log("Top Places (from /top-rating):", topPlaces); // Log để kiểm tra
 
-  const housesSection1 = [
-    {
-      image: "src/assets/Home/Property/ShangriLa.png",
-      name: "Shangri-La",
-      location: "Colombo, Sri Lanka",
-      isPopular: true,
-    },
-    {
-      image: "src/assets/Home/Property/TopView.png",
-      name: "Top View",
-      location: "Kandy, Sri Lanka",
-      isPopular: false,
-    },
-    {
-      image: "src/assets/Home/Property/GreenVilla.png",
-      name: "Green Villa",
-      location: "Hikkaduwe, Sri Lanka",
-      isPopular: false,
-    },
-    {
-      image: "src/assets/Home/Property/WoddenPit.png",
-      name: "Wodden Pit",
-      location: "Ambalangode, Sri Lanka",
-      isPopular: false,
-    },
-  ];
+        if (topPlaces.length > 0) {
+          setMostPickedProperty({
+            image: topPlaces[0].images && topPlaces[0].images.length > 0 ? topPlaces[0].images[0].imageUrl : "",
+            price: `$${topPlaces[0].price}`,
+            name: topPlaces[0].name,
+            location: topPlaces[0].address,
+          });
 
-  const housesSection2 = [
-    {
-      image: "src/assets/Home/Property/Boutique.png",
-      name: "Boutiqe",
-      location: "Kandy, Sri Lanka",
-      isPopular: false,
-    },
-    {
-      image: "src/assets/Home/Property/Modern.png",
-      name: "Modern",
-      location: "Nuwereliya, Sri Lanka",
-      isPopular: false,
-    },
-    {
-      image: "src/assets/Home/Property/SilverRain.png",
-      name: "Silver Rain",
-      location: "Dehiwala, Sri Lanka",
-      isPopular: false,
-    },
-    {
-      image: "src/assets/Home/Property/CashVille.png",
-      name: "Cashville",
-      location: "Ampara, Sri Lanka",
-      isPopular: true,
-    },
-  ];
+          setProperties(
+            topPlaces.slice(1, 5).map((place) => ({
+              image: place.images && place.images.length > 0 ? place.images[0].imageUrl : "",
+              price: `$${place.price}`,
+              name: place.name,
+              location: place.address,
+            }))
+          );
+        }
 
+        // Gọi API GetAllPlaces cho housesSection1 và housesSection2
+        const allPlacesResponse = await axios.get("https://localhost:7284/places/get-all");
+        const allPlaces = allPlacesResponse.data;
+        console.log("All Places (from /get-all):", allPlaces); // Log để kiểm tra
+
+        // Lấy danh sách ID của các địa điểm từ topPlaces
+        const topPlaceIds = topPlaces.map((place) => place.id);
+
+        // Lọc allPlaces để loại bỏ các địa điểm có ID trùng với topPlaces
+        const filteredPlaces = allPlaces.filter((place) => !topPlaceIds.includes(place.id));
+
+        // Lấy tối đa 8 địa điểm từ danh sách đã lọc
+        const limitedPlaces = filteredPlaces.slice(0, 8);
+
+        // Kiểm tra nếu không đủ 8 địa điểm
+        if (limitedPlaces.length < 8) {
+          console.warn("Not enough unique places to display. Expected 8, got:", limitedPlaces.length);
+        }
+
+        // Chia thành housesSection1 (4 địa điểm đầu) và housesSection2 (4 địa điểm tiếp theo)
+        const section1 = limitedPlaces.slice(0, 4).map((place, index) => ({
+          image: place.images && place.images.length > 0 ? place.images[0].imageUrl : "path/to/placeholder-image.png",
+          name: place.name,
+          location: place.address,
+          isPopular: index === 0, // Giữ logic hiện tại: địa điểm đầu tiên là "Popular"
+        }));
+
+        const section2 = limitedPlaces.slice(4, 8).map((place, index) => ({
+          image: place.images && place.images.length > 0 ? place.images[0].imageUrl : "path/to/placeholder-image.png",
+          name: place.name,
+          location: place.address,
+          isPopular: index === 3, // Giữ logic hiện tại: địa điểm cuối cùng là "Popular"
+        }));
+
+        setHousesSection1(section1);
+        setHousesSection2(section2);
+
+        setLoading(false);
+      } catch (err) {
+        setError("Failed to load data. Please try again later.");
+        setLoading(false);
+        console.error("Error fetching data:", err);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  // Dữ liệu mẫu cho locations1 (giữ nguyên)
   const locations1 = [
     "Colombo, Sri Lanka",
     "Hikkaduwe, Sri Lanka",
     "Kandy, Sri Lanka",
     "Ambalangode, Sri Lanka",
   ];
+
+  // Hiển thị loading hoặc lỗi nếu có
+  if (loading) {
+    return <Loader />;
+  }
+
+  if (error) {
+    return <div>{error}</div>;
+  }
 
   return (
     <div className="flex flex-col items-center min-h-screen bg-white overflow-hidden px-5 pb-16">
@@ -128,14 +138,16 @@ function HomePage() {
               <div className="text-primary text-2xl font-medium text-left">
                 Most Picked
               </div>
-              <PropertyCard
-                image={mostPickedProperty.image}
-                price={mostPickedProperty.price}
-                name={mostPickedProperty.name}
-                location={mostPickedProperty.location}
-                aspectRatio="0.8"
-                className="mt-5 h-full"
-              />
+              {mostPickedProperty && (
+                <PropertyCard
+                  image={mostPickedProperty.image}
+                  price={mostPickedProperty.price}
+                  name={mostPickedProperty.name}
+                  location={mostPickedProperty.location}
+                  aspectRatio="0.8"
+                  className="mt-5 h-full"
+                />
+              )}
             </div>
           </div>
 
@@ -192,16 +204,18 @@ function HomePage() {
               <div
                 className={`flex flex-col max-md:mt-[29px] ${index === 0 ? "relative" : ""}`}
               >
-                <img
-                  src={house.image}
-                  alt={house.name}
-                  className="w-full rounded-[15px] overflow-hidden object-cover"
-                />
-                {house.isPopular && (
-                  <div className="absolute top-0 right-0 bg-accent text-white py-[7px] px-[31px] rounded-[0px_15px_0px_15px] text-center max-md:px-5">
-                    <span className="font-medium">Popular</span> Choice
-                  </div>
-                )}
+                <div className="relative w-full" style={{ aspectRatio: "4/3" }}>
+                  <img
+                    src={house.image}
+                    alt={house.name}
+                    className="w-full h-full rounded-[15px] overflow-hidden object-cover"
+                  />
+                  {house.isPopular && (
+                    <div className="absolute top-0 right-0 bg-accent text-white py-[7px] px-[31px] rounded-[0px_15px_0px_15px] text-center max-md:px-5">
+                      <span className="font-medium">Popular</span> Choice
+                    </div>
+                  )}
+                </div>
                 <div className="flex flex-col items-start mt-4">
                   <div className="text-primary text-xl font-normal text-left">
                     {house.name}
@@ -223,16 +237,18 @@ function HomePage() {
           {housesSection2.map((house, index) => (
             <div key={index} className="w-1/4 max-md:w-full ml-0 max-md:ml-0">
               <div className="flex flex-col max-md:mt-[29px] relative">
-                <img
-                  src={house.image}
-                  alt={house.name}
-                  className="w-full rounded-[15px] overflow-hidden object-cover"
-                />
-                {house.isPopular && (
-                  <div className="absolute top-0 right-0 bg-accent text-white py-[7px] px-[31px] rounded-[0px_15px_0px_15px] text-center max-md:px-5">
-                    <span className="font-medium">Popular</span> Choice
-                  </div>
-                )}
+                <div className="relative w-full" style={{ aspectRatio: "4/3" }}>
+                  <img
+                    src={house.image}
+                    alt={house.name}
+                    className="w-full h-full rounded-[15px] overflow-hidden object-cover"
+                  />
+                  {house.isPopular && (
+                    <div className="absolute top-0 right-0 bg-accent text-white py-[7px] px-[31px] rounded-[0px_15px_0px_15px] text-center max-md:px-5">
+                      <span className="font-medium">Popular</span> Choice
+                    </div>
+                  )}
+                </div>
                 <div className="flex flex-col items-start mt-4">
                   <div className="text-primary text-xl font-normal text-left">
                     {house.name}
