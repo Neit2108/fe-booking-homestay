@@ -1,8 +1,10 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
 import axios from "axios";
 import Loader from "../../components/Loading/Loader";
+import { UserContext } from "../../context/UserContext";
 
-function ProfileHeader({user}) {
+function ProfileHeader() {
+  const { user, setUser } = useContext(UserContext);
   const [avatar, setAvatar] = useState(user?.avatarUrl || "/default-avatar.png");
   const [loading, setLoading] = useState(false);
 
@@ -24,6 +26,16 @@ function ProfileHeader({user}) {
 
       console.log(response.data.avatarUrl);
       setAvatar(response.data.avatarUrl);
+      setUser((prevUser) => {
+        const updatedUser = {
+          ...prevUser, 
+          avatarUrl: response.data.avatarUrl,
+        };
+        console.log("Updated user data:", updatedUser);
+
+        localStorage.setItem("user", JSON.stringify(updatedUser));
+        return updatedUser;
+      });
     } catch (error) {
       console.error("Lỗi khi upload ảnh:", error.response?.data?.message || error.message);
     } finally {

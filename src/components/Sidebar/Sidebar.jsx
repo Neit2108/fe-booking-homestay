@@ -1,7 +1,7 @@
 import React from "react";
 import { useLocation } from "react-router-dom";
 
-function Sidebar() {
+function Sidebar({ activePage }) {
   const location = useLocation();
   const currentPath = location.pathname;
 
@@ -17,7 +17,11 @@ function Sidebar() {
             <li>
               <a
                 href="/"
-                className="flex items-center gap-3 py-3 text-[#757575] hover:text-[#3252DF] relative group transition-all duration-200"
+                className={`flex items-center gap-3 py-3 relative group transition-all duration-200 ${
+                  activePage === "dashboard" || currentPath === "/dashboard"
+                    ? "text-[#3252DF]"
+                    : "text-[#757575] hover:text-[#3252DF]"
+                }`}
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -31,7 +35,13 @@ function Sidebar() {
                   Trang chủ
                 </span>
                 {/* Vertical line that appears only on hover */}
-                <span className="absolute right-0 top-0 h-full w-1 bg-[#3252DF] transform scale-y-0 group-hover:scale-y-100 transition-transform duration-200 origin-top"></span>
+                <span
+                  className={`absolute right-0 top-0 h-full w-1 bg-[#3252DF] transform transition-transform duration-200 origin-top ${
+                    activePage === "dashboard" || currentPath === "/dashboard"
+                      ? "scale-y-100"
+                      : "scale-y-0 group-hover:scale-y-100"
+                  }`}
+                ></span>
               </a>
             </li>
             <li>

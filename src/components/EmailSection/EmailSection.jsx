@@ -11,7 +11,7 @@ function EmailSection({user}) {
     <div className="mt-10">
       <div className="mb-5 text-lg font-medium">My email Address</div>
       <div className="flex gap-5 items-center mb-5">
-        <div className="flex justify-center items-center rounded-full bg-blue-500 bg-opacity-10 h-[45px] w-[45px]">
+        <div className="flex justify-center items-center rounded-full bg-gray-300 bg-opacity-10 h-[45px] w-[45px]">
           <div>
             <div
               dangerouslySetInnerHTML={{

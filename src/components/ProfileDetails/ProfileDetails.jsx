@@ -69,18 +69,6 @@ function ProfileDetails() {
 
       if (response.status === 200) {
         const updatedProfile = response.data.data;
-        // setUser((prevUser) => ({
-        //   ...prevUser,
-        //   fullName: updatedProfile.fullName,
-        //   email: updatedProfile.email,
-        //   phone: updatedProfile.phoneNumber,
-        //   address: updatedProfile.address,
-        //   birthday: updatedProfile.birthDate,
-        //   gender: updatedProfile.gender,
-        //   bio: updatedProfile.bio,
-        // }));
-        // localStorage.setItem("user", JSON.stringify(updatedProfile));
-        // alert("Cập nhật thông tin thành công!");
         setUser((prevUser) => {
           const updatedUser = {
             ...prevUser, 

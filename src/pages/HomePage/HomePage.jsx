@@ -2,12 +2,12 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import Navbar from "../../components/Navbar/Navbar";
 import Hero from "../../components/Hero/Hero";
-import BookingForm from "../../components/BookingForm/BookingForm";
 import PropertyCard from "../../components/PropertyCard/PropertyCard";
 import LocationList from "../../components/LocationList/LocationList";
 import Footer from "../../components/Footer/Footer";
 import Modal from "../../components/Modal/Modal";
 import Loader from "../../components/Loading/Loader";
+import { useNavigate } from "react-router-dom";
 
 function HomePage() {
   const [isMapOpen, setIsMapOpen] = useState(false);
@@ -17,6 +17,11 @@ function HomePage() {
   const [housesSection2, setHousesSection2] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const navigate = useNavigate();
+
+  const goToPropertyDetails = (id) => {
+    navigate(`/place-details/${id}`);
+  };
 
   // Hàm mở/đóng modal map
   function openMapDialog() {
@@ -42,6 +47,7 @@ function HomePage() {
 
         if (topPlaces.length > 0) {
           setMostPickedProperty({
+            id: topPlaces[0].id,
             image: topPlaces[0].images && topPlaces[0].images.length > 0 ? topPlaces[0].images[0].imageUrl : "",
             price: `$${topPlaces[0].price}`,
             name: topPlaces[0].name,
@@ -50,6 +56,7 @@ function HomePage() {
 
           setProperties(
             topPlaces.slice(1, 5).map((place) => ({
+              id: place.id,
               image: place.images && place.images.length > 0 ? place.images[0].imageUrl : "",
               price: `$${place.price}`,
               name: place.name,
@@ -79,6 +86,7 @@ function HomePage() {
 
         // Chia thành housesSection1 (4 địa điểm đầu) và housesSection2 (4 địa điểm tiếp theo)
         const section1 = limitedPlaces.slice(0, 4).map((place, index) => ({
+          id: place.id,
           image: place.images && place.images.length > 0 ? place.images[0].imageUrl : "path/to/placeholder-image.png",
           name: place.name,
           location: place.address,
@@ -86,6 +94,7 @@ function HomePage() {
         }));
 
         const section2 = limitedPlaces.slice(4, 8).map((place, index) => ({
+          id: place.id,
           image: place.images && place.images.length > 0 ? place.images[0].imageUrl : "path/to/placeholder-image.png",
           name: place.name,
           location: place.address,
@@ -129,7 +138,6 @@ function HomePage() {
 
       <Hero />
 
-      <BookingForm onOpenMap={openMapDialog} />
 
       <div className="mt-[52px] w-full max-w-[1140px] md:mt-[52px] max-md:mt-10">
         <div className="flex gap-5 max-md:flex-col max-md:gap-0">
@@ -139,14 +147,16 @@ function HomePage() {
                 Most Picked
               </div>
               {mostPickedProperty && (
-                <PropertyCard
-                  image={mostPickedProperty.image}
-                  price={mostPickedProperty.price}
-                  name={mostPickedProperty.name}
-                  location={mostPickedProperty.location}
-                  aspectRatio="0.8"
-                  className="mt-5 h-full"
-                />
+                <div onClick={() => goToPropertyDetails(mostPickedProperty.id)} className="cursor-pointer">
+                  <PropertyCard
+                    image={mostPickedProperty.image}
+                    price={mostPickedProperty.price}
+                    name={mostPickedProperty.name}
+                    location={mostPickedProperty.location}
+                    aspectRatio="0.8"
+                    className="mt-5 h-full"
+                  />
+                </div>
               )}
             </div>
           </div>
@@ -158,7 +168,8 @@ function HomePage() {
                   {properties.slice(0, 2).map((property, index) => (
                     <div
                       key={index}
-                      className="w-1/2 max-md:w-full ml-0 max-md:ml-0"
+                      onClick={() => goToPropertyDetails(property.id)}
+                      className="w-1/2 max-md:w-full ml-0 max-md:ml-0 cursor-pointer"
                     >
                       <PropertyCard
                         image={property.image}
@@ -178,7 +189,8 @@ function HomePage() {
                   {properties.slice(2, 4).map((property, index) => (
                     <div
                       key={index}
-                      className="w-1/2 max-md:w-full ml-0 max-md:ml-0"
+                      onClick={() => goToPropertyDetails(property.id)}
+                      className="w-1/2 max-md:w-full ml-0 max-md:ml-0 cursor-pointer"
                     >
                       <PropertyCard
                         image={property.image}
@@ -200,18 +212,18 @@ function HomePage() {
       <div className="mt-[149px] w-full max-w-[1141px] max-md:mt-10">
         <div className="flex gap-5 max-md:flex-col max-md:gap-0">
           {housesSection1.map((house, index) => (
-            <div key={index} className="w-1/4 max-md:w-full ml-0 max-md:ml-0">
+            <div key={index} onClick={()=>goToPropertyDetails(house.id)} className="w-1/4 max-md:w-full ml-0 max-md:ml-0">
               <div
                 className={`flex flex-col max-md:mt-[29px] ${index === 0 ? "relative" : ""}`}
               >
-                <div className="relative w-full" style={{ aspectRatio: "4/3" }}>
+                <div className="relative w-full cursor-pointer" style={{ aspectRatio: "4/3" }}>
                   <img
                     src={house.image}
                     alt={house.name}
                     className="w-full h-full rounded-[15px] overflow-hidden object-cover"
                   />
                   {house.isPopular && (
-                    <div className="absolute top-0 right-0 bg-accent text-white py-[7px] px-[31px] rounded-[0px_15px_0px_15px] text-center max-md:px-5">
+                    <div className="absolute top-0 right-0 bg-accent text-white py-[7px] px-[31px] rounded-[0px_15px_0px_15px] text-center max-md:px-5 cursor-pointer">
                       <span className="font-medium">Popular</span> Choice
                     </div>
                   )}
@@ -235,16 +247,16 @@ function HomePage() {
       <div className="mt-[61px] w-full max-w-[1141px] max-md:mt-10">
         <div className="flex gap-5 max-md:flex-col max-md:gap-0">
           {housesSection2.map((house, index) => (
-            <div key={index} className="w-1/4 max-md:w-full ml-0 max-md:ml-0">
+            <div key={index} onClick={()=>goToPropertyDetails(house.id)} className="w-1/4 max-md:w-full ml-0 max-md:ml-0">
               <div className="flex flex-col max-md:mt-[29px] relative">
-                <div className="relative w-full" style={{ aspectRatio: "4/3" }}>
+                <div className="relative w-full cursor-pointer" style={{ aspectRatio: "4/3" }}>
                   <img
                     src={house.image}
                     alt={house.name}
                     className="w-full h-full rounded-[15px] overflow-hidden object-cover"
                   />
                   {house.isPopular && (
-                    <div className="absolute top-0 right-0 bg-accent text-white py-[7px] px-[31px] rounded-[0px_15px_0px_15px] text-center max-md:px-5">
+                    <div className="absolute top-0 right-0 bg-accent text-white py-[7px] px-[31px] rounded-[0px_15px_0px_15px] text-center max-md:px-5 curosr-pointer">
                       <span className="font-medium">Popular</span> Choice
                     </div>
                   )}

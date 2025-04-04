@@ -31,7 +31,7 @@ function Navbar() {
   return (
     <div className="bg-white w-full flex flex-col items-stretch pt-[19px] font-poppins">
       <div className="flex w-full max-w-[1140px] items-stretch gap-5 flex-wrap justify-between self-center max-md:max-w-full">
-        <a href="/" className="text-primary text-[26px] font-medium cursor-pointer">
+        <a href="/" className="text-primary text-[26px] font-medium cursor-pointer mt-[8px]">
           <span className="text-accent">Homies</span>
           <span>Stay.</span>
         </a>
@@ -42,31 +42,31 @@ function Navbar() {
               href="/"
               className={`border-b-2 ${isActive("/") ? "border-blue-500 text-blue-500" : "border-transparent text-primary"} hover:border-blue-500 transition-all`}
             >
-              Home
+              Trang chủ
             </a>
             <a
               href="/"
               className={`border-b-2 ${isActive("/hotels") ? "border-blue-500 text-blue-500" : "border-transparent text-primary"} hover:border-blue-500 transition-all`}
             >
-              Hotels
+              Homestays
             </a>
             <a
               href="/"
               className={`border-b-2 ${isActive("/rooms") ? "border-blue-500 text-blue-500" : "border-transparent text-primary"} hover:border-blue-500 transition-all`}
             >
-              Rooms
+              Phòng
             </a>
             <a
               href="/"
               className={`border-b-2 ${isActive("/about") ? "border-blue-500 text-blue-500" : "border-transparent text-primary"} hover:border-blue-500 transition-all`}
             >
-              About
+              Giới Thiệu
             </a>
             <a
               href="/"
               className={`border-b-2 ${isActive("/contact") ? "border-blue-500 text-blue-500" : "border-transparent text-primary"} hover:border-blue-500 transition-all`}
             >
-              Contact
+              Liên Hệ
             </a>
           </nav>
 

@@ -1,6 +1,5 @@
 import React, { createContext, useState, useEffect, useCallback } from "react";
 import axios from "axios";
-
 // Tạo Context
 const UserContext = createContext();
 
@@ -43,51 +42,38 @@ const UserProvider = ({ children }) => {
       const profileData = response.data.data;
       console.log("API fields:", Object.keys(profileData));
 
-      setUser((prevUser) => {
-        const updatedUser = {
-          ...prevUser, // Giữ nguyên dữ liệu từ login
-          fullName: profileData.name || prevUser?.fullName,
-          email: profileData.email,
-          phone: profileData.phone, // This one works correctly
-          address: profileData.address || profileData.add, // Try both field names
-          birthday: profileData.birthday || profileData.dob, // Try alternate field name
-          gender: profileData.gender,
-          avatarUrl: profileData.avatar || prevUser?.avatarUrl,
-          bio: profileData.bio || profileData.about, // Try alternate field name
-          token: localStorage.getItem("token"), // Giữ nguyên token từ localStorage
-        };
+      const updatedUser = {
+        token: token,
+        fullName: profileData.name,
+        email: profileData.email,
+        phone: profileData.phone,
+        address: profileData.address,
+        birthday: profileData.birthday,
+        gender: profileData.gender,
+        avatarUrl: profileData.avatar,
+        bio: profileData.bio,
+      };
 
-        // Log what fields we're actually using
-        console.log("Updated user data:", updatedUser);
-
-        // Update localStorage with the combined data
-        localStorage.setItem("user", JSON.stringify(updatedUser));
-        return updatedUser;
-      });
+      console.log("Dữ liệu user sau khi cập nhật:", updatedUser);
+      setUser(updatedUser);
+      localStorage.setItem("user", JSON.stringify(updatedUser));
     } catch (error) {
       console.error("Lỗi lấy dữ liệu user:", error);
     }
   }
 
   const login = async (userData) => {
-    // Lưu dữ liệu đăng nhập
-    setUser(userData);
     localStorage.setItem("token", userData.token);
-    localStorage.setItem("user", JSON.stringify(userData));
-
-    // Lấy thêm dữ liệu profile và cập nhật
     await fetchUserProfile();
-
-    // This log will NOT show the updated state, since state updates are async
-    console.log(
-      "Đã gọi login và fetchUserProfile - hãy kiểm tra log trong useEffect"
-    );
+    
   };
 
   const logout = () => {
     setUser(null);
     localStorage.removeItem("token");
     localStorage.removeItem("user");
+    sessionStorage.clear();
+    window.location.href = "/login";
   };
 
   return (
