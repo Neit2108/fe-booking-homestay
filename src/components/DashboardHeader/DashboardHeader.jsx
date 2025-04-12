@@ -1,10 +1,12 @@
 import { useState, useRef, useEffect, useContext } from "react";
+import { useNavigate } from "react-router-dom"; // Thêm useNavigate
 import { UserContext } from "../../context/UserContext";
 
 function DashboardHeader() {
-  const { user } = useContext(UserContext);
+  const { user, logout } = useContext(UserContext); // Thêm logout từ UserContext
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
+  const navigate = useNavigate(); // Khởi tạo useNavigate
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -22,6 +24,19 @@ function DashboardHeader() {
 
   const toggleDropdown = () => {
     setIsDropdownOpen(!isDropdownOpen);
+  };
+
+  // Hàm điều hướng đến các trang
+  const handleNavigate = (path) => {
+    navigate(path);
+    setIsDropdownOpen(false); // Đóng dropdown sau khi điều hướng
+  };
+
+  // Hàm xử lý logout
+  const handleLogout = () => {
+    logout(); // Gọi hàm logout từ UserContext
+    setIsDropdownOpen(false); // Đóng dropdown
+    // Không cần navigate ở đây vì logout trong UserContext đã có window.location.href = "/login"
   };
 
   return (
@@ -82,7 +97,7 @@ function DashboardHeader() {
             <div className="text-base font-semibold text-neutral-950">
               {user?.fullName || "Admin User"}
             </div>
-            <div className="text-xs text-neutral-950">Admin</div>
+            <div className="text-xs text-neutral-950">{user.role}</div>
           </div>
 
           {/* Dropdown Arrow */}
@@ -102,24 +117,24 @@ function DashboardHeader() {
           {/* Dropdown Menu */}
           {isDropdownOpen && (
             <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10 top-16">
-              <a
-                href="/profile"
-                className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+              <div
+                onClick={() => handleNavigate("/profile")}
+                className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
               >
                 Profile
-              </a>
-              <a
-                href="/settings"
-                className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+              </div>
+              <div
+                onClick={() => handleNavigate("/profile")}
+                className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
               >
                 Settings
-              </a>
-              <a
-                href="/logout"
-                className="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+              </div>
+              <div
+                onClick={handleLogout}
+                className="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100 cursor-pointer"
               >
                 Logout
-              </a>
+              </div>
             </div>
           )}
         </div>

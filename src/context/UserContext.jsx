@@ -10,17 +10,28 @@ const UserProvider = ({ children }) => {
 
   // Khi ứng dụng khởi động, kiểm tra xem token có trong localStorage không
   useEffect(() => {
-    const storedUser = JSON.parse(localStorage.getItem("user"));
-    if (storedUser) {
-      setUser(storedUser);
-    }
-    setLoading(false);
+    const initializeUser = async () => {
+      const storedUser = JSON.parse(localStorage.getItem("user"));
+      const token = localStorage.getItem("token");
+  
+      if (storedUser) {
+        setUser(storedUser);
+      }
+  
+      if (token) {
+        await fetchUserProfile(); 
+      }
+  
+      setLoading(false); 
+    };
+  
+    initializeUser();
   }, []);
 
   // Add this effect to log user changes
-  useEffect(() => {
-    console.log("User state updated:", user);
-  }, [user]);
+  // useEffect(() => {
+  //   console.log("User state updated:", user);
+  // }, [user]);
 
   async function fetchUserProfile() {
     try {
@@ -36,25 +47,27 @@ const UserProvider = ({ children }) => {
         return;
       }
 
-      console.log("Dữ liệu từ API:", response.data.data);
+      //console.log("Dữ liệu từ API:", response.data.data);
 
-      // Check what fields are actually in the API response
       const profileData = response.data.data;
-      console.log("API fields:", Object.keys(profileData));
+      //console.log("API fields:", Object.keys(profileData));
 
       const updatedUser = {
         token: token,
+        id : profileData.id,
         fullName: profileData.name,
         email: profileData.email,
         phone: profileData.phone,
-        address: profileData.address,
+        address: profileData.add,
         birthday: profileData.birthday,
         gender: profileData.gender,
         avatarUrl: profileData.avatar,
         bio: profileData.bio,
+        identityCard: profileData.identityCard,
+        role: profileData.role,
       };
 
-      console.log("Dữ liệu user sau khi cập nhật:", updatedUser);
+      //console.log("Dữ liệu user sau khi cập nhật:", updatedUser);
       setUser(updatedUser);
       localStorage.setItem("user", JSON.stringify(updatedUser));
     } catch (error) {

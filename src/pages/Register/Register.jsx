@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
-import { useNavigate, Link } from "react-router-dom"; // Import Link and useNavigate
+import { useNavigate, Link } from "react-router-dom";
 import Input from "../../components/Input/Input";
 import Button from "../../components/Button/Button";
 import Card from "../../components/Card/Card";
@@ -10,10 +10,11 @@ import RegisterFailed from "./RegisterFailed";
 import Loader from "../../components/Loading/Loader";
 
 const Register = () => {
-  const navigate = useNavigate(); // Add useNavigate hook
-  
+  const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
     FullName: "",
+    IdentityCard: "",
     Email: "",
     PhoneNumber: "",
     HomeAddress: "",
@@ -25,11 +26,28 @@ const Register = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const [showSuccess, setShowSuccess] = useState(false);
   const [showFailed, setShowFailed] = useState(false);
+  const [isPasswordFocused, setIsPasswordFocused] = useState(false); // Theo dõi focus
+
+  // Hàm kiểm tra điều kiện mật khẩu
+  const checkPasswordConditions = (password) => {
+    return {
+      hasUpperLower: /^(?=.*[a-z])(?=.*[A-Z])/.test(password),
+      hasNumber: /\d/.test(password),
+      hasSpecialChar: /[!@#$%^&*(),.?":{}|<>]/.test(password),
+      isValidLength: password.length >= 6,
+    };
+  };
+
+  const passwordConditions = checkPasswordConditions(formData.Password); // Sửa từ personalInfo thành formData
 
   // Navigation function to go to login page
   const goToLogin = () => {
-    console.log(`Navigation to login: ${new Date().toISOString()} by ${localStorage.getItem('username') || 'Neit2108'}`);
-    navigate('/login');
+    console.log(
+      `Navigation to login: ${new Date().toISOString()} by ${
+        localStorage.getItem("username") || "Neit2108"
+      }`
+    );
+    navigate("/login");
   };
 
   // Xử lý thay đổi input
@@ -47,17 +65,26 @@ const Register = () => {
     setErrorMessage("");
 
     console.log("Dữ liệu gửi lên:", formData);
-    console.log(`Request time: ${new Date().toISOString()} by ${localStorage.getItem('username') || 'Neit2108'}`);
+    console.log(
+      `Request time: ${new Date().toISOString()} by ${
+        localStorage.getItem("username") || "Neit2108"
+      }`
+    );
 
     try {
-      const response = await axios.post("https://localhost:7284/Account/Auth/Register", formData, {
-        headers: { "Content-Type": "application/json" },
-      });
+      const response = await axios.post(
+        "https://localhost:7284/Account/Auth/Register",
+        formData,
+        {
+          headers: { "Content-Type": "application/json" },
+        }
+      );
       setShowSuccess(true);
     } catch (error) {
       console.log(error.response);
-      // const errorMsg = error.response?.data?.message || "Không thể kết nối đến server";
-      // setErrorMessage(errorMsg);
+      const errorMsg =
+        error.response?.data?.message || "Không thể kết nối đến server";
+      setErrorMessage(errorMsg);
       setShowFailed(true);
     } finally {
       setLoading(false);
@@ -78,12 +105,9 @@ const Register = () => {
 
       {/* Right Panel (Form) */}
       <div className={styles.rightSide}>
-        <h2 className={styles.registerTitle}>
-          Đăng ký tài khoản
-        </h2>
+        <h2 className={styles.registerTitle}>Đăng ký tài khoản</h2>
 
         <div className={styles.formContainer}>
-          {/* Form fields remain the same */}
           <Input
             label="Họ và tên"
             name="FullName"
@@ -92,7 +116,14 @@ const Register = () => {
             onChange={handleChange}
             className={styles.inputField}
           />
-          {/* ... other input fields ... */}
+          <Input
+            label="Căn cước công dân"
+            name="IdentityCard"
+            placeholder="VD : 012345678901"
+            value={formData.IdentityCard}
+            onChange={handleChange}
+            className={styles.inputField}
+          />
           <Input
             label="E-mail"
             name="Email"
@@ -125,15 +156,72 @@ const Register = () => {
             onChange={handleChange}
             className={styles.inputField}
           />
-          <Input
-            label="Mật khẩu"
-            name="Password"
-            placeholder="******"
-            type="password"
-            value={formData.Password}
-            onChange={handleChange}
-            className={styles.inputField}
-          />
+          <div className="relative">
+            <Input
+              label="Mật khẩu"
+              name="Password"
+              placeholder="******"
+              type="password"
+              value={formData.Password}
+              onChange={handleChange}
+              onFocus={() => setIsPasswordFocused(true)} // Khi focus
+              onBlur={() => setIsPasswordFocused(false)} // Khi blur
+              className={styles.inputField}
+            />
+            {/* Hiển thị điều kiện khi focus */}
+            {isPasswordFocused && (
+              <div className="mt-2 text-sm text-gray-700">
+                <div className="flex items-center">
+                  <span
+                    className={`w-4 h-4 mr-2 rounded-full flex items-center justify-center ${
+                      passwordConditions.hasUpperLower
+                        ? "bg-green-500 text-white"
+                        : "bg-gray-300"
+                    }`}
+                  >
+                    {passwordConditions.hasUpperLower && "✓"}
+                  </span>
+                  Có chữ cái in hoa và in thường
+                </div>
+                <div className="flex items-center">
+                  <span
+                    className={`w-4 h-4 mr-2 rounded-full flex items-center justify-center ${
+                      passwordConditions.hasNumber
+                        ? "bg-green-500 text-white"
+                        : "bg-gray-300"
+                    }`}
+                  >
+                    {passwordConditions.hasNumber && "✓"}
+                  </span>
+                  Có số
+                </div>
+                <div className="flex items-center">
+                  <span
+                    className={`w-4 h-4 mr-2 rounded-full flex items-center justify-center ${
+                      passwordConditions.hasSpecialChar
+                        ? "bg-green-500 text-white"
+                        : "bg-gray-300"
+                    }`}
+                  >
+                    {passwordConditions.hasSpecialChar && "✓"}
+                  </span>
+                  Có ký tự đặc biệt (ví dụ: !@#$%^&*)
+                </div>
+                <div className="flex items-center">
+                  <span
+                    className={`w-4 h-4 mr-2 rounded-full flex items-center justify-center ${
+                      passwordConditions.isValidLength
+                        ? "bg-green-500 text-white"
+                        : "bg-gray-300"
+                    }`}
+                  >
+                    {passwordConditions.isValidLength && "✓"}
+                  </span>
+                  Có 6 ký tự trở lên
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         <p className={styles.termsText}>
@@ -152,13 +240,14 @@ const Register = () => {
           {loading ? <Loader /> : "Đăng ký"}
         </Button>
 
-        {errorMessage && !showFailed && <p className={styles.errorMessage}>{errorMessage}</p>}
+        {errorMessage && !showFailed && (
+          <p className={styles.errorMessage}>{errorMessage}</p>
+        )}
 
         <p className={styles.loginText}>
           Bạn đã có tài khoản?{" "}
-          {/* Updated the login link with onClick handler */}
-          <a 
-            href="#" 
+          <a
+            href="#"
             className={styles.link}
             onClick={(e) => {
               e.preventDefault();
@@ -171,15 +260,20 @@ const Register = () => {
       </div>
 
       {showSuccess && (
-        <RegisterSuccess 
+        <RegisterSuccess
           onClose={() => {
             setShowSuccess(false);
-            goToLogin(); // Navigate to login after successful registration
-          }} 
+            goToLogin();
+          }}
         />
       )}
-      
-      {showFailed && <RegisterFailed onClose={() => setShowFailed(false)} errorMessage={errorMessage} />}
+
+      {showFailed && (
+        <RegisterFailed
+          onClose={() => setShowFailed(false)}
+          errorMessage={errorMessage}
+        />
+      )}
     </div>
   );
 };

@@ -43,7 +43,7 @@ function HomePage() {
           params: { limit: 5 },
         });
         const topPlaces = topRatedResponse.data;
-        console.log("Top Places (from /top-rating):", topPlaces); // Log để kiểm tra
+        //console.log("Top Places (from /top-rating):", topPlaces); // Log để kiểm tra
 
         if (topPlaces.length > 0) {
           setMostPickedProperty({
@@ -65,32 +65,27 @@ function HomePage() {
           );
         }
 
-        // Gọi API GetAllPlaces cho housesSection1 và housesSection2
         const allPlacesResponse = await axios.get("https://localhost:7284/places/get-all");
         const allPlaces = allPlacesResponse.data;
-        console.log("All Places (from /get-all):", allPlaces); // Log để kiểm tra
+        //console.log("All Places (from /get-all):", allPlaces);
 
-        // Lấy danh sách ID của các địa điểm từ topPlaces
         const topPlaceIds = topPlaces.map((place) => place.id);
 
-        // Lọc allPlaces để loại bỏ các địa điểm có ID trùng với topPlaces
+        // Khong lay top rating place
         const filteredPlaces = allPlaces.filter((place) => !topPlaceIds.includes(place.id));
 
-        // Lấy tối đa 8 địa điểm từ danh sách đã lọc
         const limitedPlaces = filteredPlaces.slice(0, 8);
 
-        // Kiểm tra nếu không đủ 8 địa điểm
         if (limitedPlaces.length < 8) {
           console.warn("Not enough unique places to display. Expected 8, got:", limitedPlaces.length);
         }
 
-        // Chia thành housesSection1 (4 địa điểm đầu) và housesSection2 (4 địa điểm tiếp theo)
         const section1 = limitedPlaces.slice(0, 4).map((place, index) => ({
           id: place.id,
           image: place.images && place.images.length > 0 ? place.images[0].imageUrl : "path/to/placeholder-image.png",
           name: place.name,
           location: place.address,
-          isPopular: index === 0, // Giữ logic hiện tại: địa điểm đầu tiên là "Popular"
+          isPopular: index === 0, 
         }));
 
         const section2 = limitedPlaces.slice(4, 8).map((place, index) => ({
@@ -98,7 +93,7 @@ function HomePage() {
           image: place.images && place.images.length > 0 ? place.images[0].imageUrl : "path/to/placeholder-image.png",
           name: place.name,
           location: place.address,
-          isPopular: index === 3, // Giữ logic hiện tại: địa điểm cuối cùng là "Popular"
+          isPopular: index === 3, 
         }));
 
         setHousesSection1(section1);
@@ -115,15 +110,13 @@ function HomePage() {
     fetchData();
   }, []);
 
-  // Dữ liệu mẫu cho locations1 (giữ nguyên)
   const locations1 = [
     "Colombo, Sri Lanka",
     "Hikkaduwe, Sri Lanka",
     "Kandy, Sri Lanka",
     "Ambalangode, Sri Lanka",
   ];
-
-  // Hiển thị loading hoặc lỗi nếu có
+  
   if (loading) {
     return <Loader />;
   }

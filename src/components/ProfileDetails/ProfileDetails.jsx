@@ -8,6 +8,7 @@ function ProfileDetails() {
     phone: "",
     birthday: "",
     gender: "1",
+    identityCard: "",
     address: "",
     description: "",
   });
@@ -16,20 +17,19 @@ function ProfileDetails() {
 
   useEffect(() => {
     if (user) {
-      console.log("Available user fields:", Object.keys(user));
-      console.log("User object:", user);
+      // console.log("Available user fields:", Object.keys(user));
+      // console.log("User object:", user);
 
       setFormData({
         name: user.fullName || "",
         phone: user.phone || "",
+        identityCard: user.identityCard || "",
         birthday: user.birthday ? user.birthday.split("T")[0] : "2024-01-01",
         gender:
           user.gender !== null && user.gender !== undefined
             ? user.gender.toString()
-            : "1",
-        // Use user.address NOT user.add
+            : "Nam",
         address: user.address || "",
-        // Use user.bio for description field
         description: user.bio || "",
       });
     }
@@ -51,10 +51,11 @@ function ProfileDetails() {
         phoneNumber: formData.phone,
         address: formData.address,
         birthDate: new Date(formData.birthday).toISOString(),
-        gender: parseInt(formData.gender, 10),
+        gender: formData.gender,
         bio: formData.description,
+        identityCard: formData.identityCard,
       };
-
+      console.log("Request body:", requestBody);
       const token = localStorage.getItem("token");
       const response = await axios.put(
         "https://localhost:7284/user/update-profile",
@@ -79,6 +80,7 @@ function ProfileDetails() {
             birthday: updatedProfile.birthday,
             gender: updatedProfile.gender,
             bio: updatedProfile.bio,
+            identityCard: updatedProfile.identityCard,
             token: localStorage.getItem("token"), // Giữ nguyên token từ localStorage
           };
           console.log("Updated user data:", updatedUser);
@@ -149,24 +151,37 @@ function ProfileDetails() {
             value={formData.gender}
             onChange={handleChange}
           >
-            <option value="1">Nam</option>
-            <option value="2">Nữ</option>
-            <option value="3">Khác</option>
+            <option value="Nam">Nam</option>
+            <option value="Nữ">Nữ</option>
+            <option value="Khác">Khác</option>
           </select>
         </div>
-      </div>
 
-      <div className="mt-6">
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Địa chỉ
-        </label>
-        <textarea
-          name="address"
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
-          rows="3"
-          value={formData.address}
-          onChange={handleChange}
-        />
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Số CCCD/CMT
+          </label>
+          <input
+            type="text"
+            name="identityCard"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
+            value={formData.identityCard}
+            onChange={handleChange}
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Địa chỉ
+          </label>
+          <input
+            type="text"
+            name="address"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
+            value={formData.address || "dungtien"}
+            onChange={handleChange}
+          />
+        </div>
       </div>
 
       <div className="mt-6">

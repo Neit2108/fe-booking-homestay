@@ -172,6 +172,20 @@ function PropertyDetails() {
               </div>
               <button
                 className="self-stretch px-16 py-1.5 mt-6 text-center text-white bg-accent rounded-lg shadow-sm max-md:px-5 max-md:mt-5 hover:bg-blue-700 transition-colors"
+                onClick={() =>
+                  navigate("/booking-request", {
+                    state: {
+                      property: {
+                        id: property.id,
+                        name: property.name,
+                        address: property.address,
+                        price: property.price,
+                        mainImage: property.mainImage,
+                        maxGuests: property.maxGuests,
+                      },
+                    },
+                  })
+                }
               >
                 Đặt phòng ngay
               </button>

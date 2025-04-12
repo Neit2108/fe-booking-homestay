@@ -3,7 +3,7 @@ import Sidebar from "../../components/Sidebar/Sidebar";
 import DashboardHeader from "../../components/DashboardHeader/DashboardHeader";
 import UserTable from "../../components/UserTable/UserTable";
 
-function Dashboard() {
+function AdminDashboard() {
   const [searchTerm, setSearchTerm] = useState("");
   const [itemsPerPage] = useState(6);
   const [currentPage] = useState(1);
@@ -185,4 +185,4 @@ function Dashboard() {
   );
 }
 
-export default Dashboard;
+export default AdminDashboard;

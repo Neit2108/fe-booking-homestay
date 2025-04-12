@@ -1,9 +1,22 @@
-import React from "react";
-import { useLocation } from "react-router-dom";
+// components/Sidebar/Sidebar.jsx
+import React, { useContext } from "react";
+import { useLocation, Link } from "react-router-dom"; // Thêm Link từ react-router-dom
+import { UserContext } from "../../context/UserContext.jsx";
 
 function Sidebar({ activePage }) {
   const location = useLocation();
   const currentPath = location.pathname;
+  const { user } = useContext(UserContext);
+
+  const getDashboardLink = () => {
+    const roles = Array.isArray(user.role) ? user.role : [user.role];
+    if (roles.includes("Admin")) {
+      return "/admin-booking-dashboard";
+    } else if (roles.includes("Landlord")) {
+      return "/landlord-booking-dashboard";
+    }
+    return "/user-booking-dashboard";
+  };
 
   return (
     <div className="fixed left-0 top-0 h-full w-80 bg-white text-primary p-6 hidden md:block z-10 shadow-lg border-r border-gray-100">
@@ -15,8 +28,8 @@ function Sidebar({ activePage }) {
         <nav>
           <ul className="space-y-5">
             <li>
-              <a
-                href="/"
+              <Link
+                to="/"
                 className={`flex items-center gap-3 py-3 relative group transition-all duration-200 ${
                   activePage === "dashboard" || currentPath === "/dashboard"
                     ? "text-[#3252DF]"
@@ -34,7 +47,6 @@ function Sidebar({ activePage }) {
                 <span className="text-base font-normal font-['Open_Sans']">
                   Trang chủ
                 </span>
-                {/* Vertical line that appears only on hover */}
                 <span
                   className={`absolute right-0 top-0 h-full w-1 bg-[#3252DF] transform transition-transform duration-200 origin-top ${
                     activePage === "dashboard" || currentPath === "/dashboard"
@@ -42,11 +54,11 @@ function Sidebar({ activePage }) {
                       : "scale-y-0 group-hover:scale-y-100"
                   }`}
                 ></span>
-              </a>
+              </Link>
             </li>
             <li>
-              <a
-                href="/profile"
+              <Link
+                to="/profile"
                 className={`flex items-center gap-3 py-3 relative group transition-all duration-200 ${
                   currentPath === "/profile"
                     ? "text-[#3252DF]"
@@ -72,7 +84,6 @@ function Sidebar({ activePage }) {
                 >
                   Thông tin
                 </span>
-                {/* Vertical line that appears on active page or hover */}
                 <span
                   className={`absolute right-0 top-0 h-full w-1 bg-[#3252DF] transform transition-transform duration-200 origin-top ${
                     currentPath === "/profile"
@@ -80,12 +91,16 @@ function Sidebar({ activePage }) {
                       : "scale-y-0 group-hover:scale-y-100"
                   }`}
                 ></span>
-              </a>
+              </Link>
             </li>
             <li>
-              <a
-                href="#"
-                className="flex items-center gap-3 py-3 text-[#757575] hover:text-[#3252DF] relative group transition-all duration-200"
+              <Link
+                to={getDashboardLink()} // Sử dụng getDashboardLink để điều hướng đúng
+                className={`flex items-center gap-3 py-3 relative group transition-all duration-200 ${
+                  currentPath === getDashboardLink()
+                    ? "text-[#3252DF]"
+                    : "text-[#757575] hover:text-[#3252DF]"
+                }`}
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -103,13 +118,23 @@ function Sidebar({ activePage }) {
                 <span className="text-base font-normal font-['Open_Sans']">
                   Đặt phòng
                 </span>
-                <span className="absolute right-0 top-0 h-full w-1 bg-[#3252DF] transform scale-y-0 group-hover:scale-y-100 transition-transform duration-200 origin-top"></span>
-              </a>
+                <span
+                  className={`absolute right-0 top-0 h-full w-1 bg-[#3252DF] transform transition-transform duration-200 origin-top ${
+                    currentPath === getDashboardLink()
+                      ? "scale-y-100"
+                      : "scale-y-0 group-hover:scale-y-100"
+                  }`}
+                ></span>
+              </Link>
             </li>
             <li>
-              <a
-                href="#"
-                className="flex items-center gap-3 py-3 text-[#757575] hover:text-[#3252DF] relative group transition-all duration-200"
+              <Link
+                to="#" // Cần xác định đường dẫn cho mục này
+                className={`flex items-center gap-3 py-3 relative group transition-all duration-200 ${
+                  currentPath === "#" // Cập nhật điều kiện nếu có đường dẫn cụ thể
+                    ? "text-[#3252DF]"
+                    : "text-[#757575] hover:text-[#3252DF]"
+                }`}
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -125,15 +150,25 @@ function Sidebar({ activePage }) {
                   <path d="M9 11H3v5a2 2 0 002 2h4v-7zM11 18h4a2 2 0 002-2v-5h-6v7z" />
                 </svg>
                 <span className="text-base font-normal font-['Open_Sans']">
-                  ??
+                  ?? {/* Cần thay thế bằng tên mục cụ thể */}
                 </span>
-                <span className="absolute right-0 top-0 h-full w-1 bg-[#3252DF] transform scale-y-0 group-hover:scale-y-100 transition-transform duration-200 origin-top"></span>
-              </a>
+                <span
+                  className={`absolute right-0 top-0 h-full w-1 bg-[#3252DF] transform transition-transform duration-200 origin-top ${
+                    currentPath === "#" // Cập nhật điều kiện nếu có đường dẫn cụ thể
+                      ? "scale-y-100"
+                      : "scale-y-0 group-hover:scale-y-100"
+                  }`}
+                ></span>
+              </Link>
             </li>
             <li>
-              <a
-                href="#"
-                className="flex items-center gap-3 py-3 text-[#757575] hover:text-[#3252DF] relative group transition-all duration-200"
+              <Link
+                to="/settings"
+                className={`flex items-center gap-3 py-3 relative group transition-all duration-200 ${
+                  currentPath === "/settings"
+                    ? "text-[#3252DF]"
+                    : "text-[#757575] hover:text-[#3252DF]"
+                }`}
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -150,12 +185,18 @@ function Sidebar({ activePage }) {
                 <span className="text-base font-normal font-['Open_Sans']">
                   Cài đặt
                 </span>
-                <span className="absolute right-0 top-0 h-full w-1 bg-[#3252DF] transform scale-y-0 group-hover:scale-y-100 transition-transform duration-200 origin-top"></span>
-              </a>
+                <span
+                  className={`absolute right-0 top-0 h-full w-1 bg-[#3252DF] transform transition-transform duration-200 origin-top ${
+                    currentPath === "/settings"
+                      ? "scale-y-100"
+                      : "scale-y-0 group-hover:scale-y-100"
+                  }`}
+                ></span>
+              </Link>
             </li>
             <li className="mt-16">
-              <a
-                href="#"
+              <Link
+                to="/logout" // Cần xử lý logout (có thể cần một route hoặc hàm xử lý)
                 className="flex items-center gap-3 py-3 text-red-300 hover:text-red-500 relative group transition-all duration-200"
               >
                 <svg
@@ -174,7 +215,7 @@ function Sidebar({ activePage }) {
                   Logout
                 </span>
                 <span className="absolute right-0 top-0 h-full w-1 bg-red-300 transform scale-y-0 group-hover:scale-y-100 transition-transform duration-200 origin-top"></span>
-              </a>
+              </Link>
             </li>
           </ul>
         </nav>

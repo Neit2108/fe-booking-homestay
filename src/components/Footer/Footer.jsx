@@ -1,4 +1,11 @@
+import { useNavigate } from "react-router-dom";
+
 function Footer() {
+  const navigate = useNavigate();
+
+  const handleRegisterClick = () => {
+    navigate("/host-register");
+  };
   return (
     <>
       <div className="flex mt-[50px] w-full max-w-[1140px] items-stretch gap-5 font-poppins text-primary font-medium flex-wrap justify-between max-md:max-w-full max-md:mt-10">
@@ -17,7 +24,10 @@ function Footer() {
           <span>instantly and memorable.</span>
         </div>
 
-        <button className="rounded-[5px] bg-accent mt-2 px-[25px] py-2 text-sm text-white font-medium ml-auto max-md:px-5 hover:bg-blue-700 active:bg-blue-800 active:shadow-sm active:translate-y-0.5 transition-all duration-200 cursor-pointer">
+        <button
+          className="rounded-[5px] bg-accent mt-2 px-[25px] py-2 text-sm text-white font-medium ml-auto max-md:px-5 hover:bg-blue-700 active:bg-blue-800 active:shadow-sm active:translate-y-0.5 transition-all duration-200 cursor-pointer"
+          onClick={handleRegisterClick}
+        >
           Register Now
         </button>
       </div>
