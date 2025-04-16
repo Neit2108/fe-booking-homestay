@@ -6,10 +6,18 @@ import Loader from "../../components/Loading/Loader";
 import BookingList from "../../components/BookingList/BookingList";
 import useBookings from "../../hooks/useBookings";
 
-const HostBookingDashboard = () => {
+const LandlordBookingDashboard = () => {
   const { user, loading: contextLoading } = useContext(UserContext);
   const [searchTerm, setSearchTerm] = useState("");
-  const { bookings, loading } = useBookings(user, "host");
+  const [statusFilter, setStatusFilter] = useState("");
+  const [startDateFilter, setStartDateFilter] = useState("");
+  const [endDateFilter, setEndDateFilter] = useState("");
+  const { bookings, loading, refreshBookings } = useBookings(
+    user,
+    statusFilter,
+    startDateFilter,
+    endDateFilter
+  );
 
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
@@ -62,12 +70,11 @@ const HostBookingDashboard = () => {
         <BookingList
           bookings={bookings}
           searchTerm={searchTerm}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
+          refreshBookings={refreshBookings}
         />
       </div>
     </div>
   );
 };
 
-export default HostBookingDashboard;
+export default LandlordBookingDashboard;

@@ -6,12 +6,18 @@ const useBookings = (user, statusFilter, startDateFilter, endDateFilter) => {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [roleToUse, setRoleToUse] = useState("user"); // Khai báo roleToUse bằng useState
+  const [roleToUse, setRoleToUse] = useState("customer");
 
-  useEffect(() => {
-    if (!user?.id || !user?.token) return;
+  // Hàm lấy danh sách booking
+  const fetchBookings = async () => {
+    if (!user?.id || !user?.token) {
+      setError("Người dùng chưa đăng nhập hoặc không có token.");
+      setLoading(false);
+      return;
+    }
 
     setLoading(true);
+    setError(null);
 
     // Xác định vai trò
     const roles = Array.isArray(user.role) ? user.role : [user.role];
@@ -21,7 +27,7 @@ const useBookings = (user, statusFilter, startDateFilter, endDateFilter) => {
     } else if (roles.includes("Landlord")) {
       newRoleToUse = "landlord";
     }
-    setRoleToUse(newRoleToUse); // Cập nhật roleToUse
+    setRoleToUse(newRoleToUse);
 
     let endpoint = "";
     const params = {};
@@ -37,24 +43,33 @@ const useBookings = (user, statusFilter, startDateFilter, endDateFilter) => {
       endpoint = `https://localhost:7284/bookings/landlord-s-bookings/${user.id}`;
     }
 
-    axios
-      .get(endpoint, {
+    try {
+      const response = await axios.get(endpoint, {
         headers: {
           Authorization: `Bearer ${user.token}`,
         },
         params,
-      })
-      .then((response) => {
-        setBookings(response.data.data || response.data);
-        setLoading(false);
-      })
-      .catch((err) => {
-        setError(err);
-        setLoading(false);
       });
+      setBookings(response.data.data || response.data);
+    } catch (err) {
+      setError("Không thể tải danh sách đặt phòng.");
+      console.error("Error fetching bookings:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Gọi fetchBookings khi hook được sử dụng hoặc khi các tham số thay đổi
+  useEffect(() => {
+    fetchBookings();
   }, [user, statusFilter, startDateFilter, endDateFilter]);
 
-  return { bookings, loading, error, role: roleToUse }; 
+  // Hàm làm mới danh sách booking
+  const refreshBookings = () => {
+    fetchBookings();
+  };
+
+  return { bookings, loading, error, role: roleToUse, refreshBookings };
 };
 
 export default useBookings;

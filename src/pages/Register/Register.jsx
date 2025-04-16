@@ -26,6 +26,7 @@ const Register = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const [showSuccess, setShowSuccess] = useState(false);
   const [showFailed, setShowFailed] = useState(false);
+  const [showPassword, setShowPassword] = useState(false); // Trạng thái hiển thị mật khẩu
   const [isPasswordFocused, setIsPasswordFocused] = useState(false); // Theo dõi focus
 
   // Hàm kiểm tra điều kiện mật khẩu
@@ -161,13 +162,14 @@ const Register = () => {
               label="Mật khẩu"
               name="Password"
               placeholder="******"
-              type="password"
+              type={showPassword ? "text" : "password"}
               value={formData.Password}
               onChange={handleChange}
               onFocus={() => setIsPasswordFocused(true)} // Khi focus
               onBlur={() => setIsPasswordFocused(false)} // Khi blur
               className={styles.inputField}
             />
+          
             {/* Hiển thị điều kiện khi focus */}
             {isPasswordFocused && (
               <div className="mt-2 text-sm text-gray-700">
@@ -233,6 +235,7 @@ const Register = () => {
         </p>
 
         <Button
+          data-testid = "register-button"
           onClick={handleRegister}
           disabled={loading}
           className={styles.registerButton}

@@ -19,6 +19,9 @@ import UserBookingDashboard from "./pages/Dashboard/UserBookingDashboard.jsx";
 import VerifyAccess from "./pages/VerifyAccess/VerifyAccess.jsx";
 import AdminBookingDashboard from "./pages/Dashboard/AdminBookingDashboard.jsx";
 import LandlordBookingDashboard from "./pages/Dashboard/LandlordBookingDashboard.jsx";
+import Error401 from "./pages/ErrorPage/Error401.jsx";
+import PaymentFlow  from "./pages/Payments/PaymentFlow.jsx";
+import TestCaseManager from "./pages/TestCasePage/TestCaseManager.jsx";
 
 import { UserProvider } from "./context/UserContext.jsx";
 
@@ -52,6 +55,9 @@ const router = createBrowserRouter([
       { path: "/booking-request", element: <BookingRequest /> },
       { path: "/user-booking-dashboard", element: <UserBookingDashboard /> },
       { path: "/auth/verify-action/:token", element: <VerifyAccess /> },
+      { path: "/unauthorized", element: <Error401 /> },
+      { path: "/payment", element: <PaymentFlow /> },
+      { path: "/test-case", element: <TestCaseManager /> },
     ],
   },
 ]);

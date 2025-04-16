@@ -3,11 +3,9 @@ import { useLocation, useNavigate } from "react-router-dom";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { UserContext } from "../../context/UserContext";
-import BookingConfirmationModal from "../../components/BookingConfirmationModal/BookingConfirmationModal";
 import axios from "axios";
 import Loader from "../../components/Loading/Loader";
-import BookingFailedModal from "../../components/BookingConfirmationModal/BookingFailedModal";
-
+import Modal from "../../components/Modal/Modal"; // Import your Modal component
 function BookingRequest() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -201,17 +199,17 @@ function BookingRequest() {
     <div className="flex flex-col items-center w-full bg-white min-h-screen">
       <div className="flex justify-center items-center w-full h-20 border border-neutral-200">
         <div className="text-2xl">
-          <span className="text-accent">Lanka</span>
+          <span className="text-accent">Homies</span>
           <span className="text-primary">Stay.</span>
         </div>
       </div>
       <div className="flex flex-col items-center mt-12">
         <div className="flex flex-col items-center mb-16">
           <div className="mb-2.5 text-4xl font-semibold text-primary">
-            Booking Information
+            Xác nhận đặt phòng
           </div>
           <div className="text-lg text-zinc-400">
-            Please fill up the blank fields below
+            Vui lòng điền đầy đủ các thông tin bên dưới để hoàn tất đặt phòng.
           </div>
         </div>
         <div className="flex gap-20 px-5 max-md:flex-col">
@@ -229,8 +227,8 @@ function BookingRequest() {
           <div className="flex flex-col gap-6 w-80 max-md:w-full">
             <div className="flex flex-col gap-2">
               <div className="text-base text-primary">
-                Number of People{" "}
-                {property.maxGuests ? `(Max: ${property.maxGuests + 2})` : ""}
+                Số người{" "}
+                {property.maxGuests ? `(Tối đa: ${property.maxGuests + 2})` : ""}
               </div>
               <div className="flex items-center rounded bg-neutral-100 h-[45px]">
                 <button
@@ -251,13 +249,13 @@ function BookingRequest() {
               </div>
               {people >= 3 && (
                 <div className="text-xs text-red-500 italic mt-1">
-                  Note: There is an additional 30% charge for 3 or more guests.
+                  Lưu ý: Chúng tôi sẽ thu thêm 30% với mỗi đơn có từ 3 khách trở lên.
                 </div>
               )}
             </div>
 
             <div className="flex flex-col gap-2">
-              <div className="text-base text-primary">Pick a Date</div>
+              <div className="text-base text-primary">Chọn ngày</div>
               <div className="relative flex items-center rounded bg-neutral-100 h-[45px]">
                 <div className="flex justify-center items-center rounded bg-primary h-[45px] w-[45px]">
                   <svg
@@ -312,7 +310,7 @@ function BookingRequest() {
             </div>
 
             <div className="flex flex-col gap-2">
-              <div className="text-base text-primary">Voucher Code</div>
+              <div className="text-base text-primary">Mã Voucher</div>
               <div className="flex items-center rounded bg-neutral-100 h-[45px] overflow-hidden">
                 <input
                   type="text"
@@ -337,22 +335,22 @@ function BookingRequest() {
               </div>
               {voucherValid === true && (
                 <div className="text-xs text-green-500 mt-1">
-                  Voucher applied successfully!
+                  Voucher đã được áp dụng!
                 </div>
               )}
               {voucherValid === false && (
                 <div className="text-xs text-red-500 mt-1">
-                  Invalid voucher code.
+                  Voucher không hợp lệ.
                 </div>
               )}
             </div>
 
             <div className="mt-6 text-2xl">
-              <span className="text-zinc-400">You will pay </span>
-              <span className="text-primary">${totalPrice} USD</span>
-              <span className="text-zinc-400"> per </span>
+              <span className="text-zinc-400">Bạn cần trả </span>
+              <span className="text-primary">{totalPrice} VNĐ</span>
+              <span className="text-zinc-400"> cho </span>
               <span className="text-primary">
-                {days} {days === 1 ? "Day" : "Days"}
+                {days} ngày
               </span>
             </div>
           </div>
@@ -362,7 +360,7 @@ function BookingRequest() {
             className="text-2xl bg-accent rounded-xl h-[58px] text-neutral-50 w-[323px] hover:bg-blue-800 transition-colors"
             onClick={handleBookNow}
           >
-            Book Now
+            Đặt ngay
           </button>
           <button
             className="text-lg rounded bg-neutral-100 h-[50px] text-zinc-400 w-[300px] hover:bg-neutral-200 transition-colors"
@@ -373,16 +371,21 @@ function BookingRequest() {
         </div>
       </div>
 
-      {/* Booking Confirmation Modal */}
-      <BookingConfirmationModal
+      <Modal
         isOpen={isModalOpen}
-        onClose={handleCloseModal}
-        onContinue={handleContinue}
+        onClose={() => setIsModalOpen(false)}
+        status="success"
+        title="Đặt phòng thành công"
+        message="Đơn đặt phòng đã được gửi. Vui lòng chờ xác nhận từ chủ nhà."
+        confirmText="Đóng"
       />
-      <BookingFailedModal
-        isOpen = {isFailModalOpen}
-        onClose={handleRetryModalFail}
-        onRetry={handleRetryModalFail}
+      <Modal
+        isOpen={isFailModalOpen}
+        onClose={() => setIsFailModalOpen(false)}
+        status="error"
+        title="Đặt phòng thất bại"
+        message="Có lỗi xảy ra. Vui lòng thử lại."
+        confirmText="Đóng"
       />
     </div>
   );

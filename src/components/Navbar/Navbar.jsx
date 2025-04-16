@@ -15,7 +15,7 @@ function Navbar() {
     const roles = Array.isArray(user.role) ? user.role : [user.role];
     if (roles.includes("Admin")) {
       return "/admin-booking-dashboard";
-    } else if (roles.includes("Host")) {
+    } else if (roles.includes("Landlord")) {
       return "/landlord-booking-dashboard";
     }
     return "/user-booking-dashboard";

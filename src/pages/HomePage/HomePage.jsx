@@ -126,7 +126,7 @@ function HomePage() {
   }
 
   return (
-    <div className="flex flex-col items-center min-h-screen bg-white overflow-hidden px-5 pb-16">
+    <div className="flex flex-col items-center min-h-screen bg-white overflow-hidden px-5 pb-16" data-testid="home-page">
       <Navbar />
 
       <Hero />

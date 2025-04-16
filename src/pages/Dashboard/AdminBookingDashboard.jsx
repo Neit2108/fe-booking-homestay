@@ -9,7 +9,15 @@ import useBookings from "../../hooks/useBookings";
 const AdminBookingDashboard = () => {
   const { user, loading: contextLoading } = useContext(UserContext);
   const [searchTerm, setSearchTerm] = useState("");
-  const { bookings, loading } = useBookings(user, "admin");
+  const [statusFilter, setStatusFilter] = useState("");
+  const [startDateFilter, setStartDateFilter] = useState("");
+  const [endDateFilter, setEndDateFilter] = useState("");
+  const { bookings, loading, refreshBookings } = useBookings(
+    user,
+    statusFilter,
+    startDateFilter,
+    endDateFilter
+  );
 
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
@@ -62,8 +70,7 @@ const AdminBookingDashboard = () => {
         <BookingList
           bookings={bookings}
           searchTerm={searchTerm}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
+          refreshBookings={refreshBookings}
         />
       </div>
     </div>

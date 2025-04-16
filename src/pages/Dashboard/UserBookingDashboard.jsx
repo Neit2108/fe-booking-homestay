@@ -12,7 +12,7 @@ const UserBookingDashboard = () => {
   const [statusFilter, setStatusFilter] = useState("");
   const [startDateFilter, setStartDateFilter] = useState("");
   const [endDateFilter, setEndDateFilter] = useState("");
-  const { bookings, loading } = useBookings(
+  const { bookings, loading, refreshBookings } = useBookings(
     user,
     statusFilter,
     startDateFilter,
@@ -106,8 +106,7 @@ const UserBookingDashboard = () => {
         <BookingList
           bookings={bookings}
           searchTerm={searchTerm}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
+          refreshBookings={refreshBookings}
         />
       </div>
     </div>

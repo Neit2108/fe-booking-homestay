@@ -6,6 +6,7 @@ import Button from "../../components/Button/Button";
 import Card from "../../components/Card/Card";
 import styles from "./Login.module.css";
 import { UserContext } from "../../context/UserContext";
+import Modal from "../../components/Modal/Modal"; // Import your Modal component
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -15,6 +16,7 @@ const Login = () => {
 
   const navigate = useNavigate();
   const { login } = useContext(UserContext);
+  const [IsLoginFailed, setIsLoginFailed] = useState(false);
 
   const goToRegister = () => {
     console.log(`Navigation to register: 2025-03-24 10:10:47 by Neit2108`);
@@ -52,10 +54,10 @@ const Login = () => {
         console.log("Đăng nhập thành công, đang chuyển hướng...");
         navigate("/"); // Navigate after login is fully complete
       } else {
-        alert("Đăng nhập thất bại");
+        setIsLoginFailed(true);
       }
     } catch (error) {
-      alert("Đăng nhập thất bại");
+      setIsLoginFailed(true);
       console.log(error.response);
     }
   };
@@ -78,6 +80,7 @@ const Login = () => {
 
         <div className={styles.formContainer}>
           <Input
+            data-testid="email-input"
             label="Tên đăng nhập"
             name="EmailorUsername"
             placeholder="Email hoặc tên đăng nhập"
@@ -87,6 +90,7 @@ const Login = () => {
           />
 
           <Input
+            data-testid="password-input"
             label="Mật khẩu"
             name="Password"
             placeholder="******"
@@ -105,7 +109,7 @@ const Login = () => {
           tại HomiesStay.
         </p>
 
-        <Button onClick={handleLogin} className={styles.loginButton}>
+        <Button onClick={handleLogin} className={styles.loginButton} data-testid = "login-button">
           Đăng nhập
         </Button>
 
@@ -123,6 +127,15 @@ const Login = () => {
           </a>
         </p>
       </div>
+      <Modal
+        isOpen={IsLoginFailed}
+        onClose={() => setIsLoginFailed(false)}
+        status="error"
+        title="Đăng nhập thất bại"
+        message="Tên đăng nhập hoặc mật khẩu không chính xác. Vui lòng thử lại."
+        confirmText="Đóng"
+        data-testid="login-error-modal"
+      />
     </div>
   );
 };
