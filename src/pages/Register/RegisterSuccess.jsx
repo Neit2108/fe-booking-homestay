@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Button from "../../components/Button/Button";
 import styles from "./RegisterSuccess.module.css";
 
-const RegisterSuccess = ({ onClose }) => {
+const RegisterSuccess = ({ onClose, dataTestid}) => {
   const navigate = useNavigate();
   
   const handleClose = () => {
@@ -17,7 +17,7 @@ const RegisterSuccess = ({ onClose }) => {
   };
 
   return (
-    <div className={styles.overlay}>
+    <div className={styles.overlay} data-testid={dataTestid} >
       {/* Background overlay with image */}
       <div
         className={styles.backgroundLayer}

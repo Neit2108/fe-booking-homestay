@@ -9,6 +9,7 @@ const Button = ({
   type = 'button',
   onClick,
   className = '',
+  dataTestid = '',
   ...props
 }) => {
   const buttonClasses = `${styles.button} ${styles[variant]} ${styles[size]} ${className}`;
@@ -19,6 +20,7 @@ const Button = ({
       className={buttonClasses}
       disabled={disabled}
       onClick={onClick}
+      data-testid={dataTestid}
       {...props}
     >
       {children}

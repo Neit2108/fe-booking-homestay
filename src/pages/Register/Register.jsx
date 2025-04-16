@@ -62,6 +62,7 @@ const Register = () => {
 
   // Gửi request API khi nhấn "Đăng ký"
   const handleRegister = async () => {
+    console.log("Đã bấm");
     setLoading(true);
     setErrorMessage("");
 
@@ -235,16 +236,16 @@ const Register = () => {
         </p>
 
         <Button
-          data-testid = "register-button"
           onClick={handleRegister}
           disabled={loading}
           className={styles.registerButton}
+          dataTestid = "register-button"
         >
           {loading ? <Loader /> : "Đăng ký"}
         </Button>
 
         {errorMessage && !showFailed && (
-          <p className={styles.errorMessage}>{errorMessage}</p>
+          <p className={styles.errorMessage} data-testid="register-error">{errorMessage}</p>
         )}
 
         <p className={styles.loginText}>
@@ -268,6 +269,7 @@ const Register = () => {
             setShowSuccess(false);
             goToLogin();
           }}
+          dataTestid="register-success-modal"
         />
       )}
 
@@ -275,6 +277,7 @@ const Register = () => {
         <RegisterFailed
           onClose={() => setShowFailed(false)}
           errorMessage={errorMessage}
+          dataTestid="register-error-modal"
         />
       )}
     </div>
