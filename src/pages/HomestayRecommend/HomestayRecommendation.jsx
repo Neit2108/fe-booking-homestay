@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../../components/Navbar/Navbar";
 import Footer from "../../components/Footer/Footer";
-import usePlaces from "../../hooks/usePlaces";
+import {usePlaces} from "../../hooks/usePlaces";
 import HomestayFilters from "../../components/HomestayFilters/HomestayFilters";
 import { FaStar, FaStarHalfAlt, FaRegStar } from "react-icons/fa";
 import { BsSliders } from "react-icons/bs";
