@@ -65,9 +65,9 @@ function Navbar() {
               Trang chủ
             </Link>
             <Link
-              to="/hotels"
+              to="/homestay-recommend"
               className={`border-b-2 ${
-                isActive("/hotels")
+                isActive("/homestay-recommend")
                   ? "border-blue-500 text-blue-500"
                   : "border-transparent text-primary"
               } hover:border-blue-500 transition-all`}

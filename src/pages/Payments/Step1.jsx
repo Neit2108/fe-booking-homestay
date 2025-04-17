@@ -35,10 +35,10 @@ function Step1({ onNext, setPaymentMethod, property, people, days, totalPrice, s
         <div className="flex flex-col items-center mb-16">
           <ProcessBar currentStep={1} />
           <div className="mb-2.5 text-4xl font-semibold text-primary">
-            Booking Information
+            Xác nhận thanh toán
           </div>
           <div className="text-lg text-zinc-400">
-            Please review your booking details
+            Vui lòng kiểm tra lại trước khi thanh toán
           </div>
         </div>
         <div className="flex gap-20 px-5 max-md:flex-col">
@@ -55,7 +55,7 @@ function Step1({ onNext, setPaymentMethod, property, people, days, totalPrice, s
           </div>
           <div className="flex flex-col gap-6 w-80 max-md:w-full">
             <div className="flex flex-col gap-2">
-              <div className="text-base text-primary">Number of People</div>
+              <div className="text-base text-primary">Số người</div>
               <div className="flex items-center rounded bg-neutral-100 h-[45px] justify-center">
                 <div className="text-base text-center text-primary">
                   {people} {people === 1 ? "Person" : "People"}
@@ -64,7 +64,7 @@ function Step1({ onNext, setPaymentMethod, property, people, days, totalPrice, s
             </div>
 
             <div className="flex flex-col gap-2">
-              <div className="text-base text-primary">Date</div>
+              <div className="text-base text-primary">Ngày đến - đi</div>
               <div className="relative flex items-center rounded bg-neutral-100 h-[45px]">
                 <div className="flex justify-center items-center rounded bg-black h-[45px] w-[45px]">
                   <svg
@@ -105,7 +105,7 @@ function Step1({ onNext, setPaymentMethod, property, people, days, totalPrice, s
             </div>
 
             <div className="flex flex-col gap-2">
-              <div className="text-base text-primary">Payment Method</div>
+              <div className="text-base text-primary">Phương thức thanh toán</div>
               <div className="flex items-center rounded bg-neutral-100 h-[45px] overflow-hidden">
                 <select
                   className="flex-1 h-full px-4 bg-transparent outline-none text-primary"
@@ -113,21 +113,21 @@ function Step1({ onNext, setPaymentMethod, property, people, days, totalPrice, s
                   onChange={(e) => setSelectedPaymentMethod(e.target.value)}
                 >
                   <option value="" disabled>
-                    Select payment method
+                    Chọn phương thức thanh toán
                   </option>
-                  <option value="credit_card">Credit Card</option>
-                  <option value="paypal">PayPal</option>
-                  <option value="bank_transfer">Bank Transfer</option>
+                  <option value="credit_card">Thẻ ngân hàng</option>
+                  <option value="paypal">Tại quầy</option>
+                  <option value="bank_transfer">Chuyển khoản</option>
                 </select>
               </div>
             </div>
 
             <div className="mt-6 text-2xl">
-              <span className="text-zinc-400">You will pay </span>
-              <span className="text-primary">${totalPrice} USD</span>
-              <span className="text-zinc-400"> per </span>
+              <span className="text-zinc-400">Bạn cần trả </span>
+              <span className="text-primary">{totalPrice} VNĐ</span>
+              <span className="text-zinc-400"> cho </span>
               <span className="text-primary">
-                {days} {days === 1 ? "Day" : "Days"}
+                {days} ngày
               </span>
             </div>
           </div>
@@ -138,7 +138,7 @@ function Step1({ onNext, setPaymentMethod, property, people, days, totalPrice, s
             onClick={handleNext}
             disabled={!selectedPaymentMethod}
           >
-            Next
+            Tiếp tục
           </button>
           <button
             className="text-lg rounded bg-neutral-100 h-[50px] text-zinc-400 w-[300px] hover:bg-neutral-200 transition-colors"
