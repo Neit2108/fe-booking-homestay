@@ -17,6 +17,7 @@ import wifiIcon from "../../assets/Detail/ic_wifi.png";
 import acIcon from "../../assets/Detail/ic_ac.png";
 import refrigeratorIcon from "../../assets/Detail/ic_refrigerator.png";
 import tvIcon from "../../assets/Detail/ic_tv.png";
+import useComment from "../../hooks/useComment";
 
 function PropertyDetails() {
   const param = useParams();
@@ -25,6 +26,51 @@ function PropertyDetails() {
   const [error, setError] = useState(null);
   const [property, setProperty] = useState(null);
   const navigate = useNavigate();
+
+  const {
+    comments,
+    loading: commentLoading,
+    error: commentError,
+    addComment,
+  } = useComment(id);
+
+  const createRatingDistribution = (averageRating, totalRatings) => {
+    if (!totalRatings) return { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+
+    // Logic đơn giản để phân phối số đánh giá:
+    // Ưu tiên cho số sao gần với averageRating
+    const distribution = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+    const avgRounded = Math.round(averageRating);
+
+    // 60% đánh giá ở mức trung bình
+    const mainRatingCount = Math.round(totalRatings * 0.6);
+    distribution[avgRounded] = mainRatingCount;
+
+    // 20% đánh giá ở mức cao hơn (nếu có thể)
+    if (avgRounded < 5) {
+      distribution[avgRounded + 1] = Math.round(totalRatings * 0.2);
+    } else {
+      distribution[4] += Math.round(totalRatings * 0.1);
+    }
+
+    // 20% đánh giá ở mức thấp hơn (nếu có thể)
+    if (avgRounded > 1) {
+      distribution[avgRounded - 1] = Math.round(totalRatings * 0.2);
+    } else {
+      distribution[2] += Math.round(totalRatings * 0.1);
+    }
+
+    // Điều chỉnh để tổng số đánh giá bằng đúng totalRatings
+    const currentTotal = Object.values(distribution).reduce(
+      (sum, count) => sum + count,
+      0
+    );
+    if (currentTotal !== totalRatings) {
+      distribution[avgRounded] += totalRatings - currentTotal;
+    }
+
+    return distribution;
+  };
 
   useEffect(() => {
     const fetchRelatedProperties = async () => {
@@ -65,6 +111,7 @@ function PropertyDetails() {
           name: data.name,
           address: data.address,
           rating: data.rating,
+          numOfRating: data.numOfRating,
           description: data.description,
           price: data.price,
           maxGuests: data.maxGuests,
@@ -106,6 +153,25 @@ function PropertyDetails() {
 
   const handleClickRelatedProperty = (relatedPropertyId) => {
     navigate(`/place-details/${relatedPropertyId}`);
+  };
+
+  const ratingDistribution = createRatingDistribution(property.rating, property.numOfRating);
+
+  const handleAddComment = async (rating, comment, images) => {
+    try {
+      await addComment(
+        {
+          rating,
+          text: comment,
+        },
+        images
+      );
+
+      // Không cần refresh thủ công vì useComment hook đã xử lý
+    } catch (error) {
+      console.error("Failed to add comment:", error);
+      // Có thể hiển thị thông báo lỗi ở đây nếu cần
+    }
   };
 
   return (
@@ -210,16 +276,21 @@ function PropertyDetails() {
         <div className="flex flex-col items-start mt-24 w-full max-md:mt-10">
           <div className="text-xl font-medium text-primary">Đánh giá</div>
           <div className="mt-5 w-full max-w-[1098px] max-md:max-w-full">
-            <CommentSection
-              averageRating={property.rating}
-              ratingCounts={{
-                5: 10,
-                4: 5,
-                3: 2,
-                2: 1,
-                1: 0,
-              }}
-            />
+            {commentLoading ? (
+              <Loader />
+            ) : (
+              <CommentSection
+                averageRating={property.rating}
+                ratingCounts={ratingDistribution}
+                comments={comments}
+                onAddComment={handleAddComment}
+              />
+            )}
+            {commentError && (
+              <div className="text-red-500 mt-2">
+                Lỗi khi tải đánh giá: {commentError}
+              </div>
+            )}
           </div>
         </div>
 

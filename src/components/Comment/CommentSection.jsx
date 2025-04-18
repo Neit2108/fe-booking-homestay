@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { FaStar, FaStarHalfAlt, FaRegStar } from "react-icons/fa";
 import CommentModal from "./CommentModal";
 
-const CommentSection = ({ averageRating, ratingCounts, comments = [] }) => {
+const CommentSection = ({ averageRating, ratingCounts, comments = [], onAddComment }) => {
   const [selectedStar, setSelectedStar] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [enlargedImage, setEnlargedImage] = useState(null);
@@ -18,6 +18,16 @@ const CommentSection = ({ averageRating, ratingCounts, comments = [] }) => {
 
   const closeEnlargedImage = () => {
     setEnlargedImage(null);
+  };
+
+  const handleCommentSubmit = (rating, comment, images) => {
+    // Gọi hàm onAddComment được truyền từ component cha
+    if (onAddComment) {
+      onAddComment(rating, comment, images);
+    }
+    
+    // Đóng modal sau khi gửi comment
+    setShowModal(false);
   };
 
   const total = Object.values(ratingCounts).reduce((acc, val) => acc + val, 0);
@@ -141,6 +151,7 @@ const CommentSection = ({ averageRating, ratingCounts, comments = [] }) => {
         <CommentModal
           rating={selectedStar}
           onClose={() => setShowModal(false)}
+          onSubmit={handleCommentSubmit}
         />
       )}
 

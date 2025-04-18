@@ -1,19 +1,36 @@
 import React, { useState } from "react";
 import { FaStar } from "react-icons/fa";
 
-const CommentModal = ({ rating, onClose }) => {
+const CommentModal = ({ rating, onClose, onSubmit }) => {
   const [selectedRating, setSelectedRating] = useState(rating);
   const [comment, setComment] = useState("");
   const [imagePreviews, setImagePreviews] = useState([]); // Chỉ lưu previews và file trong một state
-
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const handleSubmit = () => {
-    // Chuẩn bị dữ liệu gửi đến API
-    const images = imagePreviews.map((preview) => preview.file);
-    console.log({ selectedRating, comment, images });
-
-    // Cleanup: Giải phóng URL.createObjectURL
-    imagePreviews.forEach((preview) => URL.revokeObjectURL(preview.previewUrl));
-    onClose();
+    if (isSubmitting) return; // Tránh submit nhiều lần
+    
+    setIsSubmitting(true);
+    
+    try {
+      // Chuẩn bị dữ liệu gửi đến API
+      const images = imagePreviews.map((preview) => preview.file);
+      
+      // Gọi hàm onSubmit được truyền từ component cha (CommentSection)
+      if (onSubmit) {
+        onSubmit(selectedRating, comment, images);
+      }
+      
+      // Cleanup: Giải phóng URL.createObjectURL
+      imagePreviews.forEach((preview) => URL.revokeObjectURL(preview.previewUrl));
+      
+      // Đóng modal
+      onClose();
+    } catch (error) {
+      console.error("Error submitting comment:", error);
+      alert("Có lỗi xảy ra khi gửi đánh giá. Vui lòng thử lại sau.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleImageChange = (e) => {
@@ -111,10 +128,15 @@ const CommentModal = ({ rating, onClose }) => {
         </div>
 
         <button
-          className="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded"
+          className={`mt-4 w-full py-2 px-4 rounded ${
+            isSubmitting
+              ? "bg-gray-400 cursor-not-allowed"
+              : "bg-blue-600 hover:bg-blue-700 text-white"
+          }`}
           onClick={handleSubmit}
+          disabled={isSubmitting}
         >
-          Gửi đánh giá
+          {isSubmitting ? "Đang gửi..." : "Gửi đánh giá"}
         </button>
       </div>
     </div>

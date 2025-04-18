@@ -19,7 +19,8 @@ const useComment = (placeId) => {
     
     try {
       const response = await axios.get(`${API_URL}/all-comments-of-place/${placeId}`);
-      
+      console.log('Comments response:', response.data); // Kiểm tra dữ liệu trả về từ API
+      console.log('Place id:', placeId); // Kiểm tra placeId
       // Lấy dữ liệu comment và bổ sung thông tin người dùng
       const commentsWithUserInfo = await Promise.all(
         response.data.map(async (comment) => {
@@ -53,21 +54,27 @@ const useComment = (placeId) => {
     
     try {
       const token = user?.token;
+      console.log('Token:', token); // Kiểm tra token
       
       if (!token) {
         throw new Error('Bạn cần đăng nhập để bình luận');
       }
-
-      // Tạo FormData để gửi cả text và file ảnh
       const formData = new FormData();
-      formData.append('placeId', placeId);
-      formData.append('rating', commentData.rating);
-      formData.append('content', commentData.text);
+      // Tạo FormData để gửi cả text và file ảnh
+      formData.append('PlaceId', placeId);
+      formData.append('Rating', commentData.rating);
+      formData.append('Content', commentData.text);
+      formData.append('SenderId', user.id); // Thêm SenderId từ user context
       
-      // Thêm các ảnh vào FormData nếu có
+      // Thêm CreatedAt và UpdatedAt nếu cần
+      const now = new Date().toISOString();
+      formData.append('CreatedAt', now);
+      formData.append('UpdatedAt', now);
+      
+      // Thêm các ảnh vào FormData, sử dụng tên đúng từ CommentRequest
       if (images && images.length > 0) {
         images.forEach(image => {
-          formData.append('images', image);
+          formData.append('commentImages', image);
         });
       }
 
@@ -92,22 +99,6 @@ const useComment = (placeId) => {
     }
   };
 
-  // Tính toán số lượng đánh giá theo từng mức sao
-  const calculateRatingCounts = useCallback(() => {
-    return comments.reduce((acc, comment) => {
-      const rating = comment.rating;
-      acc[rating] = (acc[rating] || 0) + 1;
-      return acc;
-    }, {});
-  }, [comments]);
-
-  // Tính toán điểm đánh giá trung bình
-  const calculateAverageRating = useCallback(() => {
-    if (comments.length === 0) return 0;
-    const sum = comments.reduce((acc, comment) => acc + comment.rating, 0);
-    return sum / comments.length;
-  }, [comments]);
-
   // Fetch comments khi component mount
   useEffect(() => {
     fetchComments();
@@ -119,8 +110,6 @@ const useComment = (placeId) => {
     error,
     addComment,
     refreshComments: fetchComments,
-    ratingCounts: calculateRatingCounts(),
-    averageRating: calculateAverageRating()
   };
 };
 
