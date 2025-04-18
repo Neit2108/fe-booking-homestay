@@ -224,10 +224,11 @@ const HomestayRecommendation = () => {
             className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative"
             role="alert"
           >
-            <strong className="font-bold">Error! </strong>
+            <strong className="font-bold">Lỗi! </strong>
             <span className="block sm:inline">
-              Could not load place data. Please try again later.
+              Vui lòng đăng nhập.
             </span>
+            
           </div>
         </div>
         <Footer />

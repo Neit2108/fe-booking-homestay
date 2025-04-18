@@ -7,6 +7,7 @@ import ZoomableImage from "../../components/ZoomableImage/ZoomableImage";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import Loader from "../../components/Loading/Loader";
+import CommentSection from "../../components/Comment/CommentSection";
 
 import bedroomIcon from "../../assets/Detail/ic_bedroom.png";
 import livingroomIcon from "../../assets/Detail/ic_livingroom.png";
@@ -29,7 +30,7 @@ function PropertyDetails() {
     const fetchRelatedProperties = async () => {
       try {
         const response = await axios.get(
-          `https://localhost:7284/places/get-same-category/${id}`,
+          `https://localhost:7284/places/get-same-category/${id}`
         );
         const data = response.data;
 
@@ -55,7 +56,7 @@ function PropertyDetails() {
       try {
         setLoading(true);
         const response = await axios.get(
-          `https://localhost:7284/places/place-details/${id}`,
+          `https://localhost:7284/places/place-details/${id}`
         ); // Sửa lỗi cú pháp URL
         const data = response.data;
         const relatedProperties = await fetchRelatedProperties();
@@ -205,6 +206,23 @@ function PropertyDetails() {
           ))}
         </div>
 
+        {/* Comments Section */}
+        <div className="flex flex-col items-start mt-24 w-full max-md:mt-10">
+          <div className="text-xl font-medium text-primary">Đánh giá</div>
+          <div className="mt-5 w-full max-w-[1098px] max-md:max-w-full">
+            <CommentSection
+              averageRating={property.rating}
+              ratingCounts={{
+                5: 10,
+                4: 5,
+                3: 2,
+                2: 1,
+                1: 0,
+              }}
+            />
+          </div>
+        </div>
+
         {/* Related Properties Section */}
         <div className="mt-24 text-xl font-medium text-primary max-md:mt-10">
           Địa điểm tương tự
@@ -214,7 +232,9 @@ function PropertyDetails() {
             {property.relatedProperties.map((relatedProperty, index) => (
               <div
                 key={index}
-                className={`${index > 0 ? "ml-5" : ""} w-3/12 max-md:ml-0 max-md:w-full`}
+                className={`${
+                  index > 0 ? "ml-5" : ""
+                } w-3/12 max-md:ml-0 max-md:w-full`}
               >
                 <RelatedProperty
                   id={relatedProperty.id}

@@ -10,6 +10,7 @@ function Navbar() {
   const location = useLocation();
   const currentPath = location.pathname;
   const { user, logout } = useContext(UserContext);
+  const roles = Array.isArray(user?.role) ? user.role : [user?.role];
 
   const getDashboardLink = () => {
     const roles = Array.isArray(user.role) ? user.role : [user.role];
@@ -140,9 +141,9 @@ function Navbar() {
                         clipRule="evenodd"
                       />
                     </svg>
-                    <span className="flex-1">Profile</span> {/* Đảm bảo chữ không bị đẩy xuống */}
+                    <span className="flex-1">Tài khoản</span> {/* Đảm bảo chữ không bị đẩy xuống */}
                   </Link>
-                  <Link
+                  {/* <Link
                     to={getDashboardLink()} // Sử dụng getDashboardLink để điều hướng đúng
                     className="block px-4 py-2 text-gray-700 hover:bg-gray-100 flex items-center gap-2"
                   >
@@ -159,8 +160,28 @@ function Navbar() {
                         clipRule="evenodd"
                       />
                     </svg>
-                    Đặt phòng
+                    Quản lý đặt phòng
                   </Link>
+                  {roles.includes("Landlord") || roles.includes("Admin") && (
+                    <Link
+                      to="/homestay-management"
+                      className="block px-4 py-2 text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-5 w-5"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M10 2a8 8 0 100 16 8 8 0 000-16zm1.5 11.5a.5.5 0 01-.5.5h-3a.5.5 0 01-.5-.5v-3a.5.5 0 01.5-.5h3a.5.5 0 01.5.5v3zm1-4a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                      Quản lý homestay
+                    </Link>
+                  )} */}
                   <button
                     onClick={handleLogout}
                     className="w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100"

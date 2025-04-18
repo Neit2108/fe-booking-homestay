@@ -6,6 +6,7 @@ import Loader from "../../components/Loading/Loader";
 import { UserContext } from "../../context/UserContext";
 import { useNavigate } from "react-router-dom";
 import DashboardHeader from "../../components/DashboardHeader/DashboardHeader";
+import Sidebar from "../../components/Sidebar/Sidebar";
 
 const HomestayManagement = () => {
   const {
@@ -281,547 +282,555 @@ const HomestayManagement = () => {
     );
 
   return (
-    <div className="bg-gray-50 min-h-screen p-6">
-      <div className="max-w-7xl mx-auto">
-        <DashboardHeader />
-        <h1 className="text-3xl font-bold text-blue-600 mb-6">
-          Homestay Management
-        </h1>
+    <div className="flex min-h-screen bg-gray-50">
+      <Sidebar activePage="homestay-management" />
+      <div className="flex-1 md:ml-64 p-6">
+        <div className="max-w-6xl mx-auto">
+          <DashboardHeader />
+          <h1 className="text-3xl font-bold text-blue-600 mb-6">
+            Quản lý Homestay
+          </h1>
 
-        {/* Search and Filter section */}
-        <div className="bg-white p-4 rounded-lg shadow mb-6">
-          <div className="flex flex-wrap gap-4 items-center">
-            <div className="flex-1 min-w-[300px]">
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                  <svg
-                    className="w-5 h-5 text-gray-500"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                    ></path>
-                  </svg>
+          {/* Search and Filter section */}
+          <div className="bg-white p-4 rounded-lg shadow mb-6">
+            <div className="flex flex-wrap gap-4 items-center">
+              <div className="flex-1 min-w-[300px]">
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                    <svg
+                      className="w-5 h-5 text-gray-500"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                      ></path>
+                    </svg>
+                  </div>
+                  <input
+                    type="text"
+                    className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Tìm theo tên..."
+                    value={searchTerm}
+                    onChange={handleSearchChange}
+                  />
                 </div>
-                <input
-                  type="text"
-                  className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Search by name..."
-                  value={searchTerm}
-                  onChange={handleSearchChange}
-                />
+              </div>
+              <button
+                onClick={handleAddHomestay} // Bạn định nghĩa hàm này phía trên
+                className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition"
+              >
+                Thêm
+              </button>
+            </div>
+
+            <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="flex flex-col">
+                <label className="mb-1 text-sm text-gray-700">Danh mục</label>
+                <select
+                  className="border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
+                  value={filterBy.category || ""}
+                  onChange={(e) =>
+                    setFilterBy({ ...filterBy, category: e.target.value })
+                  }
+                >
+                  <option value="">Tất cả danh mục</option>
+                  <option value="homestay">Homestay</option>
+                  <option value="resort">Resort</option>
+                  <option value="hotel">Hotel</option>
+                  <option value="villa">Villa</option>
+                </select>
+              </div>
+
+              <div className="flex flex-col">
+                <label className="mb-1 text-sm text-gray-700">Tầm giá</label>
+                <div className="grid grid-cols-2 gap-2">
+                  <input
+                    type="number"
+                    placeholder="Từ"
+                    className="border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
+                    value={filterBy.minPrice || ""}
+                    onChange={(e) =>
+                      setFilterBy({ ...filterBy, minPrice: e.target.value })
+                    }
+                  />
+                  <input
+                    type="number"
+                    placeholder="Đến"
+                    className="border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
+                    value={filterBy.maxPrice || ""}
+                    onChange={(e) =>
+                      setFilterBy({ ...filterBy, maxPrice: e.target.value })
+                    }
+                  />
+                </div>
+              </div>
+
+              <div className="flex flex-col">
+                <label className="mb-1 text-sm text-gray-700">
+                  Đánh giá tối thiểu
+                </label>
+                <select
+                  className="border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
+                  value={filterBy.minRating || ""}
+                  onChange={(e) =>
+                    setFilterBy({ ...filterBy, minRating: e.target.value })
+                  }
+                >
+                  <option value="">Bất kỳ</option>
+                  <option value="3">3+ sao</option>
+                  <option value="4">4+ sao</option>
+                  <option value="4.5">4.5+ sao</option>
+                </select>
+              </div>
+
+              <div className="flex flex-col">
+                <label className="mb-1 text-sm text-gray-700">
+                  Số khách tối đa
+                </label>
+                <select
+                  className="border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
+                  value={filterBy.maxGuests || ""}
+                  onChange={(e) =>
+                    setFilterBy({ ...filterBy, maxGuests: e.target.value })
+                  }
+                >
+                  <option value="">Bất kỳ</option>
+                  <option value="2">2+</option>
+                  <option value="4">4+</option>
+                  <option value="6">6+</option>
+                  <option value="8">8+</option>
+                </select>
               </div>
             </div>
-            <button
-              onClick={handleAddHomestay} // Bạn định nghĩa hàm này phía trên
-              className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition"
-            >
-              Thêm
-            </button>
           </div>
 
-          <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="flex flex-col">
-              <label className="mb-1 text-sm text-gray-700">Category</label>
-              <select
-                className="border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
-                value={filterBy.category || ""}
-                onChange={(e) =>
-                  setFilterBy({ ...filterBy, category: e.target.value })
-                }
-              >
-                <option value="">All Categories</option>
-                <option value="homestay">Homestay</option>
-                <option value="resort">Resort</option>
-                <option value="hotel">Hotel</option>
-                <option value="villa">Villa</option>
-              </select>
-            </div>
-
-            <div className="flex flex-col">
-              <label className="mb-1 text-sm text-gray-700">Price Range</label>
-              <div className="grid grid-cols-2 gap-2">
-                <input
-                  type="number"
-                  placeholder="Min"
-                  className="border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
-                  value={filterBy.minPrice || ""}
-                  onChange={(e) =>
-                    setFilterBy({ ...filterBy, minPrice: e.target.value })
-                  }
-                />
-                <input
-                  type="number"
-                  placeholder="Max"
-                  className="border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
-                  value={filterBy.maxPrice || ""}
-                  onChange={(e) =>
-                    setFilterBy({ ...filterBy, maxPrice: e.target.value })
-                  }
-                />
-              </div>
-            </div>
-
-            <div className="flex flex-col">
-              <label className="mb-1 text-sm text-gray-700">Min Rating</label>
-              <select
-                className="border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
-                value={filterBy.minRating || ""}
-                onChange={(e) =>
-                  setFilterBy({ ...filterBy, minRating: e.target.value })
-                }
-              >
-                <option value="">Any Rating</option>
-                <option value="3">3+ Stars</option>
-                <option value="4">4+ Stars</option>
-                <option value="4.5">4.5+ Stars</option>
-              </select>
-            </div>
-
-            <div className="flex flex-col">
-              <label className="mb-1 text-sm text-gray-700">Max Guests</label>
-              <select
-                className="border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
-                value={filterBy.maxGuests || ""}
-                onChange={(e) =>
-                  setFilterBy({ ...filterBy, maxGuests: e.target.value })
-                }
-              >
-                <option value="">Any</option>
-                <option value="2">2+</option>
-                <option value="4">4+</option>
-                <option value="6">6+</option>
-                <option value="8">8+</option>
-              </select>
-            </div>
-          </div>
-        </div>
-
-        {/* Homestay Table */}
-        <div className="bg-white rounded-lg shadow overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                    onClick={() => handleSortChange("id")}
-                  >
-                    <div className="flex items-center">
-                      ID
-                      {sortOption === "id" && (
-                        <svg
-                          className={`ml-1 w-4 h-4 ${
-                            sortDirection === "desc"
-                              ? "transform rotate-180"
-                              : ""
-                          }`}
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                            clipRule="evenodd"
-                          ></path>
-                        </svg>
-                      )}
-                    </div>
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                    onClick={() => handleSortChange("name")}
-                  >
-                    <div className="flex items-center">
-                      Name
-                      {sortOption === "name" && (
-                        <svg
-                          className={`ml-1 w-4 h-4 ${
-                            sortDirection === "desc"
-                              ? "transform rotate-180"
-                              : ""
-                          }`}
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                            clipRule="evenodd"
-                          ></path>
-                        </svg>
-                      )}
-                    </div>
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    Photo
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                    onClick={() => handleSortChange("rating")}
-                  >
-                    <div className="flex items-center">
-                      Rating
-                      {sortOption === "rating" && (
-                        <svg
-                          className={`ml-1 w-4 h-4 ${
-                            sortDirection === "desc"
-                              ? "transform rotate-180"
-                              : ""
-                          }`}
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                            clipRule="evenodd"
-                          ></path>
-                        </svg>
-                      )}
-                    </div>
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    Category
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                    onClick={() => handleSortChange("price")}
-                  >
-                    <div className="flex items-center">
-                      Price
-                      {sortOption === "price" && (
-                        <svg
-                          className={`ml-1 w-4 h-4 ${
-                            sortDirection === "desc"
-                              ? "transform rotate-180"
-                              : ""
-                          }`}
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                            clipRule="evenodd"
-                          ></path>
-                        </svg>
-                      )}
-                    </div>
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                    onClick={() => handleSortChange("maxGuests")}
-                  >
-                    <div className="flex items-center">
-                      Max Guests
-                      {sortOption === "maxGuests" && (
-                        <svg
-                          className={`ml-1 w-4 h-4 ${
-                            sortDirection === "desc"
-                              ? "transform rotate-180"
-                              : ""
-                          }`}
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                            clipRule="evenodd"
-                          ></path>
-                        </svg>
-                      )}
-                    </div>
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    Description
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {currentItems.length > 0 ? (
-                  currentItems.map((place) => (
-                    <tr key={place.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        {place.id}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {place.name}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="w-16 h-16 rounded-md overflow-hidden">
-                          {place.images && place.images.length > 0 ? (
-                            <img
-                              src={place.images[0].imageUrl || ""}
-                              alt={place.name}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <div className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-500">
-                              No image
-                            </div>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex flex-col">
-                          {renderStars(place.rating)}
-                          <span className="text-sm text-gray-500">
-                            {place.rating} / 5
+          {/* Homestay Table */}
+          <div className="bg-white rounded-lg shadow overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th
+                      scope="col"
+                      className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                      onClick={() => handleSortChange("id")}
+                    >
+                      <div className="flex items-center">
+                        ID
+                        {sortOption === "id" && (
+                          <svg
+                            className={`ml-1 w-4 h-4 ${
+                              sortDirection === "desc"
+                                ? "transform rotate-180"
+                                : ""
+                            }`}
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                              clipRule="evenodd"
+                            ></path>
+                          </svg>
+                        )}
+                      </div>
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                      onClick={() => handleSortChange("name")}
+                    >
+                      <div className="flex items-center">
+                        Tên
+                        {sortOption === "name" && (
+                          <svg
+                            className={`ml-1 w-4 h-4 ${
+                              sortDirection === "desc"
+                                ? "transform rotate-180"
+                                : ""
+                            }`}
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                              clipRule="evenodd"
+                            ></path>
+                          </svg>
+                        )}
+                      </div>
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider"
+                    >
+                      Ảnh
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                      onClick={() => handleSortChange("rating")}
+                    >
+                      <div className="flex items-center">
+                        Đánh giá
+                        {sortOption === "rating" && (
+                          <svg
+                            className={`ml-1 w-4 h-4 ${
+                              sortDirection === "desc"
+                                ? "transform rotate-180"
+                                : ""
+                            }`}
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                              clipRule="evenodd"
+                            ></path>
+                          </svg>
+                        )}
+                      </div>
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider"
+                    >
+                      Danh mục
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                      onClick={() => handleSortChange("price")}
+                    >
+                      <div className="flex items-center">
+                        Giá
+                        {sortOption === "price" && (
+                          <svg
+                            className={`ml-1 w-4 h-4 ${
+                              sortDirection === "desc"
+                                ? "transform rotate-180"
+                                : ""
+                            }`}
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                              clipRule="evenodd"
+                            ></path>
+                          </svg>
+                        )}
+                      </div>
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                      onClick={() => handleSortChange("maxGuests")}
+                    >
+                      <div className="flex items-center">
+                        Số khách tối đa
+                        {sortOption === "maxGuests" && (
+                          <svg
+                            className={`ml-1 w-4 h-4 ${
+                              sortDirection === "desc"
+                                ? "transform rotate-180"
+                                : ""
+                            }`}
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                              clipRule="evenodd"
+                            ></path>
+                          </svg>
+                        )}
+                      </div>
+                    </th>
+                    {/* <th
+                      scope="col"
+                      className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider"
+                    >
+                      Mô tả
+                    </th> */}
+                    <th
+                      scope="col"
+                      className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider"
+                    >
+                      Lựa chọn
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {currentItems.length > 0 ? (
+                    currentItems.map((place) => (
+                      <tr key={place.id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                          {place.id}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {place.name}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="w-16 h-16 rounded-md overflow-hidden">
+                            {place.images && place.images.length > 0 ? (
+                              <img
+                                src={place.images[0].imageUrl || ""}
+                                alt={place.name}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-500">
+                                No image
+                              </div>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex flex-col">
+                            {renderStars(place.rating)}
+                            <span className="text-sm text-gray-500">
+                              {place.rating} / 5
+                            </span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          <span className="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                            {place.category || "N/A"}
                           </span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        <span className="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                          {place.category || "N/A"}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
-                        ${place.price}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {place.maxGuests || "N/A"}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-500 max-w-xs">
-                        <div className="truncate">
-                          {truncateText(place.description, 50)}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <div className="flex space-x-2">
-                          <button
-                            onClick={() => handleEditHomestay(place)}
-                            className="text-blue-600 hover:text-blue-900"
-                            title="Edit"
-                          >
-                            <svg
-                              className="w-5 h-5"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                              xmlns="http://www.w3.org/2000/svg"
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
+                          ${place.price}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {place.maxGuests || "N/A"}
+                        </td>
+                        {/* <td className="px-6 py-4 text-sm text-gray-500 max-w-xs">
+                          <div className="truncate">
+                            {truncateText(place.description, 50)}
+                          </div>
+                        </td> */}
+                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                          <div className="flex space-x-2">
+                            <button
+                              onClick={() => handleEditHomestay(place)}
+                              className="text-blue-600 hover:text-blue-900"
+                              title="Edit"
                             >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth="2"
-                                d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
-                              ></path>
-                            </svg>
-                          </button>
-                          <button
-                            onClick={() => handleDeleteClick(place)}
-                            className="text-red-600 hover:text-red-900"
-                            title="Delete"
-                          >
-                            <svg
-                              className="w-5 h-5"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                              xmlns="http://www.w3.org/2000/svg"
+                              <svg
+                                className="w-5 h-5"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                                xmlns="http://www.w3.org/2000/svg"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth="2"
+                                  d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+                                ></path>
+                              </svg>
+                            </button>
+                            <button
+                              onClick={() => handleDeleteClick(place)}
+                              className="text-red-600 hover:text-red-900"
+                              title="Delete"
                             >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth="2"
-                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                              ></path>
-                            </svg>
-                          </button>
-                          <button
-                            onClick={() =>
-                              window.open(
-                                `/place-details/${place.id}`,
-                                "_blank"
-                              )
-                            }
-                            className="text-gray-600 hover:text-gray-900"
-                            title="View details"
-                          >
-                            <svg
-                              className="w-5 h-5"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                              xmlns="http://www.w3.org/2000/svg"
+                              <svg
+                                className="w-5 h-5"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                                xmlns="http://www.w3.org/2000/svg"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth="2"
+                                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                ></path>
+                              </svg>
+                            </button>
+                            <button
+                              onClick={() =>
+                                window.open(
+                                  `/place-details/${place.id}`,
+                                  "_blank"
+                                )
+                              }
+                              className="text-gray-600 hover:text-gray-900"
+                              title="View details"
                             >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth="2"
-                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                              ></path>
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth="2"
-                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                              ></path>
-                            </svg>
-                          </button>
-                        </div>
+                              <svg
+                                className="w-5 h-5"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                                xmlns="http://www.w3.org/2000/svg"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth="2"
+                                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                                ></path>
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth="2"
+                                  d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                                ></path>
+                              </svg>
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td
+                        colSpan="9"
+                        className="px-6 py-10 text-center text-gray-500"
+                      >
+                        Không tìm thấy kết quả nào phù hợp
                       </td>
                     </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td
-                      colSpan="9"
-                      className="px-6 py-10 text-center text-gray-500"
-                    >
-                      No homestays found matching your criteria
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Pagination */}
-          <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
-            <div className="flex-1 flex justify-between sm:hidden">
-              <button
-                onClick={prevPage}
-                disabled={currentPage === 1}
-                className={`relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md ${
-                  currentPage === 1
-                    ? "text-gray-400 bg-gray-100"
-                    : "text-gray-700 bg-white hover:bg-gray-50"
-                }`}
-              >
-                Previous
-              </button>
-              <button
-                onClick={nextPage}
-                disabled={currentPage === totalPages}
-                className={`ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md ${
-                  currentPage === totalPages
-                    ? "text-gray-400 bg-gray-100"
-                    : "text-gray-700 bg-white hover:bg-gray-50"
-                }`}
-              >
-                Next
-              </button>
+                  )}
+                </tbody>
+              </table>
             </div>
-            <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-              <div>
-                <p className="text-sm text-gray-700">
-                  Showing{" "}
-                  <span className="font-medium">{indexOfFirstItem + 1}</span> to{" "}
-                  <span className="font-medium">
-                    {Math.min(indexOfLastItem, sortedPlaces.length)}
-                  </span>{" "}
-                  of <span className="font-medium">{sortedPlaces.length}</span>{" "}
-                  results
-                </p>
-              </div>
-              <div>
-                <nav
-                  className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px"
-                  aria-label="Pagination"
+
+            {/* Pagination */}
+            <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+              <div className="flex-1 flex justify-between sm:hidden">
+                <button
+                  onClick={prevPage}
+                  disabled={currentPage === 1}
+                  className={`relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md ${
+                    currentPage === 1
+                      ? "text-gray-400 bg-gray-100"
+                      : "text-gray-700 bg-white hover:bg-gray-50"
+                  }`}
                 >
-                  <button
-                    onClick={prevPage}
-                    disabled={currentPage === 1}
-                    className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 ${
-                      currentPage === 1
-                        ? "text-gray-400 bg-gray-100"
-                        : "text-gray-500 bg-white hover:bg-gray-50"
-                    }`}
+                  Tiếp
+                </button>
+                <button
+                  onClick={nextPage}
+                  disabled={currentPage === totalPages}
+                  className={`ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md ${
+                    currentPage === totalPages
+                      ? "text-gray-400 bg-gray-100"
+                      : "text-gray-700 bg-white hover:bg-gray-50"
+                  }`}
+                >
+                  Tiếp
+                </button>
+              </div>
+              <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-sm text-gray-700">
+                    Hiển thị{" "}
+                    <span className="font-medium">{indexOfFirstItem + 1}</span>{" "}
+                    đến{" "}
+                    <span className="font-medium">
+                      {Math.min(indexOfLastItem, sortedPlaces.length)}
+                    </span>{" "}
+                    trong{" "}
+                    <span className="font-medium">{sortedPlaces.length}</span>{" "}
+                    kết quả được tìm thấy
+                  </p>
+                </div>
+                <div>
+                  <nav
+                    className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px"
+                    aria-label="Pagination"
                   >
-                    <span className="sr-only">Previous</span>
-                    <svg
-                      className="h-5 w-5"
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                      aria-hidden="true"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  </button>
-
-                  {/* Page numbers */}
-                  {[...Array(totalPages).keys()].map((number) => (
                     <button
-                      key={number + 1}
-                      onClick={() => paginate(number + 1)}
-                      aria-current={
-                        currentPage === number + 1 ? "page" : undefined
-                      }
-                      className={`${
-                        currentPage === number + 1
-                          ? "z-10 bg-blue-50 border-blue-500 text-blue-600"
-                          : "bg-white border-gray-300 text-gray-500 hover:bg-gray-50"
-                      } relative inline-flex items-center px-4 py-2 border text-sm font-medium`}
+                      onClick={prevPage}
+                      disabled={currentPage === 1}
+                      className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 ${
+                        currentPage === 1
+                          ? "text-gray-400 bg-gray-100"
+                          : "text-gray-500 bg-white hover:bg-gray-50"
+                      }`}
                     >
-                      {number + 1}
+                      <span className="sr-only">Trước</span>
+                      <svg
+                        className="h-5 w-5"
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                        aria-hidden="true"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
                     </button>
-                  ))}
 
-                  <button
-                    onClick={nextPage}
-                    disabled={currentPage === totalPages}
-                    className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 ${
-                      currentPage === totalPages
-                        ? "text-gray-400 bg-gray-100"
-                        : "text-gray-500 bg-white hover:bg-gray-50"
-                    }`}
-                  >
-                    <span className="sr-only">Next</span>
-                    <svg
-                      className="h-5 w-5"
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                      aria-hidden="true"
+                    {/* Page numbers */}
+                    {[...Array(totalPages).keys()].map((number) => (
+                      <button
+                        key={number + 1}
+                        onClick={() => paginate(number + 1)}
+                        aria-current={
+                          currentPage === number + 1 ? "page" : undefined
+                        }
+                        className={`${
+                          currentPage === number + 1
+                            ? "z-10 bg-blue-50 border-blue-500 text-blue-600"
+                            : "bg-white border-gray-300 text-gray-500 hover:bg-gray-50"
+                        } relative inline-flex items-center px-4 py-2 border text-sm font-medium`}
+                      >
+                        {number + 1}
+                      </button>
+                    ))}
+
+                    <button
+                      onClick={nextPage}
+                      disabled={currentPage === totalPages}
+                      className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 ${
+                        currentPage === totalPages
+                          ? "text-gray-400 bg-gray-100"
+                          : "text-gray-500 bg-white hover:bg-gray-50"
+                      }`}
                     >
-                      <path
-                        fillRule="evenodd"
-                        d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  </button>
-                </nav>
+                      <span className="sr-only">Tiếp</span>
+                      <svg
+                        className="h-5 w-5"
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                        aria-hidden="true"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </button>
+                  </nav>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-
       {/* Homestay Modal */}
       <HomestayModal
         isOpen={isModalOpen}
@@ -833,27 +842,27 @@ const HomestayManagement = () => {
 
       {/* Delete Confirmation Modal */}
       {isDeleteModalOpen && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-75 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-10 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              Confirm Deletion
+              Xác nhận xóa
             </h3>
             <p className="mb-4 text-gray-700">
-              Are you sure you want to delete the homestay "
-              {homestayToDelete?.name}"? This action cannot be undone.
+              Bạn có chắc chắn muốn xóa homestay "{homestayToDelete?.name}"? Sau
+              khi xóa sẽ không thể hoàn tác.
             </p>
             <div className="flex justify-end space-x-3">
               <button
                 onClick={() => setIsDeleteModalOpen(false)}
                 className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
               >
-                Cancel
+                Hủy
               </button>
               <button
                 onClick={confirmDelete}
                 className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700"
               >
-                Delete
+                Xóa
               </button>
             </div>
           </div>

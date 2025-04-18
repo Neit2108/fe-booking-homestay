@@ -99,7 +99,7 @@ export const usePlaces = () => {
         "https://localhost:7284/places/add-place",
         placeData,
         {
-          headers: { "Content-Type": "application/json",
+          headers: { "Content-Type": "multipart/form-data",
             Authorization: `Bearer ${user.token}`
            },
         }

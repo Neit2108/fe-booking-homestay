@@ -89,9 +89,14 @@ const UserProvider = ({ children }) => {
     window.location.href = "/login";
   };
 
+  const isAdmin = () => user?.role === 'admin';
+  const isLandlord = () => user?.role === 'landlord';
+  const hasRole = (role) => user?.role === role;
+  const hasAnyRole = (roles) => roles.includes(user?.role);
+
   return (
     <UserContext.Provider
-      value={{ user, setUser, loading, login, logout, fetchUserProfile }}
+      value={{ user, setUser, loading, login, logout, fetchUserProfile, isAdmin, isLandlord, hasRole, hasAnyRole }}
     >
       {children}
     </UserContext.Provider>

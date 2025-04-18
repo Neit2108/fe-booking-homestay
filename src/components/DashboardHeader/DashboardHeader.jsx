@@ -7,6 +7,13 @@ function DashboardHeader() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
   const navigate = useNavigate(); // Khởi tạo useNavigate
+  const isAdmin =
+    (Array.isArray(user.role) && user.role.includes("Admin")) ||
+    (typeof user.role === "string" && user.role === "Admin");
+
+  const isLandlord =
+    (Array.isArray(user.role) && user.role.includes("Landlord")) ||
+    (typeof user.role === "string" && user.role === "Landlord");
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -44,9 +51,9 @@ function DashboardHeader() {
       {/* Greeting */}
       <div>
         <div className="text-xl font-semibold text-neutral-950">
-          Hello, {user?.fullName || "Admin"}
+          Xin chào, {user?.fullName || "Admin"}
         </div>
-        <div className="text-sm text-neutral-500">Have a nice day</div>
+        <div className="text-sm text-neutral-500">Một ngày tốt lành</div>
       </div>
 
       {/* Notifications and Profile */}
@@ -97,7 +104,9 @@ function DashboardHeader() {
             <div className="text-base font-semibold text-neutral-950">
               {user?.fullName || "Admin User"}
             </div>
-            <div className="text-xs text-neutral-950">{user.role}</div>
+            <div className="text-xs text-neutral-950">
+              {isAdmin ? "Admin" : isLandlord ? "Chủ nhà" : "Người dùng"}
+            </div>
           </div>
 
           {/* Dropdown Arrow */}

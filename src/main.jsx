@@ -24,6 +24,7 @@ import PaymentFlow  from "./pages/Payments/PaymentFlow.jsx";
 import TestCaseManager from "./pages/TestCasePage/TestCaseManager.jsx";
 import HomestayRecommendation from "./pages/HomestayRecommend/HomestayRecommendation.jsx";
 import HomestayManagement from "./pages/HomestayManagement/HomestayManagement.jsx";
+import Statistics from "./pages/Statistics/Statistics.jsx";
 import { UserProvider } from "./context/UserContext.jsx";
 
 function AppLayout() {
@@ -61,6 +62,7 @@ const router = createBrowserRouter([
       { path: "/test-case", element: <TestCaseManager /> },
       { path: "/homestay-recommend", element: <HomestayRecommendation /> },
       { path: "/homestay-management", element: <HomestayManagement /> },
+      { path: "/statistics", element: <Statistics /> },
     ],
   },
 ]);

@@ -1,4 +1,3 @@
-// hooks/useBookings.js
 import { useState, useEffect } from "react";
 import axios from "axios";
 
@@ -50,7 +49,9 @@ const useBookings = (user, statusFilter, startDateFilter, endDateFilter) => {
         },
         params,
       });
-      setBookings(response.data.data || response.data);
+
+      const responseData = response.data.data || response.data;
+      setBookings(responseData);
     } catch (err) {
       setError("Không thể tải danh sách đặt phòng.");
       console.error("Error fetching bookings:", err);
@@ -59,7 +60,7 @@ const useBookings = (user, statusFilter, startDateFilter, endDateFilter) => {
     }
   };
 
-  // Gọi fetchBookings khi hook được sử dụng hoặc khi các tham số thay đổi
+  // Gọi fetchBookings khi các tham số thay đổi
   useEffect(() => {
     fetchBookings();
   }, [user, statusFilter, startDateFilter, endDateFilter]);

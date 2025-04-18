@@ -11,12 +11,13 @@ const TestCaseManager = () => {
   const [error, setError] = useState(null);
   
   const [newTestCase, setNewTestCase] = useState({
+    testId : '',
     name: '',
     target: '',
     implementationSteps: '',
     input: '',
     expectedOutput: '',
-    status: 'Chưa test',
+    status: 'Đạt',
     note: ''
   });
 
@@ -48,6 +49,7 @@ const TestCaseManager = () => {
     setError(null);
     try {
       const response = await axios.post(`${API_BASE_URL}/create`, {
+        testId: newTestCase.testId,
         name: newTestCase.name,
         target: newTestCase.target,
         implementationSteps: newTestCase.implementationSteps,
@@ -62,12 +64,13 @@ const TestCaseManager = () => {
       
       // Reset the form
       setNewTestCase({
+        testId: createdTestCase.testId,
         name: '',
         target: '',
         implementationSteps: '',
         input: '',
         expectedOutput: '',
-        status: 'Chưa test',
+        status: 'Đạt',
         note: ''
       });
 
@@ -101,6 +104,7 @@ const TestCaseManager = () => {
     
     const testCaseRows = testCases.map(tc => [
       tc.id,
+      tc.testId,
       tc.name,
       tc.target,
       tc.implementationSteps,
@@ -181,7 +185,7 @@ const TestCaseManager = () => {
               {testCases.length > 0 ? (
                 testCases.map((tc) => (
                   <tr key={tc.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-2 border">{tc.id}</td>
+                    <td className="px-4 py-2 border">{tc.testId}</td>
                     <td className="px-4 py-2 border">{tc.name}</td>
                     <td className="px-4 py-2 border">{tc.target}</td>
                     <td className="px-4 py-2 border" style={{whiteSpace: 'pre-line'}}>{tc.implementationSteps}</td>
@@ -205,7 +209,17 @@ const TestCaseManager = () => {
       
       <div className="mb-6">
         <h2 className="text-lg font-semibold text-gray-700 mb-4">Thêm Test Case mới</h2>
-        
+
+        <div className="mb-4">
+          <label className="block text-gray-700 font-medium mb-2">Mã TC:</label>
+          <input 
+            type="text" 
+            value={newTestCase.testId}
+            onChange={(e) => handleNewTestCaseChange('testId', e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md"
+          />
+        </div>
+
         <div className="mb-4">
           <label className="block text-gray-700 font-medium mb-2">Tên TC:</label>
           <input 
@@ -264,8 +278,8 @@ const TestCaseManager = () => {
               onChange={(e) => handleNewTestCaseChange('status', e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md"
             >
+              <option value="Đạt">ĐẠT</option>
               <option value="Chưa test">Chưa test</option>
-              <option value="Đạt">Đạt</option>
               <option value="Không đạt">Không đạt</option>
             </select>
           </div>

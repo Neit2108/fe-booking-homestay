@@ -1,6 +1,16 @@
 import React, { useState, useEffect } from 'react';
+import { useContext } from 'react';
+import { UserContext } from '../../context/UserContext';
 
-const HomestayModal = ({ isOpen, onClose, onSubmit, initialData, mode = 'add' }) => {
+const HomestayModal = ({ isOpen, onClose, onSubmit, initialData, mode = 'add'}) => {
+  const { user } = useContext(UserContext);
+  
+  // Check if user is Admin
+  const isAdmin = user && (
+    (Array.isArray(user.role) && user.role.includes('Admin')) ||
+    (typeof user.role === 'string' && user.role === 'Admin')
+  );
+
   const [formData, setFormData] = useState({
     name: '',
     address: '',
@@ -8,7 +18,7 @@ const HomestayModal = ({ isOpen, onClose, onSubmit, initialData, mode = 'add' })
     description: '',
     price: '',
     maxGuests: '',
-    ownerId: '',
+    ownerId: mode === 'add' && !isAdmin ? user?.id || '' : '',
     images: []
   });
 
@@ -61,7 +71,7 @@ const HomestayModal = ({ isOpen, onClose, onSubmit, initialData, mode = 'add' })
       description: '',
       price: '',
       maxGuests: '',
-      ownerId: '',
+      ownerId: mode === 'add' && !isAdmin ? user?.id || '' : '',
       images: []
     });
     setImageFiles([]);
@@ -188,7 +198,7 @@ const HomestayModal = ({ isOpen, onClose, onSubmit, initialData, mode = 'add' })
       <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
         <div className="sticky top-0 bg-white px-6 py-4 border-b border-gray-200 flex justify-between items-center">
           <h2 className="text-xl font-semibold text-blue-600">
-            {mode === 'edit' ? 'Edit Homestay' : 'Add New Homestay'}
+            {mode === 'edit' ? 'Sửa thông tin Homestay' : 'Thêm Homestay mới'}
           </h2>
           <button
             onClick={onClose}
@@ -204,8 +214,8 @@ const HomestayModal = ({ isOpen, onClose, onSubmit, initialData, mode = 'add' })
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Name */}
             <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-                Name*
+              <label htmlFor="name" className="block text-sm font-bold text-gray-700 mb-1">
+                Tên địa điểm*
               </label>
               <input
                 type="text"
@@ -220,8 +230,8 @@ const HomestayModal = ({ isOpen, onClose, onSubmit, initialData, mode = 'add' })
 
             {/* Category */}
             <div>
-              <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">
-                Category*
+              <label htmlFor="category" className="block text-sm font-bold text-gray-700 mb-1">
+                Loại*
               </label>
               <select
                 id="category"
@@ -239,8 +249,8 @@ const HomestayModal = ({ isOpen, onClose, onSubmit, initialData, mode = 'add' })
 
             {/* Address */}
             <div>
-              <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-1">
-                Address*
+              <label htmlFor="address" className="block text-sm font-bold text-gray-700 mb-1">
+                Địa chỉ*
               </label>
               <input
                 type="text"
@@ -255,8 +265,8 @@ const HomestayModal = ({ isOpen, onClose, onSubmit, initialData, mode = 'add' })
 
             {/* Price */}
             <div>
-              <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-1">
-                Price per night*
+              <label htmlFor="price" className="block text-sm font-bold text-gray-700 mb-1">
+                Giá*
               </label>
               <div className="relative rounded-md shadow-sm">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -278,8 +288,8 @@ const HomestayModal = ({ isOpen, onClose, onSubmit, initialData, mode = 'add' })
 
             {/* Max Guests */}
             <div>
-              <label htmlFor="maxGuests" className="block text-sm font-medium text-gray-700 mb-1">
-                Max Guests
+              <label htmlFor="maxGuests" className="block text-sm font-bold text-gray-700 mb-1">
+                Số khách tối đa
               </label>
               <input
                 type="number"
@@ -293,12 +303,30 @@ const HomestayModal = ({ isOpen, onClose, onSubmit, initialData, mode = 'add' })
               />
               {errors.maxGuests && <p className="mt-1 text-sm text-red-500">{errors.maxGuests}</p>}
             </div>
+
+            {isAdmin && mode === 'add' && (
+              <div>
+                <label htmlFor="ownerId" className="block text-sm font-bold text-gray-700 mb-1">
+                  Mã chủ nhà*
+                </label>
+                <input
+                  type="text"
+                  id="ownerId"
+                  name="ownerId"
+                  value={formData.ownerId}
+                  onChange={handleChange}
+                  className={`w-full px-3 py-2 border ${errors.ownerId ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500`}
+                  placeholder="Enter landlord ID"
+                />
+                {errors.ownerId && <p className="mt-1 text-sm text-red-500">{errors.ownerId}</p>}
+              </div>
+            )}
           </div>
 
           {/* Description */}
           <div className="mt-6">
-            <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
-              Description
+            <label htmlFor="description" className="block text-sm font-bold text-gray-700 mb-1">
+              Mô tả
             </label>
             <textarea
               id="description"
@@ -312,8 +340,8 @@ const HomestayModal = ({ isOpen, onClose, onSubmit, initialData, mode = 'add' })
 
           {/* Images */}
           <div className="mt-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Images{mode === 'add' ? '*' : ''}
+            <label className="block text-sm font-bold text-gray-700 mb-2">
+              Hình ảnh*{mode === 'add' ? '*' : ''}
             </label>
             
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
@@ -355,13 +383,13 @@ const HomestayModal = ({ isOpen, onClose, onSubmit, initialData, mode = 'add' })
               onClick={onClose}
               className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             >
-              Cancel
+              Hủy
             </button>
             <button
               type="submit"
               className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             >
-              {mode === 'edit' ? 'Update Homestay' : 'Add Homestay'}
+              {mode === 'edit' ? 'Xác nhân' : 'Thêm mới'}
             </button>
           </div>
         </form>
