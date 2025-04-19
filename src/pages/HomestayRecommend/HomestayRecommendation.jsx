@@ -139,7 +139,7 @@ const FilterOption = ({ icon, title, active, onClick }) => {
 
 const HomestayRecommendation = () => {
   const navigate = useNavigate();
-  const { places, loading, error } = usePlaces();
+  const { places, loading, error } = usePlaces({ mode: "public" });
 
   // State for filtered places
   const [filteredPlaces, setFilteredPlaces] = useState([]);

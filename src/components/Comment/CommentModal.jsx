@@ -6,8 +6,20 @@ const CommentModal = ({ rating, onClose, onSubmit }) => {
   const [comment, setComment] = useState("");
   const [imagePreviews, setImagePreviews] = useState([]); // Chỉ lưu previews và file trong một state
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
   const handleSubmit = () => {
     if (isSubmitting) return; // Tránh submit nhiều lần
+    
+    // Validate rating and comment
+    if (!selectedRating) {
+      alert("Vui lòng chọn số sao đánh giá");
+      return;
+    }
+    
+    if (!comment.trim()) {
+      alert("Vui lòng nhập nội dung đánh giá");
+      return;
+    }
     
     setIsSubmitting(true);
     
@@ -84,30 +96,32 @@ const CommentModal = ({ rating, onClose, onSubmit }) => {
         </div>
 
         {/* Image previews */}
-        <div className="grid grid-cols-3 gap-2 mb-4">
-          {imagePreviews.map((img, index) => (
-            <div key={index} className="relative">
-              <img
-                src={img.previewUrl}
-                alt={`preview-${index}`}
-                className="w-full h-24 object-cover rounded"
-              />
-              <button
-                className="absolute top-1 right-1 bg-white rounded-full text-sm px-1 hover:bg-red-500 hover:text-white transition"
-                onClick={() => handleRemoveImage(index)}
-                title="Xoá ảnh"
-              >
-                ❌
-              </button>
-            </div>
-          ))}
-        </div>
+        {imagePreviews.length > 0 && (
+          <div className="grid grid-cols-3 gap-2 mb-4">
+            {imagePreviews.map((img, index) => (
+              <div key={index} className="relative">
+                <img
+                  src={img.previewUrl}
+                  alt={`preview-${index}`}
+                  className="w-full h-24 object-cover rounded"
+                />
+                <button
+                  className="absolute top-1 right-1 bg-white rounded-full text-sm px-1 hover:bg-red-500 hover:text-white transition"
+                  onClick={() => handleRemoveImage(index)}
+                  title="Xoá ảnh"
+                >
+                  ❌
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* Image picker + comment input */}
         <div className="flex items-start gap-3">
           <div>
             <label className="block cursor-pointer text-sm font-medium text-blue-600">
-              Chọn ảnh
+              Chọn ảnh (tùy chọn)
               <input
                 type="file"
                 accept="image/*"
@@ -128,7 +142,7 @@ const CommentModal = ({ rating, onClose, onSubmit }) => {
         </div>
 
         <button
-          className={`mt-4 w-full py-2 px-4 rounded ${
+          className={`mt-4 w-full py-3 px-4 rounded ${
             isSubmitting
               ? "bg-gray-400 cursor-not-allowed"
               : "bg-blue-600 hover:bg-blue-700 text-white"

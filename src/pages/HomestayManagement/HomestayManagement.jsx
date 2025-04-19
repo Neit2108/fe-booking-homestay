@@ -17,7 +17,7 @@ const HomestayManagement = () => {
     addPlace,
     updatePlace,
     deletePlace,
-  } = usePlaces();
+  } = usePlaces({ mode: "managed" });
   const [searchTerm, setSearchTerm] = useState("");
   const [sortOption, setSortOption] = useState("id");
   const [sortDirection, setSortDirection] = useState("asc");

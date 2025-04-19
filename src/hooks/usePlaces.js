@@ -4,21 +4,33 @@ import { UserContext } from "../context/UserContext";
 
 /**
  * Custom hook to fetch and manage homestay places data
+ * @param {Object} options - Configuration options
+ * @param {string} options.mode - "public" for public access, "managed" for role-based access control
  * @returns {Object} - The places data, loading state, and error state
  */
-export const usePlaces = () => {
+export const usePlaces = (options = { mode: "managed" }) => {
   const [places, setPlaces] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { user, loading: userLoading } = useContext(UserContext);
 
-  // Function to fetch places based on user role
+  // Function to fetch places based on user role and mode
   const fetchPlaces = async () => {
     try {
       setLoading(true);
       setError(null);
 
-      // Wait until user data is loaded before making API calls
+      // If in public mode, fetch all places regardless of user role
+      if (options.mode === "public") {
+        const response = await axios.get(
+          "https://localhost:7284/places/get-all"
+        );
+        const processedData = processResponse(response.data);
+        setPlaces(processedData);
+        return;
+      }
+
+      // For managed mode, wait until user data is loaded before making API calls
       if (userLoading) {
         console.log("User data is still loading, deferring API call");
         return; // Exit early and wait for user data
@@ -99,9 +111,10 @@ export const usePlaces = () => {
         "https://localhost:7284/places/add-place",
         placeData,
         {
-          headers: { "Content-Type": "multipart/form-data",
+          headers: { 
+            "Content-Type": "multipart/form-data",
             Authorization: `Bearer ${user.token}`
-           },
+          },
         }
       );
       // Add the new place to the places state
@@ -122,7 +135,12 @@ export const usePlaces = () => {
       setLoading(true);
       const response = await axios.put(
         `https://localhost:7284/places/update/${id}`,
-        placeData
+        placeData,
+        {
+          headers: { 
+            Authorization: `Bearer ${user.token}`
+          },
+        }
       );
       // Update the place in the places state
       setPlaces(
@@ -142,7 +160,11 @@ export const usePlaces = () => {
   const deletePlace = async (id) => {
     try {
       setLoading(true);
-      await axios.delete(`https://localhost:7284/places/delete/${id}`);
+      await axios.delete(`https://localhost:7284/places/delete/${id}`, {
+        headers: { 
+          Authorization: `Bearer ${user.token}`
+        },
+      });
       // Remove the place from the places state
       setPlaces(places.filter((place) => place.id !== id));
       return true;
@@ -157,15 +179,18 @@ export const usePlaces = () => {
 
   // Fetch places on component mount and when user data changes
   useEffect(() => {
-    // Only fetch data when user context is fully loaded
-    if (!userLoading) {
+    if (options.mode === "public") {
+      // For public mode, fetch immediately without waiting for user
+      fetchPlaces();
+    } else if (!userLoading) {
+      // For managed mode, only fetch when user context is fully loaded
       fetchPlaces();
     }
-  }, [user, userLoading]);
+  }, [user, userLoading, options.mode]);
 
   return {
     places,
-    loading: loading || userLoading, // Consider loading while waiting for user data
+    loading: options.mode === "managed" ? (loading || userLoading) : loading, 
     error,
     fetchPlaces,
     addPlace,

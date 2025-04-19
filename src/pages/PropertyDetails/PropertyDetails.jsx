@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import Navbar from "../../components/Navbar/Navbar";
 import Footer from "../../components/Footer/Footer";
 import PropertyFeature from "../../components/PropertyFeature/PropertyFeature";
@@ -18,6 +18,7 @@ import acIcon from "../../assets/Detail/ic_ac.png";
 import refrigeratorIcon from "../../assets/Detail/ic_refrigerator.png";
 import tvIcon from "../../assets/Detail/ic_tv.png";
 import useComment from "../../hooks/useComment";
+import { UserContext } from "../../context/UserContext";
 
 function PropertyDetails() {
   const param = useParams();
@@ -25,6 +26,8 @@ function PropertyDetails() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [property, setProperty] = useState(null);
+  const [canReview, setCanReview] = useState(false);
+  const { user } = useContext(UserContext);
   const navigate = useNavigate();
 
   const {
@@ -33,6 +36,31 @@ function PropertyDetails() {
     error: commentError,
     addComment,
   } = useComment(id);
+
+  useEffect(() => {
+    const checkCanReview = async () => {
+      if (!user || !user.token) {
+        setCanReview(false);
+        return;
+      }
+
+      try {
+        const response = await axios.get(
+          `https://localhost:7284/bookings/can-comment/${id}`,
+          {
+            headers: { Authorization: `Bearer ${user.token}` },
+          }
+        );
+
+        setCanReview(response.data.canComment === true);
+      } catch (error) {
+        console.error("Error checking if user can review:", error);
+        setCanReview(false);
+      }
+    };
+
+    checkCanReview();
+  }, [id, user]);
 
   const createRatingDistribution = (averageRating, totalRatings) => {
     if (!totalRatings) return { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
@@ -155,7 +183,10 @@ function PropertyDetails() {
     navigate(`/place-details/${relatedPropertyId}`);
   };
 
-  const ratingDistribution = createRatingDistribution(property.rating, property.numOfRating);
+  const ratingDistribution = createRatingDistribution(
+    property.rating,
+    property.numOfRating
+  );
 
   const handleAddComment = async (rating, comment, images) => {
     try {
@@ -167,10 +198,28 @@ function PropertyDetails() {
         images
       );
 
-      // Không cần refresh thủ công vì useComment hook đã xử lý
+      // After successful comment submission, refresh the property data to get updated rating
+      try {
+        const response = await axios.get(
+          `https://localhost:7284/places/place-details/${id}`
+        );
+        const updatedPropertyData = response.data;
+        setProperty((prevProperty) => ({
+          ...prevProperty,
+          rating: updatedPropertyData.rating,
+          numOfRating: updatedPropertyData.numOfRating,
+        }));
+
+        console.log(
+          "Updated property data with new rating:",
+          updatedPropertyData
+        );
+      } catch (err) {
+        console.error("Error refreshing property data after comment:", err);
+      }
     } catch (error) {
       console.error("Failed to add comment:", error);
-      // Có thể hiển thị thông báo lỗi ở đây nếu cần
+      // You could show an error notification here
     }
   };
 
@@ -284,6 +333,7 @@ function PropertyDetails() {
                 ratingCounts={ratingDistribution}
                 comments={comments}
                 onAddComment={handleAddComment}
+                canReview={canReview}
               />
             )}
             {commentError && (
