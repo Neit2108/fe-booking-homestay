@@ -1,8 +1,9 @@
+
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import Navbar from "../../components/Navbar/Navbar";
 import Footer from "../../components/Footer/Footer";
-import {usePlaces} from "../../hooks/usePlaces";
+import { usePlaces } from "../../hooks/usePlaces";
 import HomestayFilters from "../../components/HomestayFilters/HomestayFilters";
 import { FaStar, FaStarHalfAlt, FaRegStar } from "react-icons/fa";
 import { BsSliders } from "react-icons/bs";
@@ -12,6 +13,7 @@ import { IoPeopleOutline } from "react-icons/io5";
 import { GoStarFill } from "react-icons/go";
 import { TbBulbFilled } from "react-icons/tb";
 import { PiStudentFill } from "react-icons/pi";
+import HomeSearch from "../../components/HomeSearch/HomeSearch";
 
 // Helper function to render star ratings
 const StarRating = ({ rating }) => {
@@ -21,12 +23,16 @@ const StarRating = ({ rating }) => {
 
   // Add full stars
   for (let i = 0; i < fullStars; i++) {
-    stars.push(<FaStar key={`star-${i}`} className="text-yellow-400" />);
+    stars.push(
+      <FaStar key={`star-${i}`} className="text-yellow-400" />
+    );
   }
 
   // Add half star if needed
   if (hasHalfStar) {
-    stars.push(<FaStarHalfAlt key="half-star" className="text-yellow-400" />);
+    stars.push(
+      <FaStarHalfAlt key="half-star" className="text-yellow-400" />
+    );
   }
 
   // Add empty stars to complete 5 stars
@@ -139,21 +145,79 @@ const FilterOption = ({ icon, title, active, onClick }) => {
 
 const HomestayRecommendation = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { places, loading, error } = usePlaces({ mode: "public" });
 
   // State for filtered places
   const [filteredPlaces, setFilteredPlaces] = useState([]);
-  const [activeFilter, setActiveFilter] = useState("Most Relevant");
+  const [activeFilter, setActiveFilter] = useState("");
   const [viewMode, setViewMode] = useState("grid");
   const [currentPage, setCurrentPage] = useState(1);
   const [placesPerPage] = useState(9);
+  const [searchParams, setSearchParams] = useState({
+    startDate: null,
+    endDate: null,
+    persons: 0,
+    location: "",
+    lat: null,
+    lng: null
+  });
 
-  // Initialize filteredPlaces when places data loads
+  // Parse URL search parameters when component mounts
+  useEffect(() => {
+    const queryParams = new URLSearchParams(location.search);
+    
+    const startDateParam = queryParams.get('startDate');
+    const endDateParam = queryParams.get('endDate');
+    const personsParam = queryParams.get('persons');
+    const locationParam = queryParams.get('location');
+    const latParam = queryParams.get('lat');
+    const lngParam = queryParams.get('lng');
+    
+    setSearchParams({
+      startDate: startDateParam ? new Date(startDateParam) : null,
+      endDate: endDateParam ? new Date(endDateParam) : null,
+      persons: personsParam ? parseInt(personsParam, 10) : 0,
+      location: locationParam || "",
+      lat: latParam ? parseFloat(latParam) : null,
+      lng: lngParam ? parseFloat(lngParam) : null
+    });
+  }, [location.search]);
+
+  // Apply search filters to places
   useEffect(() => {
     if (places && places.length > 0) {
-      setFilteredPlaces(places);
+      let filtered = [...places];
+      
+      // Filter by number of guests if specified
+      if (searchParams.persons > 0) {
+        filtered = filtered.filter(place => 
+          // If place has maxGuests property, check if it can accommodate the requested number
+          // Allow booking even if guests exceed maxGuests by 2 (as per your application logic)
+          !place.maxGuests || place.maxGuests >= searchParams.persons || 
+          (place.maxGuests + 2) >= searchParams.persons
+        );
+      }
+      
+      // Filter by location if specified
+      // This is a simple implementation; for production, consider using geospatial queries
+      if (searchParams.lat && searchParams.lng) {
+        // Sort by proximity to selected location
+        filtered.sort((a, b) => {
+          // This would work better if places had lat/lng coordinates
+          // For now, we'll just prioritize places with the search location in their address
+          const aHasLocation = a.address && a.address.toLowerCase().includes(searchParams.location.toLowerCase());
+          const bHasLocation = b.address && b.address.toLowerCase().includes(searchParams.location.toLowerCase());
+          
+          if (aHasLocation && !bHasLocation) return -1;
+          if (!aHasLocation && bHasLocation) return 1;
+          return 0;
+        });
+      }
+      
+      setFilteredPlaces(filtered);
     }
-  }, [places]);
+  }, [places, searchParams]);
 
   // Get current places for pagination from filteredPlaces
   const indexOfLastPlace = currentPage * placesPerPage;
@@ -166,11 +230,6 @@ const HomestayRecommendation = () => {
   const totalPages = filteredPlaces
     ? Math.ceil(filteredPlaces.length / placesPerPage)
     : 0;
-
-  const filters = [
-    { id: "preferences", title: "Filter Preferences", icon: <BsSliders /> },
-    { id: "relevant", title: "Most Relevant", icon: <BsSliders /> },
-  ];
 
   // Handle navigation to property details
   const handleNavigateToProperty = (placeId) => {
@@ -201,6 +260,39 @@ const HomestayRecommendation = () => {
     { id: "students", title: "Best for Students", icon: <PiStudentFill /> },
   ];
 
+  const renderSearchSummary = () => {
+    const parts = [];
+    
+    if (searchParams.persons > 0) {
+      parts.push(`${searchParams.persons} guests`);
+    }
+    
+    if (searchParams.location) {
+      parts.push(`in ${searchParams.location}`);
+    }
+    
+    if (searchParams.startDate && searchParams.endDate) {
+      const formatDate = (date) => {
+        return date.toLocaleDateString('en-US', { 
+          month: 'short', 
+          day: 'numeric'
+        });
+      };
+      parts.push(`from ${formatDate(searchParams.startDate)} to ${formatDate(searchParams.endDate)}`);
+    }
+    
+    if (parts.length === 0) {
+      return null;
+    }
+    
+    return (
+      <div className="bg-blue-50 p-4 rounded-lg mb-6 border border-blue-100">
+        <h2 className="font-semibold text-blue-800 mb-1">Your Search</h2>
+        <p className="text-blue-600">{parts.join(' • ')}</p>
+      </div>
+    );
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -226,9 +318,8 @@ const HomestayRecommendation = () => {
           >
             <strong className="font-bold">Lỗi! </strong>
             <span className="block sm:inline">
-              Vui lòng đăng nhập.
+              {error.message || "Có lỗi xảy ra. Vui lòng đăng nhập."}
             </span>
-            
           </div>
         </div>
         <Footer />
@@ -239,11 +330,21 @@ const HomestayRecommendation = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
+      
+      {/* Search bar at the top */}
+      <div className="bg-blue-600 py-6 mb-8">
+        <div className="container mx-auto px-4">
+          <HomeSearch />
+        </div>
+      </div>
 
       <div className="container mx-auto px-4 py-8">
         <h1 className="text-2xl font-bold text-blue-800 mb-6">
-          Gợi ý Homestay
+          Homestay Recommendations
         </h1>
+        
+        {/* Display search summary if filters are applied */}
+        {renderSearchSummary()}
 
         <div className="flex flex-col md:flex-row gap-6">
           {/* Left Sidebar with Filters */}
@@ -253,30 +354,17 @@ const HomestayRecommendation = () => {
                 Tùy chỉnh
               </h2>
 
-              {/* Top Filters */}
-              {/* <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
-                {filters.map((filter) => (
-                  <FilterOption
-                    key={filter.id}
-                    icon={filter.icon}
-                    title={filter.title}
-                    active={activeFilter === filter.title}
-                    onClick={() => setActiveFilter(filter.title)}
-                  />
-                ))}
-              </div> */}
-
               {/* ReusableHomestayFilters Component */}
               <HomestayFilters
                 data={places}
                 onFilterChange={handleFilterChange}
                 activeFilter={activeFilter}
-                setActiveFilter={() => {}} 
+                setActiveFilter={setActiveFilter} 
                 className="mb-4"
               />
 
               {/* Sidebar Filters */}
-              {/* <div className="space-y-3">
+              <div className="space-y-3">
                 {sidebarFilters.map((filter) => (
                   <div
                     key={filter.id}
@@ -306,7 +394,7 @@ const HomestayRecommendation = () => {
                     </svg>
                   </div>
                 ))}
-              </div> */}
+              </div>
             </div>
 
             {/* Assistant Image */}
@@ -327,7 +415,12 @@ const HomestayRecommendation = () => {
           {/* Right Content - Place Listings */}
           <div className="md:w-3/4">
             {/* View Controls */}
-            <div className="flex justify-end mb-4">
+            <div className="flex justify-between items-center mb-4">
+              <div className="text-sm text-gray-500">
+                {filteredPlaces.length} properties found
+                {searchParams.location ? ` in ${searchParams.location}` : ""}
+              </div>
+              
               <div className="flex border rounded-md overflow-hidden">
                 <button
                   className={`px-3 py-1 ${
@@ -398,104 +491,114 @@ const HomestayRecommendation = () => {
                   : "space-y-4"
               }
             >
-              {currentPlaces.map((place) => (
-                <PlaceCard
-                  key={place.id}
-                  place={place}
-                  onNavigate={handleNavigateToProperty}
-                />
-              ))}
+              {currentPlaces.length > 0 ? (
+                currentPlaces.map((place) => (
+                  <PlaceCard
+                    key={place.id}
+                    place={place}
+                    onNavigate={handleNavigateToProperty}
+                  />
+                ))
+              ) : (
+                <div className="col-span-full text-center py-10">
+                  <div className="text-gray-400 text-6xl mb-4">😞</div>
+                  <h3 className="text-xl font-semibold text-gray-700 mb-2">No homestays found</h3>
+                  <p className="text-gray-500">Try adjusting your search criteria or exploring other locations.</p>
+                </div>
+              )}
             </div>
 
             {/* Pagination */}
-            <div className="flex justify-center mt-8">
-              <nav className="flex items-center gap-1">
-                <button
-                  className="px-3 py-1 rounded-md text-gray-500 disabled:opacity-50"
-                  onClick={() =>
-                    setCurrentPage((prev) => Math.max(prev - 1, 1))
-                  }
-                  disabled={currentPage === 1}
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={1.5}
-                    stroke="currentColor"
-                    className="w-5 h-5"
+            {currentPlaces.length > 0 && (
+              <div className="flex justify-center mt-8">
+                <nav className="flex items-center gap-1">
+                  <button
+                    className="px-3 py-1 rounded-md text-gray-500 disabled:opacity-50"
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.max(prev - 1, 1))
+                    }
+                    disabled={currentPage === 1}
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M15.75 19.5 8.25 12l7.5-7.5"
-                    />
-                  </svg>
-                </button>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      strokeWidth={1.5}
+                      stroke="currentColor"
+                      className="w-5 h-5"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M15.75 19.5 8.25 12l7.5-7.5"
+                      />
+                    </svg>
+                  </button>
 
-                {/* Generate pagination buttons */}
-                {[...Array(totalPages)].map((_, index) => {
-                  const pageNumber = index + 1;
-                  // Show first page, last page, and pages around the current page
-                  if (
-                    pageNumber === 1 ||
-                    pageNumber === totalPages ||
-                    (pageNumber >= currentPage - 1 &&
-                      pageNumber <= currentPage + 1)
-                  ) {
-                    return (
-                      <button
-                        key={pageNumber}
-                        className={`px-3 py-1 rounded-md ${
-                          currentPage === pageNumber
-                            ? "bg-blue-600 text-white"
-                            : "hover:bg-gray-100 text-gray-700"
-                        }`}
-                        onClick={() => setCurrentPage(pageNumber)}
-                      >
-                        {pageNumber}
-                      </button>
-                    );
-                  }
-                  // Add ellipsis for skipped pages
-                  if (
-                    (pageNumber === 2 && currentPage > 3) ||
-                    (pageNumber === totalPages - 1 &&
-                      currentPage < totalPages - 2)
-                  ) {
-                    return (
-                      <span key={pageNumber} className="px-2 text-gray-400">
-                        ...
-                      </span>
-                    );
-                  }
-                  return null;
-                })}
+                  {/* Generate pagination buttons */}
+                  {[...Array(totalPages)].map((_, index) => {
+                    const pageNumber = index + 1;
+                    // Show first page, last page, and pages around the current page
+                    if (
+                      pageNumber === 1 ||
+                      pageNumber === totalPages ||
+                      (pageNumber >= currentPage - 1 &&
+                        pageNumber <= currentPage + 1)
+                    ) {
+                      return (
+                        <button
+                          key={pageNumber}
+                          className={`px-3 py-1 rounded-md ${
+                            currentPage === pageNumber
+                              ? "bg-blue-600 text-white"
+                              : "hover:bg-gray-100 text-gray-700"
+                          }`}
+                          onClick={() => setCurrentPage(pageNumber)}
+                        >
+                          {pageNumber}
+                        </button>
+                      );
+                    }
+                    // Add ellipsis for skipped pages
+                    if (
+                      (pageNumber === 2 && currentPage > 3) ||
+                      (pageNumber === totalPages - 1 &&
+                        currentPage < totalPages - 2)
+                    ) {
+                      return (
+                        <span key={pageNumber} className="px-2 text-gray-400">
+                          ...
+                        </span>
+                      );
+                    }
+                    return null;
+                  })}
 
-                <button
-                  className="px-3 py-1 rounded-md text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:hover:bg-white"
-                  onClick={() =>
-                    setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-                  }
-                  disabled={currentPage === totalPages}
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={1.5}
-                    stroke="currentColor"
-                    className="w-5 h-5"
+                  <button
+                    className="px-3 py-1 rounded-md text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:hover:bg-white"
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                    }
+                    disabled={currentPage === totalPages}
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="m8.25 4.5 7.5 7.5-7.5 7.5"
-                    />
-                  </svg>
-                </button>
-              </nav>
-            </div>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      strokeWidth={1.5}
+                      stroke="currentColor"
+                      className="w-5 h-5"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="m8.25 4.5 7.5 7.5-7.5 7.5"
+                      />
+                    </svg>
+                  </button>
+                </nav>
+              </div>
+            )}
           </div>
         </div>
       </div>

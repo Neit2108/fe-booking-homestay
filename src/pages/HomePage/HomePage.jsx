@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import Navbar from "../../components/Navbar/Navbar";
 import Hero from "../../components/Hero/Hero";
+import HomeSearch from "../../components/HomeSearch/HomeSearch";
 import PropertyCard from "../../components/PropertyCard/PropertyCard";
 import LocationList from "../../components/LocationList/LocationList";
 import Footer from "../../components/Footer/Footer";
@@ -131,6 +132,7 @@ function HomePage() {
 
       <Hero />
 
+      <HomeSearch />
 
       <div className="mt-[52px] w-full max-w-[1140px] md:mt-[52px] max-md:mt-10">
         <div className="flex gap-5 max-md:flex-col max-md:gap-0">
