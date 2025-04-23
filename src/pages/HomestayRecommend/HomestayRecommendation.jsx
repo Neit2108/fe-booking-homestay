@@ -1,19 +1,18 @@
-
-import React, { useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import Navbar from "../../components/Navbar/Navbar";
 import Footer from "../../components/Footer/Footer";
 import { usePlaces } from "../../hooks/usePlaces";
+import { useHomestayFiltering } from "../../hooks/useHomestayFiltering";
 import HomestayFilters from "../../components/HomestayFilters/HomestayFilters";
 import { FaStar, FaStarHalfAlt, FaRegStar } from "react-icons/fa";
-import { BsSliders } from "react-icons/bs";
 import { IoLocationOutline } from "react-icons/io5";
 import { MdOutlineCleaningServices } from "react-icons/md";
 import { IoPeopleOutline } from "react-icons/io5";
 import { GoStarFill } from "react-icons/go";
 import { TbBulbFilled } from "react-icons/tb";
 import { PiStudentFill } from "react-icons/pi";
-import HomeSearch from "../../components/HomeSearch/HomeSearch";
+import Loader from "../../components/Loading/Loader";
 
 // Helper function to render star ratings
 const StarRating = ({ rating }) => {
@@ -23,16 +22,12 @@ const StarRating = ({ rating }) => {
 
   // Add full stars
   for (let i = 0; i < fullStars; i++) {
-    stars.push(
-      <FaStar key={`star-${i}`} className="text-yellow-400" />
-    );
+    stars.push(<FaStar key={`star-${i}`} className="text-yellow-400" />);
   }
 
   // Add half star if needed
   if (hasHalfStar) {
-    stars.push(
-      <FaStarHalfAlt key="half-star" className="text-yellow-400" />
-    );
+    stars.push(<FaStarHalfAlt key="half-star" className="text-yellow-400" />);
   }
 
   // Add empty stars to complete 5 stars
@@ -126,123 +121,63 @@ const PlaceCard = ({ place, onNavigate }) => {
   );
 };
 
-// FilterOption component
-const FilterOption = ({ icon, title, active, onClick }) => {
-  return (
-    <div
-      onClick={onClick}
-      className={`flex items-center gap-2 p-3 rounded-md cursor-pointer transition-colors ${
-        active
-          ? "bg-blue-600 text-white"
-          : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-      }`}
-    >
-      <div className="text-lg">{icon}</div>
-      <span className="text-sm font-medium">{title}</span>
-    </div>
-  );
-};
-
 const HomestayRecommendation = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { places, loading, error } = usePlaces({ mode: "public" });
-
-  // State for filtered places
-  const [filteredPlaces, setFilteredPlaces] = useState([]);
-  const [activeFilter, setActiveFilter] = useState("");
   const [viewMode, setViewMode] = useState("grid");
-  const [currentPage, setCurrentPage] = useState(1);
   const [placesPerPage] = useState(9);
-  const [searchParams, setSearchParams] = useState({
-    startDate: null,
-    endDate: null,
-    persons: 0,
-    location: "",
-    lat: null,
-    lng: null
-  });
+  
+  const searchParams = new URLSearchParams(location.search);
+  const urlSearchQuery = searchParams.get('search') || '';
 
-  // Parse URL search parameters when component mounts
-  useEffect(() => {
-    const queryParams = new URLSearchParams(location.search);
-    
-    const startDateParam = queryParams.get('startDate');
-    const endDateParam = queryParams.get('endDate');
-    const personsParam = queryParams.get('persons');
-    const locationParam = queryParams.get('location');
-    const latParam = queryParams.get('lat');
-    const lngParam = queryParams.get('lng');
-    
-    setSearchParams({
-      startDate: startDateParam ? new Date(startDateParam) : null,
-      endDate: endDateParam ? new Date(endDateParam) : null,
-      persons: personsParam ? parseInt(personsParam, 10) : 0,
-      location: locationParam || "",
-      lat: latParam ? parseFloat(latParam) : null,
-      lng: lngParam ? parseFloat(lngParam) : null
-    });
-  }, [location.search]);
+  // Use our custom hook for filtering
+  const {
+    searchTerm,
+    categoryFilter,
+    priceRange,
+    ratingFilter,
+    guestsFilter,
+    sortOption,
+    setSearchTerm,
+    setCategoryFilter,
+    handlePriceChange,
+    setRatingFilter,
+    setGuestsFilter,
+    setSortOption,
+    currentPage,
+    setCurrentPage,
+    getPaginatedResults,
+    resetFilters
+  } = useHomestayFiltering(places);
 
-  // Apply search filters to places
   useEffect(() => {
-    if (places && places.length > 0) {
-      let filtered = [...places];
-      
-      // Filter by number of guests if specified
-      if (searchParams.persons > 0) {
-        filtered = filtered.filter(place => 
-          // If place has maxGuests property, check if it can accommodate the requested number
-          // Allow booking even if guests exceed maxGuests by 2 (as per your application logic)
-          !place.maxGuests || place.maxGuests >= searchParams.persons || 
-          (place.maxGuests + 2) >= searchParams.persons
-        );
-      }
-      
-      // Filter by location if specified
-      // This is a simple implementation; for production, consider using geospatial queries
-      if (searchParams.lat && searchParams.lng) {
-        // Sort by proximity to selected location
-        filtered.sort((a, b) => {
-          // This would work better if places had lat/lng coordinates
-          // For now, we'll just prioritize places with the search location in their address
-          const aHasLocation = a.address && a.address.toLowerCase().includes(searchParams.location.toLowerCase());
-          const bHasLocation = b.address && b.address.toLowerCase().includes(searchParams.location.toLowerCase());
-          
-          if (aHasLocation && !bHasLocation) return -1;
-          if (!aHasLocation && bHasLocation) return 1;
-          return 0;
-        });
-      }
-      
-      setFilteredPlaces(filtered);
+    if (urlSearchQuery) {
+      setSearchTerm(urlSearchQuery);
     }
-  }, [places, searchParams]);
+  }, [urlSearchQuery, setSearchTerm]);
 
-  // Get current places for pagination from filteredPlaces
-  const indexOfLastPlace = currentPage * placesPerPage;
-  const indexOfFirstPlace = indexOfLastPlace - placesPerPage;
-  const currentPlaces = filteredPlaces
-    ? filteredPlaces.slice(indexOfFirstPlace, indexOfLastPlace)
-    : [];
+  useEffect(() => {
+    // Only update if the search term is different from URL to avoid loops
+    if (searchTerm !== urlSearchQuery) {
+      const newUrl = searchTerm 
+        ? `${location.pathname}?search=${encodeURIComponent(searchTerm)}`
+        : location.pathname;
+      
+      // Update URL without full page refresh
+      navigate(newUrl, { replace: true });
+    }
+  }, [searchTerm, urlSearchQuery, navigate, location.pathname]);
 
-  // Calculate total pages based on filteredPlaces
-  const totalPages = filteredPlaces
-    ? Math.ceil(filteredPlaces.length / placesPerPage)
-    : 0;
+  // Get paginated data
+  const { items: currentPlaces, totalPages } = getPaginatedResults(placesPerPage);
 
   // Handle navigation to property details
   const handleNavigateToProperty = (placeId) => {
     navigate(`/place-details/${placeId}`);
   };
 
-  // Callback function for filter changes
-  const handleFilterChange = (newFilteredPlaces) => {
-    setFilteredPlaces(newFilteredPlaces);
-    // Reset to first page when filters change
-    setCurrentPage(1);
-  };
-
+  // Define sidebar filter options
   const sidebarFilters = [
     { id: "location", title: "Price & Location", icon: <IoLocationOutline /> },
     {
@@ -260,46 +195,13 @@ const HomestayRecommendation = () => {
     { id: "students", title: "Best for Students", icon: <PiStudentFill /> },
   ];
 
-  const renderSearchSummary = () => {
-    const parts = [];
-    
-    if (searchParams.persons > 0) {
-      parts.push(`${searchParams.persons} guests`);
-    }
-    
-    if (searchParams.location) {
-      parts.push(`in ${searchParams.location}`);
-    }
-    
-    if (searchParams.startDate && searchParams.endDate) {
-      const formatDate = (date) => {
-        return date.toLocaleDateString('en-US', { 
-          month: 'short', 
-          day: 'numeric'
-        });
-      };
-      parts.push(`from ${formatDate(searchParams.startDate)} to ${formatDate(searchParams.endDate)}`);
-    }
-    
-    if (parts.length === 0) {
-      return null;
-    }
-    
-    return (
-      <div className="bg-blue-50 p-4 rounded-lg mb-6 border border-blue-100">
-        <h2 className="font-semibold text-blue-800 mb-1">Your Search</h2>
-        <p className="text-blue-600">{parts.join(' • ')}</p>
-      </div>
-    );
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
         <Navbar />
         <div className="container mx-auto px-4 py-8">
           <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
+            <Loader />
           </div>
         </div>
         <Footer />
@@ -311,6 +213,7 @@ const HomestayRecommendation = () => {
     return (
       <div className="min-h-screen bg-gray-50">
         <Navbar />
+        
         <div className="container mx-auto px-4 py-8">
           <div
             className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative"
@@ -318,7 +221,7 @@ const HomestayRecommendation = () => {
           >
             <strong className="font-bold">Lỗi! </strong>
             <span className="block sm:inline">
-              {error.message || "Có lỗi xảy ra. Vui lòng đăng nhập."}
+              {error.message || "Có lỗi xảy ra. Vui lòng thử lại sau."}
             </span>
           </div>
         </div>
@@ -330,70 +233,105 @@ const HomestayRecommendation = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
-      
-      {/* Search bar at the top */}
-      <div className="bg-blue-600 py-6 mb-8">
-        <div className="container mx-auto px-4">
-          <HomeSearch />
-        </div>
-      </div>
 
       <div className="container mx-auto px-4 py-8">
         <h1 className="text-2xl font-bold text-blue-800 mb-6">
-          Homestay Recommendations
+          Gợi ý Homestay
         </h1>
-        
-        {/* Display search summary if filters are applied */}
-        {renderSearchSummary()}
 
         <div className="flex flex-col md:flex-row gap-6">
           {/* Left Sidebar with Filters */}
           <div className="md:w-1/4">
             <div className="bg-white rounded-lg shadow-md p-4 mb-6">
-              <h2 className="font-semibold text-lg mb-4 text-blue-800">
-                Tùy chỉnh
-              </h2>
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="font-semibold text-lg text-blue-800">
+                  Tùy chỉnh
+                </h2>
+                <button 
+                  onClick={resetFilters}
+                  className="text-xs text-blue-600 hover:text-blue-800 underline"
+                >
+                  Xóa bộ lọc
+                </button>
+              </div>
 
-              {/* ReusableHomestayFilters Component */}
+              {/* HomestayFilters Component (Sorting) */}
               <HomestayFilters
-                data={places}
-                onFilterChange={handleFilterChange}
-                activeFilter={activeFilter}
-                setActiveFilter={setActiveFilter} 
+                activeFilter={sortOption}
+                setActiveFilter={setSortOption}
                 className="mb-4"
               />
 
-              {/* Sidebar Filters */}
-              <div className="space-y-3">
-                {sidebarFilters.map((filter) => (
-                  <div
-                    key={filter.id}
-                    className="flex items-center justify-between p-3 rounded-md hover:bg-gray-100 cursor-pointer transition-colors"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
-                        {filter.icon}
-                      </div>
-                      <span className="font-medium text-gray-700">
-                        {filter.title}
-                      </span>
-                    </div>
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth={1.5}
-                      stroke="currentColor"
-                      className="w-5 h-5 text-gray-400"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="m8.25 4.5 7.5 7.5-7.5 7.5"
-                      />
-                    </svg>
-                  </div>
-                ))}
+              {/* Category Filter */}
+              <div className="mt-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Danh mục</label>
+                <select
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
+                  value={categoryFilter}
+                  onChange={(e) => setCategoryFilter(e.target.value)}
+                >
+                  <option value="">Tất cả danh mục</option>
+                  <option value="homestay">Homestay</option>
+                  <option value="resort">Resort</option>
+                  <option value="hotel">Hotel</option>
+                  <option value="villa">Villa</option>
+                </select>
+              </div>
+
+              {/* Price Range */}
+              <div className="mt-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Tầm giá</label>
+                <div className="grid grid-cols-2 gap-2">
+                  <input
+                    type="number"
+                    placeholder="Từ"
+                    className="border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
+                    value={priceRange.min}
+                    onChange={(e) => handlePriceChange('min', e.target.value)}
+                  />
+                  <input
+                    type="number"
+                    placeholder="Đến"
+                    className="border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
+                    value={priceRange.max}
+                    onChange={(e) => handlePriceChange('max', e.target.value)}
+                  />
+                </div>
+              </div>
+
+              {/* Rating Filter */}
+              <div className="mt-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Đánh giá tối thiểu
+                </label>
+                <select
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
+                  value={ratingFilter}
+                  onChange={(e) => setRatingFilter(e.target.value)}
+                >
+                  <option value="">Bất kỳ</option>
+                  <option value="3">3+ sao</option>
+                  <option value="4">4+ sao</option>
+                  <option value="4.5">4.5+ sao</option>
+                </select>
+              </div>
+
+              {/* Guests Filter */}
+              <div className="mt-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Số khách tối đa
+                </label>
+                <select
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
+                  value={guestsFilter}
+                  onChange={(e) => setGuestsFilter(e.target.value)}
+                >
+                  <option value="">Bất kỳ</option>
+                  <option value="2">2+</option>
+                  <option value="4">4+</option>
+                  <option value="6">6+</option>
+                  <option value="8">8+</option>
+                </select>
               </div>
             </div>
 
@@ -414,13 +352,47 @@ const HomestayRecommendation = () => {
 
           {/* Right Content - Place Listings */}
           <div className="md:w-3/4">
-            {/* View Controls */}
-            <div className="flex justify-between items-center mb-4">
-              <div className="text-sm text-gray-500">
-                {filteredPlaces.length} properties found
-                {searchParams.location ? ` in ${searchParams.location}` : ""}
+            {/* Search Bar */}
+            <div className="flex mb-6">
+              <div className="relative flex-1">
+                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                  <svg
+                    className="w-5 h-5 text-gray-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                    ></path>
+                  </svg>
+                </div>
+                <input
+                  type="text"
+                  className="block w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Tìm kiếm theo tên, địa chỉ, mô tả..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
               </div>
-              
+            </div>
+
+            {/* Results info and View Controls */}
+            <div className="flex justify-between items-center mb-4">
+              <div className="text-sm text-gray-600">
+                {getPaginatedResults(placesPerPage).totalItems > 0 ? (
+                  <>
+                    Hiển thị {getPaginatedResults(placesPerPage).totalItems} kết quả
+                    {searchTerm && <span> cho "{searchTerm}"</span>}
+                  </>
+                ) : (
+                  "Không tìm thấy kết quả nào"
+                )}
+              </div>
               <div className="flex border rounded-md overflow-hidden">
                 <button
                   className={`px-3 py-1 ${
@@ -474,42 +446,61 @@ const HomestayRecommendation = () => {
             {/* Mobile View Filters - Only visible on smaller screens */}
             <div className="md:hidden mb-4">
               <HomestayFilters
-                data={places}
-                onFilterChange={handleFilterChange}
-                filterTypes={["rating", "price"]} // Simplified for mobile
+                activeFilter={sortOption}
+                setActiveFilter={setSortOption}
                 compactMode={true}
                 className="bg-white p-2 rounded-lg shadow-sm"
-                buttonClassName="flex-1"
               />
             </div>
 
             {/* Place Listings */}
-            <div
-              className={
-                viewMode === "grid"
-                  ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
-                  : "space-y-4"
-              }
-            >
-              {currentPlaces.length > 0 ? (
-                currentPlaces.map((place) => (
+            {currentPlaces.length > 0 ? (
+              <div
+                className={
+                  viewMode === "grid"
+                    ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+                    : "space-y-4"
+                }
+              >
+                {currentPlaces.map((place) => (
                   <PlaceCard
                     key={place.id}
                     place={place}
                     onNavigate={handleNavigateToProperty}
                   />
-                ))
-              ) : (
-                <div className="col-span-full text-center py-10">
-                  <div className="text-gray-400 text-6xl mb-4">😞</div>
-                  <h3 className="text-xl font-semibold text-gray-700 mb-2">No homestays found</h3>
-                  <p className="text-gray-500">Try adjusting your search criteria or exploring other locations.</p>
-                </div>
-              )}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <div className="bg-white p-8 rounded-lg shadow-md text-center">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-12 w-12 mx-auto text-gray-400 mb-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">Không tìm thấy kết quả nào</h3>
+                <p className="text-gray-500">
+                  Không tìm thấy homestay nào phù hợp với bộ lọc hiện tại. Vui lòng thử lại với bộ lọc khác.
+                </p>
+                <button 
+                  onClick={resetFilters}
+                  className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                >
+                  Xóa bộ lọc
+                </button>
+              </div>
+            )}
 
             {/* Pagination */}
-            {currentPlaces.length > 0 && (
+            {getPaginatedResults(placesPerPage).totalItems > 0 && (
               <div className="flex justify-center mt-8">
                 <nav className="flex items-center gap-1">
                   <button

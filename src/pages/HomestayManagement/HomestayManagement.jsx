@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from "react";
 import { usePlaces } from "../../hooks/usePlaces";
-import { useHomestayFilters } from "../../hooks/useHomestayFilters";
+import { useHomestayFiltering } from "../../hooks/useHomestayFiltering";
 import HomestayModal from "../../components/HomestayModal/HomestayModal";
 import Loader from "../../components/Loading/Loader";
 import { UserContext } from "../../context/UserContext";
@@ -21,7 +21,7 @@ const HomestayManagement = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [sortOption, setSortOption] = useState("id");
   const [sortDirection, setSortDirection] = useState("asc");
-  const { filterBy, setFilterBy, filteredPlaces } = useHomestayFilters(places);
+  const { filterBy, setFilterBy, filteredPlaces } = useHomestayFiltering(places);
 
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
