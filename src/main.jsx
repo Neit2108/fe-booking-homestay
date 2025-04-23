@@ -26,6 +26,7 @@ import HomestayRecommendation from "./pages/HomestayRecommend/HomestayRecommenda
 import HomestayManagement from "./pages/HomestayManagement/HomestayManagement.jsx";
 import Statistics from "./pages/Statistics/Statistics.jsx";
 import { UserProvider } from "./context/UserContext.jsx";
+import ContactPage from "./pages/Contact/ContactPage.jsx";
 
 function AppLayout() {
   return (
@@ -63,6 +64,7 @@ const router = createBrowserRouter([
       { path: "/homestay-recommend", element: <HomestayRecommendation /> },
       { path: "/homestay-management", element: <HomestayManagement /> },
       { path: "/statistics", element: <Statistics /> },
+      { path: "/contact", element: <ContactPage /> },
     ],
   },
 ]);
