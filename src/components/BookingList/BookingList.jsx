@@ -6,6 +6,7 @@ import { useContext } from "react";
 import Swal from "sweetalert2";
 import axios from "axios";
 import Modal from "../Modal/Modal.jsx";
+import { formatPrice } from "../../Utils/PriceUtils.js";
 const statusStyles = {
   Pending: "bg-yellow-100 text-yellow-700",
   Confirmed: "bg-green-100 text-green-700",
@@ -178,7 +179,7 @@ const BookingList = ({ bookings, searchTerm, refreshBookings }) => {
                   </div>
                 )}
                 <div className="absolute top-2 left-2 bg-blue-500 text-white text-xs font-semibold px-2 py-1 rounded">
-                  ${Math.round(pricePerNight)} per night
+                  ${formatPrice(Math.round(pricePerNight))} per night
                 </div>
               </div>
               <h2 className="text-lg font-semibold text-blue-600">
@@ -195,7 +196,7 @@ const BookingList = ({ bookings, searchTerm, refreshBookings }) => {
                 {booking.address || "Address not available"}
               </p>
               <p className="text-sm font-semibold mt-1">
-                Total Payment ${booking.totalPrice}
+                Tổng thanh toán ${formatPrice(booking.totalPrice)}
               </p>
               <p className="text-sm mt-1">
                 Status:{" "}

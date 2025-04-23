@@ -1,3 +1,5 @@
+import { formatPrice } from "../../Utils/PriceUtils";
+
 function PropertyCard({
   image,
   price,
@@ -26,8 +28,8 @@ function PropertyCard({
 
         {/* Price Tag - Always on image */}
         <div className="rounded-[0px_15px_0px_15px] bg-accent absolute top-0 right-0 flex px-10 py-[7px] flex-col items-stretch text-base font-light text-center leading-[1.7] justify-center max-md:px-5">
-          <span className="font-medium text-white">{price}</span>
-          <span className="text-white">per night</span>
+          <span className="font-medium text-white">{formatPrice(price)}</span>
+          <span className="text-white">/ngày</span>
         </div>
 
         {/* Overlay Text - Only when variant is "overlay" */}

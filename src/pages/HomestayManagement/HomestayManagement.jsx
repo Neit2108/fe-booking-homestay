@@ -7,6 +7,7 @@ import { UserContext } from "../../context/UserContext";
 import { useNavigate } from "react-router-dom";
 import DashboardHeader from "../../components/DashboardHeader/DashboardHeader";
 import Sidebar from "../../components/Sidebar/Sidebar";
+import { formatPrice } from "../../Utils/PriceUtils";
 
 const HomestayManagement = () => {
   const {
@@ -330,7 +331,7 @@ const HomestayManagement = () => {
             </div>
 
             <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="flex flex-col">
+              {/* <div className="flex flex-col">
                 <label className="mb-1 text-sm text-gray-700">Danh mục</label>
                 <select
                   className="border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
@@ -345,7 +346,7 @@ const HomestayManagement = () => {
                   <option value="hotel">Hotel</option>
                   <option value="villa">Villa</option>
                 </select>
-              </div>
+              </div> */}
 
               <div className="flex flex-col">
                 <label className="mb-1 text-sm text-gray-700">Tầm giá</label>
@@ -611,7 +612,7 @@ const HomestayManagement = () => {
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
-                          ${place.price}
+                          ${formatPrice(place.price)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                           {place.maxGuests || "N/A"}

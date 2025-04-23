@@ -19,6 +19,7 @@ import refrigeratorIcon from "../../assets/Detail/ic_refrigerator.png";
 import tvIcon from "../../assets/Detail/ic_tv.png";
 import useComment from "../../hooks/useComment";
 import { UserContext } from "../../context/UserContext";
+import { formatPrice } from "../../Utils/PriceUtils";
 
 function PropertyDetails() {
   const param = useParams();
@@ -282,7 +283,7 @@ function PropertyDetails() {
               <div className="text-xl font-medium text-primary">Đặt phòng</div>
               <div className="mt-4 text-4xl font-light">
                 <span className="font-medium text-[#1ABC9C]">
-                  ${property.price}
+                  {formatPrice(property.price)} VNĐ
                 </span>{" "}
                 <span className="font-extralight text-[#B0B0B0]">/ ngày</span>
               </div>

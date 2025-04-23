@@ -1,6 +1,7 @@
 // src/components/Step2.jsx
 import React from "react";
 import ProcessBar from "../../components/ProcessBar/ProcessBar.jsx";
+import { formatPrice } from "../../Utils/PriceUtils.js";
 
 function Step2({ onNext, onBack, paymentMethod, property, days, totalPrice, people }) {
   const handleNext = () => {
@@ -105,13 +106,13 @@ function Step2({ onNext, onBack, paymentMethod, property, days, totalPrice, peop
             <div className="flex flex-col gap-4">
               <div className="text-xl text-primary">{property.name}</div>
               <div className="text-base text-primary">
-                Number of People: {people} {people === 1 ? "Person" : "People"}
+                Số khách: {people} {people === 1 ? "Person" : "People"}
               </div>
               <div className="text-base text-primary">
-                Number of Days: {days} {days === 1 ? "Day" : "Days"}
+                Số ngày: {days} {days === 1 ? "Day" : "Days"}
               </div>
               <div className="text-base text-primary">
-                Total Payment: ${totalPrice} USD
+                Tổng thanh toán: ${formatPrice(totalPrice)} USD
               </div>
             </div>
           </div>

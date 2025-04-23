@@ -17,6 +17,7 @@ import DashboardHeader from "../../components/DashboardHeader/DashboardHeader";
 import axios from "axios";
 import Sidebar from "../../components/Sidebar/Sidebar";
 import Loader from "../../components/Loading/Loader";
+import { formatPrice } from "../../Utils/PriceUtils";
 
 // Register Chart.js components
 ChartJS.register(
@@ -479,7 +480,7 @@ const Statistics = () => {
                           {placeNames[booking.placeId] || "Đang tải..."}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
-                          {formatVND(booking.totalPrice || 0)}
+                          {formatPrice(booking.totalPrice || 0)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${

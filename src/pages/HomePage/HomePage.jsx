@@ -9,6 +9,7 @@ import Footer from "../../components/Footer/Footer";
 import Modal from "../../components/Modal/Modal";
 import Loader from "../../components/Loading/Loader";
 import { useNavigate } from "react-router-dom";
+import {formatPrice} from "../../Utils/PriceUtils";
 
 function HomePage() {
   const [isMapOpen, setIsMapOpen] = useState(false);
@@ -50,7 +51,7 @@ function HomePage() {
           setMostPickedProperty({
             id: topPlaces[0].id,
             image: topPlaces[0].images && topPlaces[0].images.length > 0 ? topPlaces[0].images[0].imageUrl : "",
-            price: `$${topPlaces[0].price}`,
+            price: `${formatPrice(topPlaces[0].price)} VNĐ`,
             name: topPlaces[0].name,
             location: topPlaces[0].address,
           });
@@ -59,7 +60,7 @@ function HomePage() {
             topPlaces.slice(1, 5).map((place) => ({
               id: place.id,
               image: place.images && place.images.length > 0 ? place.images[0].imageUrl : "",
-              price: `$${place.price}`,
+              price: `${formatPrice(place.price)} VNĐ`,
               name: place.name,
               location: place.address,
             }))
@@ -86,7 +87,7 @@ function HomePage() {
           image: place.images && place.images.length > 0 ? place.images[0].imageUrl : "path/to/placeholder-image.png",
           name: place.name,
           location: place.address,
-          isPopular: index === 0, 
+          isPopular: place.rating >= 3, 
         }));
 
         const section2 = limitedPlaces.slice(4, 8).map((place, index) => ({
@@ -94,7 +95,7 @@ function HomePage() {
           image: place.images && place.images.length > 0 ? place.images[0].imageUrl : "path/to/placeholder-image.png",
           name: place.name,
           location: place.address,
-          isPopular: index === 3, 
+          isPopular: place.rating >= 3, 
         }));
 
         setHousesSection1(section1);
@@ -139,7 +140,7 @@ function HomePage() {
           <div className="w-[32%] max-md:w-full">
             <div className="flex flex-col max-md:mt-[29px]">
               <div className="text-primary text-2xl font-medium text-left">
-                Most Picked
+                Lựa chọn hàng đầu
               </div>
               {mostPickedProperty && (
                 <div onClick={() => goToPropertyDetails(mostPickedProperty.id)} className="cursor-pointer">
@@ -219,7 +220,7 @@ function HomePage() {
                   />
                   {house.isPopular && (
                     <div className="absolute top-0 right-0 bg-accent text-white py-[7px] px-[31px] rounded-[0px_15px_0px_15px] text-center max-md:px-5 cursor-pointer">
-                      <span className="font-medium">Popular</span> Choice
+                      <span className="font-medium">Phổ biến</span>
                     </div>
                   )}
                 </div>
@@ -252,7 +253,7 @@ function HomePage() {
                   />
                   {house.isPopular && (
                     <div className="absolute top-0 right-0 bg-accent text-white py-[7px] px-[31px] rounded-[0px_15px_0px_15px] text-center max-md:px-5 curosr-pointer">
-                      <span className="font-medium">Popular</span> Choice
+                      <span className="font-medium">Phổ biến</span>
                     </div>
                   )}
                 </div>

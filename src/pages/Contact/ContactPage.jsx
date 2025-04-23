@@ -1,7 +1,26 @@
 import React, { useState } from 'react';
 import { FaPhone, FaEnvelope, FaMapMarkerAlt, FaTwitter, FaInstagram, FaFacebook, FaPlus } from 'react-icons/fa';
 import Navbar from "../../components/Navbar/Navbar";
+import Input from '../../components/Input/Input';
 import axios from 'axios';
+
+const FormInput = ({ label, id, name, type = 'text', value, placeholder, required = false, onChange }) => (
+  <div className="flex-1">
+    <label htmlFor={id} className="block text-sm font-medium text-gray-700 mb-1">
+      {label}
+    </label>
+    <input
+      type={type}
+      id={id}
+      name={name}
+      value={value}
+      onChange={onChange}
+      required={required}
+      className="w-full px-3 py-2 border-b border-gray-300 focus:border-blue-500 focus:outline-none transition-colors"
+      placeholder={placeholder}
+    />
+  </div>
+);
 
 const ContactPage = () => {
   // Form state
@@ -27,17 +46,27 @@ const ContactPage = () => {
   // Handle form input changes
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    setFormData((prevData) => ({
+      ...prevData,
+      [name]: value,
+    }));
   };
 
   // Handle radio button selection
   const handleSubjectChange = (subject) => {
     if (subject === 'custom') {
       setShowCustomSubject(true);
-      setFormData({ ...formData, subject: 'custom' });
+      setFormData(prevData => ({
+        ...prevData,
+        subject: 'custom'
+      }));
     } else {
       setShowCustomSubject(false);
-      setFormData({ ...formData, subject, customSubject: '' });
+      setFormData(prevData => ({
+        ...prevData,
+        subject,
+        customSubject: ''
+      }));
     }
   };
 
@@ -96,7 +125,7 @@ const ContactPage = () => {
   };
 
   // Subjects for radio buttons
-  const subjects = ['General Inquiry', 'Technical Support', 'Billing Question', 'Partnership Opportunity'];
+  const subjects = ['Hỗ trợ đặt phòng', 'Thanh toán', 'Nơi ở', 'Đi lại'];
 
   // Reusable Components
   const SocialButton = ({ icon, href = "#" }) => (
@@ -119,31 +148,13 @@ const ContactPage = () => {
     </div>
   );
 
-  const FormInput = ({ label, id, name, type = 'text', value, placeholder, required = false}) => (
-    <div className="flex-1">
-      <label htmlFor={id} className="block text-sm font-medium text-gray-700 mb-1">
-        {label}
-      </label>
-      <input
-        type={type}
-        id={id}
-        name={name}
-        value={value}
-        onChange={handleChange}
-        required={required}
-        className="w-full px-3 py-2 border-b border-gray-300 focus:border-blue-500 focus:outline-none transition-colors"
-        placeholder={placeholder}
-      />
-    </div>
-  );
-
   return (
     <div className="bg-gray-50 min-h-screen">
       {/* Insert your Navbar component */}
       <Navbar />
       
       {/* Main Content - With top padding for navbar */}
-      <div className=" flex flex-col md:flex-row w-full min-h-[calc(100vh-4rem)]">
+      <div className="flex flex-col md:flex-row w-full min-h-[calc(100vh-4rem)]">
         {/* Left Panel - Contact Information */}
         <div className="w-full md:w-1/3 bg-blue-900 text-white p-8 flex flex-col justify-between relative overflow-hidden">
           {/* Background decorative elements */}
@@ -152,32 +163,32 @@ const ContactPage = () => {
           <div className="absolute left-10 top-10 w-20 h-20 rounded-full bg-blue-700 opacity-10"></div>
           
           <div className="relative z-10">
-            <h2 className="text-2xl font-bold mb-4">Contact Information</h2>
-            <p className="text-blue-200 mb-8">Say something to start a live chat!</p>
+            <h2 className="text-2xl font-bold mb-4">Thông tin liên hệ</h2>
+            <p className="text-blue-200 mb-8">Trò chuyện trực tiếp với chúng tôi!</p>
             
             <div>
               <ContactInfoItem 
                 icon={<FaPhone className="text-blue-300" />} 
-                text="+1 012 3456 789" 
+                text="0934765123" 
               />
               
               <ContactInfoItem 
                 icon={<FaEnvelope className="text-blue-300" />} 
-                text="demo@gmail.com" 
+                text="homiesstay@gmail.com" 
               />
               
               <ContactInfoItem 
                 icon={<FaMapMarkerAlt className="text-blue-300" />} 
-                text="132 Dartmouth Street Boston, Massachusetts 02156 United States" 
+                text="235 Hoàng Quốc Việt" 
               />
             </div>
           </div>
           
           {/* Social Media Links */}
           <div className="flex mt-10 space-x-4 relative z-10">
-            <SocialButton icon={<FaTwitter className="text-white" />} />
-            <SocialButton icon={<FaInstagram className="text-white" />} />
-            <SocialButton icon={<FaFacebook className="text-white" />} />
+            <SocialButton icon={<FaTwitter className="text-white" />} href='https://x.com/'/>
+            <SocialButton icon={<FaInstagram className="text-white" />} href='https://www.instagram.com/' />
+            <SocialButton icon={<FaFacebook className="text-white" />} href='https://www.facebook.com/' />
           </div>
         </div>
         
@@ -198,22 +209,26 @@ const ContactPage = () => {
             {/* Name Fields */}
             <div className="flex flex-col md:flex-row gap-6 mb-6">
               <FormInput
-                label="First Name"
+                label="Tên"
                 id="firstName"
                 name="firstName"
                 value={formData.firstName}
-                placeholder="John"
+                onChange={handleChange}
+                placeholder="A"
                 required
               />
               
+              
               <FormInput
-                label="Last Name"
+                label="Họ và tên đệm"
                 id="lastName"
                 name="lastName"
                 value={formData.lastName}
-                placeholder="Doe"
+                onChange={handleChange}
+                placeholder="Nguyễn Văn"
                 required
               />
+
             </div>
             
             {/* Email and Phone */}
@@ -224,24 +239,26 @@ const ContactPage = () => {
                 name="email"
                 type="email"
                 value={formData.email}
+                onChange={handleChange}
                 placeholder="example@email.com"
                 required
               />
               
               <FormInput
-                label="Phone Number"
+                label="Số điện thoại"
                 id="phone"
                 name="phone"
                 type="tel"
                 value={formData.phone}
-                placeholder="+1 012 3456 789"
+                onChange={handleChange}
+                placeholder="012 3456 789"
               />
             </div>
             
             {/* Subject Selection */}
             <div className="mb-6">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Select Subject?
+                Tiêu đề
               </label>
               
               <div className="flex flex-wrap gap-3">
@@ -278,7 +295,7 @@ const ContactPage = () => {
                       ? 'bg-blue-900 text-white' 
                       : 'bg-blue-50 text-blue-900 hover:bg-blue-100'
                   }`}>
-                    <FaPlus className="mr-1" /> Custom
+                    <FaPlus className="mr-1" /> Tùy chọn
                   </span>
                 </label>
               </div>
@@ -291,7 +308,7 @@ const ContactPage = () => {
                     name="customSubject"
                     value={formData.customSubject}
                     onChange={handleChange}
-                    placeholder="Enter your subject"
+                    placeholder="Vui lòng nhập tiêu đề"
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                     required={formData.subject === 'custom'}
                   />
@@ -302,7 +319,7 @@ const ContactPage = () => {
             {/* Message */}
             <div className="mb-8">
               <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-1">
-                Message
+                Tin nhắn
               </label>
               <textarea
                 id="message"
@@ -312,7 +329,7 @@ const ContactPage = () => {
                 required
                 rows={5}
                 className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-none"
-                placeholder="Write your message.."
+                placeholder="Vui lòng nhập tin nhắn"
               ></textarea>
             </div>
             
@@ -329,9 +346,9 @@ const ContactPage = () => {
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
-                    Sending...
+                    Vui lòng chờ...
                   </span>
-                ) : 'Send Message'}
+                ) : 'Gửi tin nhắn'}
               </button>
             </div>
           </form>

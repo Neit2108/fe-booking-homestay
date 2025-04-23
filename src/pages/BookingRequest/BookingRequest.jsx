@@ -6,6 +6,7 @@ import { UserContext } from "../../context/UserContext";
 import axios from "axios";
 import Loader from "../../components/Loading/Loader";
 import Modal from "../../components/Modal/Modal"; // Import your Modal component
+import { formatPrice } from "../../Utils/PriceUtils";
 function BookingRequest() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -347,7 +348,7 @@ function BookingRequest() {
 
             <div className="mt-6 text-2xl">
               <span className="text-zinc-400">Bạn cần trả </span>
-              <span className="text-primary">{totalPrice} VNĐ</span>
+              <span className="text-primary">{formatPrice(totalPrice)} VNĐ</span>
               <span className="text-zinc-400"> cho </span>
               <span className="text-primary">
                 {days} ngày

@@ -13,6 +13,7 @@ import { GoStarFill } from "react-icons/go";
 import { TbBulbFilled } from "react-icons/tb";
 import { PiStudentFill } from "react-icons/pi";
 import Loader from "../../components/Loading/Loader";
+import { formatPrice } from "../../Utils/PriceUtils";
 
 // Helper function to render star ratings
 const StarRating = ({ rating }) => {
@@ -103,8 +104,8 @@ const PlaceCard = ({ place, onNavigate }) => {
         {/* Price */}
         <div className="flex justify-between items-center">
           <div>
-            <span className="font-bold text-blue-600">${place.price}</span>
-            <span className="text-gray-500 text-sm">/night</span>
+            <span className="font-bold text-blue-600">{formatPrice(place.price)} VNĐ</span>
+            <span className="text-gray-500 text-sm">/ngày</span>
           </div>
           <button
             className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1 rounded-md text-sm font-medium transition-colors"
@@ -113,7 +114,7 @@ const PlaceCard = ({ place, onNavigate }) => {
               onNavigate(place.id);
             }}
           >
-            Book Now
+            Đặt ngay
           </button>
         </div>
       </div>
