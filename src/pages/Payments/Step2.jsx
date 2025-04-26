@@ -51,7 +51,6 @@ function Step2({ onNext, onBack, paymentMethod, property, days, totalPrice, peop
             returnUrl: window.location.origin + "/payment-result",
             orderInfo: `Payment for ${property.name} - ${days} days`,
             locale: "vn",
-            // Pass the bank code if credit card payment is selected
             bankCode: paymentMethod === "credit_card" ? "NCB" : undefined
           },
           {

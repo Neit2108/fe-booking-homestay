@@ -14,9 +14,22 @@ function PaymentFlow() {
   const [paymentMethod, setPaymentMethod] = useState("");
   const [bookingData, setBookingData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [paymentResultData, setPaymentResultData] = useState(null);
 
   useEffect(() => {
     try {
+      // Check if navigation is from payment result page
+      if (location.state?.fromPaymentResult && location.state?.paymentData) {
+        console.log('Navigated from payment result', location.state.paymentData);
+        setPaymentResultData(location.state.paymentData);
+        
+        // Reset location state to prevent re-triggering
+        window.history.replaceState({}, document.title);
+        
+        // If we have payment data, go directly to Step 3
+        setCurrentStep(3);
+      }
+
       if (location.state?.booking) {
         const booking = location.state.booking;
         
@@ -151,6 +164,11 @@ function PaymentFlow() {
       {currentStep === 3 && (
         <Step3
           onBack={handleBack}
+          paymentData={paymentResultData || {
+            id: bookingData.id,
+            bookingId: bookingData.id,
+            amount: bookingData.totalPrice
+          }}
         />
       )}
     </>

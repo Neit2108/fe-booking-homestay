@@ -3,209 +3,112 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import ProcessBar from "../../components/ProcessBar/ProcessBar.jsx";
 import usePaymentService from "../../services/PaymentService";
+import { MdErrorOutline } from "react-icons/md";
+import { TbProgress } from "react-icons/tb";
+import { Button } from "@headlessui/react";
 
-function Step3({ onBack, paymentData }) {
-  const [paymentStatus, setPaymentStatus] = useState("pending");
+const Step3 = ({ paymentData, setPaymentData, setCurrentStep }) => {
+  const [paymentStatus, setPaymentStatus] = useState(null);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const paymentService = usePaymentService(); // Sử dụng hook
+  const paymentService = usePaymentService();
 
-  useEffect(() => {
-    // Kiểm tra xem có status từ URL query không (từ callback)
-    const queryParams = new URLSearchParams(location.search);
-    const statusParam = queryParams.get("status");
-    const paymentIdParam = queryParams.get("paymentId");
-    
-    if (statusParam) {
-      setPaymentStatus(statusParam.toLowerCase());
-    } else if (paymentData?.id) {
-      // Nếu không có status từ URL, kiểm tra từ API
-      checkPaymentStatus(paymentData.id);
-    }
-  }, [location, paymentData]);
+  const queryParams = new URLSearchParams(location.search);
+  const paymentId = queryParams.get("paymentId");
+  const statusParam = queryParams.get("status");
+  const vnpResponseCode = queryParams.get("vnp_ResponseCode");
 
   const checkPaymentStatus = async (paymentId) => {
     if (!paymentId) return;
-    
     setLoading(true);
     try {
-      const payment = await paymentService.getPaymentById(paymentId);
-      setPaymentStatus(payment.status.toLowerCase());
+      let attempts = 0;
+      const maxAttempts = 5;
+      while (attempts < maxAttempts) {
+        const payment = await paymentService.getPaymentById(paymentId);
+        setPaymentStatus(payment.status.toLowerCase());
+        setPaymentData({ ...paymentData, id: paymentId });
+        if (payment.status.toLowerCase() !== "pending") break;
+        await new Promise(resolve => setTimeout(resolve, 3000)); // Wait 3s
+        attempts++;
+      }
     } catch (error) {
       console.error("Error checking payment status:", error);
+      setPaymentStatus("failed");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleBack = () => {
-    onBack();
-  };
-
-  const handleFinish = () => {
-    // Điều hướng về trang chính hoặc trang bookings
-    navigate("/bookings");
-  };
-
-  const renderStatusIcon = () => {
-    if (loading) {
-      return (
-        <div className="animate-spin rounded-full h-24 w-24 border-t-4 border-accent"></div>
-      );
+  useEffect(() => {
+    // Ưu tiên trạng thái từ vnp_ResponseCode (nếu có)
+    if (vnpResponseCode) {
+      if (vnpResponseCode === "00") {
+        setPaymentStatus("success");
+      } else {
+        setPaymentStatus("failed");
+      }
+      // Gọi API để cập nhật trạng thái thủ công nếu cần
+      if (paymentId && vnpResponseCode === "00") {
+        checkPaymentStatus(paymentId);
+      }
     }
-
-    switch (paymentStatus) {
-      case "success":
-      case "paid":
-        return (
-          <svg
-            className="w-24 h-24 text-green-500"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-            ></path>
-          </svg>
-        );
-      case "pending":
-        return (
-          <svg
-            className="w-24 h-24 text-yellow-500"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-            ></path>
-          </svg>
-        );
-      default:
-        return (
-          <svg
-            className="w-24 h-24 text-red-500"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
-            ></path>
-          </svg>
-        );
+    // Nếu không có vnp_ResponseCode, dùng status từ query hoặc API
+    else if (statusParam) {
+      setPaymentStatus(statusParam.toLowerCase());
+    } else if (paymentData?.id) {
+      checkPaymentStatus(paymentData.id);
+    } else if (paymentId) {
+      checkPaymentStatus(paymentId);
     }
-  };
+  }, [paymentData, location.search]);
 
-  const renderStatusMessage = () => {
-    switch (paymentStatus) {
-      case "success":
-      case "paid":
-        return (
-          <div className="text-center text-lg text-primary">
-            Cảm ơn bạn đã thanh toán! <br />
-            Email xác nhận đã được gửi đến hộp thư của bạn. <br />
-            Vui lòng kiểm tra email để xem chi tiết đặt phòng.
-          </div>
-        );
-      case "pending":
-        return (
-          <div className="text-center text-lg text-primary">
-            Thanh toán của bạn đang được xử lý. <br />
-            Bạn sẽ nhận được email xác nhận sau khi thanh toán được hoàn tất. <br />
-            Vui lòng kiểm tra email hoặc trang Bookings của bạn sau vài phút.
-          </div>
-        );
-      default:
-        return (
-          <div className="text-center text-lg text-red-500">
-            Thanh toán không thành công. <br />
-            Vui lòng thử lại hoặc chọn phương thức thanh toán khác. <br />
-            Nếu cần hỗ trợ, vui lòng liên hệ với chúng tôi.
-          </div>
-        );
-    }
+  const handleComplete = () => {
+    navigate("/profile");
   };
 
   return (
-    <div className="flex flex-col items-center w-full bg-white min-h-screen">
-      <div className="flex justify-center items-center w-full h-20 border border-neutral-200">
-        <div className="text-2xl">
-          <span className="text-accent">Homies</span>
-          <span className="text-primary">Stay.</span>
-        </div>
-      </div>
-      <div className="flex flex-col items-center mt-12">
-        <div className="flex flex-col items-center mb-16">
-          <ProcessBar currentStep={3} />
-          <div className="mb-2.5 text-4xl font-semibold text-primary">
-            {paymentStatus === "success" || paymentStatus === "paid"
-              ? "Thanh toán thành công"
-              : paymentStatus === "pending"
-              ? "Đang xử lý thanh toán"
-              : "Thanh toán thất bại"}
-          </div>
-          <div className="text-lg text-zinc-400">
-            {paymentStatus === "success" || paymentStatus === "paid"
-              ? "Đặt phòng của bạn đã được xác nhận!"
-              : paymentStatus === "pending"
-              ? "Đặt phòng của bạn đang được xử lý"
-              : "Vui lòng thử lại hoặc liên hệ hỗ trợ"}
-          </div>
-        </div>
-        <div className="flex flex-col items-center gap-6 px-5">
-          {/* Icon trạng thái */}
-          <div className="flex justify-center">
-            {renderStatusIcon()}
-          </div>
-
-          {/* Thông báo */}
-          {renderStatusMessage()}
-          
-          {/* Thông tin bổ sung nếu có */}
-          {paymentData && (
-            <div className="mt-4 p-4 bg-gray-50 rounded-lg text-sm text-gray-600 w-full max-w-md">
-              <p><strong>Mã đặt phòng:</strong> #{paymentData.bookingId}</p>
-              <p><strong>Mã thanh toán:</strong> #{paymentData.paymentId}</p>
-              {paymentData.expireDate && (
-                <p><strong>Thời hạn thanh toán:</strong> {new Date(paymentData.expireDate).toLocaleString()}</p>
-              )}
-            </div>
-          )}
-        </div>
-        <div className="flex flex-col gap-4 items-center mt-16 mb-10">
-          <button
-            className="text-2xl bg-accent rounded-xl h-[58px] text-neutral-50 w-[323px] hover:bg-blue-800 transition-colors"
-            onClick={handleFinish}
+    <div className="step3-container">
+      {loading ? (
+        <div>Loading...</div>
+      ) : paymentStatus === "success" ? (
+        <div className="payment-success">
+          <CheckCircleOutlineIcon style={{ color: "green", fontSize: 60 }} />
+          <h2>Thanh toán thành công</h2>
+          <p>Cảm ơn bạn đã đặt phòng!</p>
+          <p>Chúng tôi đã gửi thông tin đặt phòng qua email của bạn.</p>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleComplete}
+            sx={{ mt: 2 }}
           >
             Hoàn tất
-          </button>
-          {paymentStatus !== "success" && paymentStatus !== "paid" && (
-            <button
-              className="text-lg rounded bg-neutral-100 h-[50px] text-zinc-400 w-[300px] hover:bg-neutral-200 transition-colors"
-              onClick={handleBack}
-            >
-              Quay lại
-            </button>
-          )}
+          </Button>
         </div>
-      </div>
+      ) : paymentStatus === "failed" ? (
+        <div className="payment-failed">
+          <MdErrorOutline style={{ color: "red", fontSize: 60 }} />
+          <h2>Thanh toán thất bại</h2>
+          <p>Đã có lỗi xảy ra trong quá trình thanh toán.</p>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={() => setCurrentStep(2)}
+            sx={{ mt: 2 }}
+          >
+            Thử lại
+          </Button>
+        </div>
+      ) : (
+        <div className="payment-pending">
+          <TbProgress />
+          <h2>Đang xử lý thanh toán...</h2>
+          <p>Vui lòng chờ trong giây lát.</p>
+        </div>
+      )}
     </div>
   );
-}
-
+};
 export default Step3;

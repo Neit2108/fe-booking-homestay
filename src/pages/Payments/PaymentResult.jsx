@@ -18,42 +18,79 @@ const PaymentResult = () => {
   const paymentId = searchParams.get('paymentId');
   const status = searchParams.get('status');
   
+  console.log('URL Search Params:', {
+    fullSearch: location.search,
+    paymentId: paymentId,
+    status: status
+  });
+
   // Fetch payment details on component mount
   useEffect(() => {
     const fetchPaymentDetails = async () => {
+      // Log all current parameters
+      console.log('Current URL Parameters:', {
+        paymentId,
+        status
+      });
+
+      // If no paymentId, check for alternative parameters from VNPay
       if (!paymentId) {
-        setError('Payment ID is missing from URL');
-        setLoading(false);
-        return;
+        // Try extracting from VNPay specific parameters
+        const vnpTxnRef = searchParams.get('vnp_TxnRef');
+        
+        if (vnpTxnRef) {
+          console.log('Found VNPay Transaction Reference:', vnpTxnRef);
+          
+          try {
+            const token = localStorage.getItem('token');
+            if (!token) {
+              throw new Error('No authentication token found');
+            }
+
+            const response = await axios.get(`https://localhost:7284/vnpay/payment/${vnpTxnRef}`, {
+              headers: {
+                Authorization: `Bearer ${token}`
+              }
+            });
+
+            setPaymentDetails(response.data);
+            setPaymentStatus(response.data.status);
+          } catch (err) {
+            console.error('Error fetching payment details by transaction reference:', err);
+            setError('Unable to retrieve payment details');
+          }
+        } else {
+          console.error('No payment identifier found in URL');
+          setError('Payment ID is missing from URL');
+        }
+      } else {
+        // Original flow with paymentId
+        try {
+          const token = localStorage.getItem('token');
+          if (!token) {
+            throw new Error('You must be logged in to view payment details');
+          }
+          
+          const response = await axios.get(`https://localhost:7284/vnpay/payment/${paymentId}`, {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          });
+          
+          setPaymentDetails(response.data);
+          setPaymentStatus(response.data.status);
+        } catch (err) {
+          console.error('Error fetching payment details:', err);
+          setError('Failed to fetch payment details. Please try again.');
+        }
       }
       
-      try {
-        const token = localStorage.getItem('token');
-        if (!token) {
-          setError('You must be logged in to view payment details');
-          setLoading(false);
-          return;
-        }
-        
-        const response = await axios.get(`https://localhost:7284/vnpay/payment/${paymentId}`, {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        });
-        
-        setPaymentDetails(response.data);
-        setPaymentStatus(response.data.status);
-        setLoading(false);
-      } catch (err) {
-        console.error('Error fetching payment details:', err);
-        setError('Failed to fetch payment details. Please try again.');
-        setLoading(false);
-      }
+      setLoading(false);
     };
     
     fetchPaymentDetails();
-  }, [paymentId]);
-  
+  }, [paymentId, location.search]);
+
   const handleGoToBookings = () => {
     navigate('/user-booking-dashboard');
   };
@@ -62,6 +99,9 @@ const PaymentResult = () => {
     navigate('/');
   };
   
+  // Rest of the component remains the same as your original implementation
+  // (loading, error, and success rendering logic)
+
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50">
@@ -102,11 +142,10 @@ const PaymentResult = () => {
     );
   }
   
-  // Success or Failed payment result
+  // Success payment result - redirect to Step3
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-4">
       <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full text-center">
-        {/* Payment Status Icon */}
         {paymentStatus === 'Success' ? (
           <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <svg className="w-8 h-8 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -121,7 +160,6 @@ const PaymentResult = () => {
           </div>
         )}
         
-        {/* Title based on status */}
         <h2 className={`text-2xl font-bold ${paymentStatus === 'Success' ? 'text-green-700' : 'text-red-700'} mb-4`}>
           {paymentStatus === 'Success' ? 'Thanh toán thành công' : 'Thanh toán thất bại'}
         </h2>
@@ -138,35 +176,24 @@ const PaymentResult = () => {
             <p className="text-gray-700 mb-2">
               <span className="font-medium">Số tiền:</span> {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(paymentDetails.amount)}
             </p>
-            <p className="text-gray-700 mb-2">
-              <span className="font-medium">Phương thức:</span> {paymentDetails.paymentMethod}
-            </p>
-            <p className="text-gray-700">
-              <span className="font-medium">Thời gian:</span> {new Date(paymentDetails.paymentDate || paymentDetails.createdAt).toLocaleString()}
-            </p>
           </div>
         )}
         
-        {/* Message based on status */}
-        <p className="text-gray-600 mb-6">
-          {paymentStatus === 'Success' 
-            ? 'Thanh toán của bạn đã được xác nhận. Cảm ơn bạn đã sử dụng dịch vụ của chúng tôi!'
-            : 'Thanh toán không thành công. Vui lòng thử lại hoặc chọn phương thức thanh toán khác.'}
-        </p>
-        
-        {/* Action Buttons */}
         <div className="flex flex-col gap-3">
           <button
-            onClick={handleGoToBookings}
+            onClick={() => {
+              // Redirect to Step3 with payment details
+              handleGoToBookings();
+            }}
             className="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md transition-colors"
           >
-            Xem đặt phòng của tôi
+            Xem chi tiết
           </button>
           <button
-            onClick={handleGoToHome}
+            onClick={handleGoToBookings}
             className="w-full py-2 px-4 bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium rounded-md transition-colors"
           >
-            Về trang chủ
+            Đơn đặt phòng của tôi
           </button>
         </div>
       </div>
