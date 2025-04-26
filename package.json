@@ -10,13 +10,15 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@heroicons/react": "^2.2.0",
+    "@headlessui/react": "^2.2.2",
+    "@heroicons/react": "^1.0.6",
     "@react-google-maps/api": "^2.20.6",
     "@tailwindcss/vite": "^4.0.15",
     "axios": "^1.8.4",
     "lucide-react": "^0.487.0",
     "papaparse": "^5.5.2",
     "prop-types": "^15.8.1",
+    "qrcode.react": "^4.2.0",
     "react": "^19.0.0",
     "react-chartjs-2": "^5.3.0",
     "react-datepicker": "^8.3.0",

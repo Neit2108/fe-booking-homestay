@@ -3,10 +3,12 @@ import React, { useState } from "react";
 import { formatDate } from "../../Utils/DateUtils";
 import { UserContext } from "../../context/UserContext";
 import { useContext } from "react";
+import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import axios from "axios";
 import Modal from "../Modal/Modal.jsx";
 import { formatPrice } from "../../Utils/PriceUtils.js";
+
 const statusStyles = {
   Pending: "bg-yellow-100 text-yellow-700",
   Confirmed: "bg-green-100 text-green-700",
@@ -17,7 +19,7 @@ const statusStyles = {
 const BookingList = ({ bookings, searchTerm, refreshBookings }) => {
   const { user } = useContext(UserContext);
   const token = user?.token || null;
-  const userId = user?.userId || null;
+  const navigate = useNavigate();
 
   const roles = Array.isArray(user.role) ? user.role : [user.role];
   const isAdminOrHost = roles.includes("Admin") || roles.includes("Landlord");
@@ -31,10 +33,8 @@ const BookingList = ({ bookings, searchTerm, refreshBookings }) => {
     booking.placeId.toString().includes(searchTerm.toLowerCase())
   );
 
-  const handleAccept = async (booking, refreshBookings) => {
+  const handleAccept = async (booking) => {
     try {
-      console.log("Accept booking:", booking);
-
       // Gửi request tới API để chấp nhận booking
       const response = await axios.put(
         `https://localhost:7284/bookings/accept-booking-request/${booking.id}`,
@@ -63,10 +63,8 @@ const BookingList = ({ bookings, searchTerm, refreshBookings }) => {
     }
   };
 
-  const handleReject = async (booking, refreshBookings) => {
+  const handleReject = async (booking) => {
     try {
-      console.log("Reject booking:", booking);
-
       const { value: rejectReason } = await Swal.fire({
         title: "Từ chối đặt phòng",
         input: "text",
@@ -115,7 +113,7 @@ const BookingList = ({ bookings, searchTerm, refreshBookings }) => {
     }
   };
 
-  const handleDelete = async (booking, refreshBookings) => {
+  const handleDelete = async (booking) => {
     try {
       const { value: cancelBookingRequest } = await Swal.fire({
         title: "Yêu cầu hủy đặt phòng",
@@ -149,6 +147,27 @@ const BookingList = ({ bookings, searchTerm, refreshBookings }) => {
     }
   };
 
+  // Handle payment for confirmed bookings
+  const handlePayment = (booking) => {
+    // Calculate days from startDate and endDate
+    const startDate = new Date(booking.startDate);
+    const endDate = new Date(booking.endDate);
+    const numberOfDays = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
+    
+    // Add calculated days to the booking object
+    const bookingWithDays = {
+      ...booking,
+      days: numberOfDays
+    };
+    
+    // Navigate to payment flow with the booking information
+    navigate("/payment", { 
+      state: { 
+        booking: bookingWithDays 
+      } 
+    });
+  };
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {filteredBookings.length === 0 ? (
@@ -179,7 +198,7 @@ const BookingList = ({ bookings, searchTerm, refreshBookings }) => {
                   </div>
                 )}
                 <div className="absolute top-2 left-2 bg-blue-500 text-white text-xs font-semibold px-2 py-1 rounded">
-                  ${formatPrice(Math.round(pricePerNight))} per night
+                  {formatPrice(Math.round(pricePerNight))} VNĐ/ngày
                 </div>
               </div>
               <h2 className="text-lg font-semibold text-blue-600">
@@ -189,17 +208,17 @@ const BookingList = ({ bookings, searchTerm, refreshBookings }) => {
                 {formatDate(booking.startDate).toUpperCase()} -{" "}
                 {formatDate(booking.endDate).toUpperCase()}
                 <span className="ml-2 text-gray-600">
-                  {numberOfDays.toString().padStart(2, "0")} Days
+                  {numberOfDays.toString().padStart(2, "0")} Ngày
                 </span>
               </p>
               <p className="text-sm text-gray-600">
-                {booking.address || "Address not available"}
+                {booking.placeAddress || "Address not available"}
               </p>
               <p className="text-sm font-semibold mt-1">
-                Tổng thanh toán ${formatPrice(booking.totalPrice)}
+                Tổng thanh toán: {formatPrice(booking.totalPrice)} VNĐ
               </p>
               <p className="text-sm mt-1">
-                Status:{" "}
+                Trạng thái:{" "}
                 <span
                   className={`px-2 py-1 rounded ${
                     statusStyles[booking.status] || "bg-gray-100 text-gray-700"
@@ -212,14 +231,17 @@ const BookingList = ({ bookings, searchTerm, refreshBookings }) => {
                 {!isAdminOrHost && (
                   <div className="flex items-center space-x-2">
                     {booking.status === "Confirmed" && (
-                      <button className="p-2 bg-green-100 text-green-700 rounded">
+                      <button 
+                        className="p-2 bg-green-100 text-green-700 rounded hover:bg-green-200 transition-colors"
+                        onClick={() => handlePayment(booking)}
+                      >
                         💳 Thanh toán
                       </button>
                     )}
                     
                     <button
-                      onClick={() => handleDelete(booking, refreshBookings)}
-                      className="p-2 bg-red-100 text-red-700 rounded"
+                      onClick={() => handleDelete(booking)}
+                      className="p-2 bg-red-100 text-red-700 rounded hover:bg-red-200 transition-colors"
                     >
                       🗑️ Xóa
                     </button>
@@ -228,14 +250,14 @@ const BookingList = ({ bookings, searchTerm, refreshBookings }) => {
                 {isAdminOrHost && (
                   <>
                     <button
-                      onClick={() => handleAccept(booking, refreshBookings)}
-                      className="p-2 bg-green-100 text-green-700 rounded"
+                      onClick={() => handleAccept(booking)}
+                      className="p-2 bg-green-100 text-green-700 rounded hover:bg-green-200 transition-colors"
                     >
                       ✔️ Xác nhận
                     </button>
                     <button
-                      onClick={() => handleReject(booking, refreshBookings)}
-                      className="p-2 bg-red-200 text-red-800 rounded"
+                      onClick={() => handleReject(booking)}
+                      className="p-2 bg-red-200 text-red-800 rounded hover:bg-red-300 transition-colors"
                     >
                       ❌ Hủy
                     </button>

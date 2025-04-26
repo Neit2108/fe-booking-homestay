@@ -7,7 +7,155 @@ import { UserContext } from "../../context/UserContext";
 import { useNavigate } from "react-router-dom";
 import DashboardHeader from "../../components/DashboardHeader/DashboardHeader";
 import Sidebar from "../../components/Sidebar/Sidebar";
+import Modal from "../../components/Modal/Modal";
 import { formatPrice } from "../../Utils/PriceUtils";
+import axios from "axios";
+
+// 1. Tách thành component riêng
+const StatusToggleModal = ({
+  isOpen,
+  onClose,
+  placeId,
+  currentStatus,
+  formData,
+  onFormChange,
+  onSubmit,
+}) => {
+  const isActive = currentStatus === "Active";
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 flex items-center justify-center z-50">
+      <div
+        className="absolute inset-0 bg-opacity-30 backdrop-blur-sm"
+        onClick={onClose}
+      ></div>
+
+      <div className="bg-white rounded-xl p-8 shadow-xl z-10 max-w-md w-full mx-4 relative border border-black-2000">
+        <button
+          className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
+          onClick={onClose}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-6 w-6"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M6 18L18 6M6 6l12 12"
+            />
+          </svg>
+        </button>
+
+        <h2 className="text-2xl font-semibold text-primary text-center mb-4">
+          {isActive ? "Dừng hoạt động Homestay" : "Kích hoạt Homestay"}
+        </h2>
+
+        {isActive ? (
+          <div className="space-y-4">
+            <div className="flex items-center mb-4">
+              <input
+                type="checkbox"
+                id="isPermanent"
+                name="isPermanent"
+                checked={formData.isPermanent}
+                onChange={onFormChange}
+                className="h-4 w-4 text-blue-600"
+              />
+              <label
+                htmlFor="isPermanent"
+                className="ml-2 text-sm text-gray-700"
+              >
+                Dừng hoạt động cho đến khi thay đổi
+              </label>
+            </div>
+
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Từ ngày:
+              </label>
+              <input
+                type="date"
+                name="inactiveFrom"
+                value={formData.inactiveFrom}
+                onChange={onFormChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent"
+                min={new Date().toISOString().split("T")[0]}
+              />
+            </div>
+
+            {!formData.isPermanent && (
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Đến ngày:
+                </label>
+                <input
+                  type="date"
+                  name="inactiveTo"
+                  value={formData.inactiveTo}
+                  onChange={onFormChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent"
+                  min={formData.inactiveFrom}
+                />
+              </div>
+            )}
+          </div>
+        ) : (
+          <p className="text-center text-gray-600 mb-4">
+            Bạn có chắc chắn muốn hoạt động lại homestay này không?
+          </p>
+        )}
+
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Lý do:
+          </label>
+          <textarea
+            name="reason"
+            value={formData.reason}
+            onChange={onFormChange}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent"
+            rows="3"
+            placeholder={
+              isActive
+                ? "Nhập lý do dừng hoạt động..."
+                : "Nhập lý do kích hoạt lại..."
+            }
+          ></textarea>
+        </div>
+
+        <div className="flex justify-end gap-2">
+          <button
+            className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+            onClick={onClose}
+          >
+            Hủy
+          </button>
+          <button
+            className={`px-4 py-2 ${
+              isActive
+                ? "bg-red-600 hover:bg-red-700"
+                : "bg-green-600 hover:bg-green-700"
+            } text-white rounded-md disabled:opacity-50`}
+            disabled={
+              !formData.reason.trim() ||
+              (!formData.isPermanent && !formData.inactiveTo)
+            }
+            onClick={onSubmit}
+          >
+            {isActive ? "Dừng hoạt động" : "Kích hoạt"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const HomestayManagement = () => {
   const {
@@ -19,10 +167,29 @@ const HomestayManagement = () => {
     updatePlace,
     deletePlace,
   } = usePlaces({ mode: "managed" });
-  const [searchTerm, setSearchTerm] = useState("");
-  const [sortOption, setSortOption] = useState("id");
-  const [sortDirection, setSortDirection] = useState("asc");
-  const { filterBy, setFilterBy, filteredPlaces } = useHomestayFiltering(places);
+
+  // Hook up with useHomestayFiltering
+  const {
+    searchTerm,
+    categoryFilter,
+    priceRange,
+    ratingFilter,
+    guestsFilter,
+    statusFilter,
+    sortOption,
+    setSearchTerm,
+    setCategoryFilter,
+    setStatusFilter,
+    handlePriceChange,
+    setRatingFilter,
+    setGuestsFilter,
+    setSortOption,
+    filteredPlaces,
+    resetFilters,
+    currentPage,
+    setCurrentPage,
+    getPaginatedResults,
+  } = useHomestayFiltering(places);
 
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -31,50 +198,418 @@ const HomestayManagement = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [homestayToDelete, setHomestayToDelete] = useState(null);
 
-  // Pagination state
-  const [currentPage, setCurrentPage] = useState(1);
+  const [approveModal, setApproveModal] = useState({
+    isOpen: false,
+    placeId: null,
+  });
+
+  const [rejectModal, setRejectModal] = useState({
+    isOpen: false,
+    placeId: null,
+  });
+
+  const [rejectReasonModal, setRejectReasonModal] = useState({
+    isOpen: false,
+    placeId: null,
+  });
+
+  const [rejectReason, setRejectReason] = useState("");
+  // For admin check
+  const { user, loading: userLoading, isAdmin, isLandlord } = useContext(UserContext);
+  const navigate = useNavigate();
+
+  // Items per page for pagination
   const [itemsPerPage] = useState(10);
 
-  // For admin check
-  const { user, loading: userLoading } = useContext(UserContext);
-  const navigate = useNavigate();
+  const [statusToggleModal, setStatusToggleModal] = useState({
+    isOpen: false,
+    placeId: null,
+    currentStatus: null,
+  });
+
+  const [statusModalState, setStatusModalState] = useState({
+    isOpen: false,
+    placeId: null,
+    currentStatus: null,
+  });
+
+  const [statusFormData, setStatusFormData] = useState({
+    isPermanent: true,
+    inactiveFrom: new Date().toISOString().split("T")[0],
+    inactiveTo: "",
+    reason: "",
+  });
 
   // Check if user is admin
   useEffect(() => {
     if (!userLoading && user) {
-      const isAdmin =
-        (Array.isArray(user.role) && user.role.includes("Admin")) ||
-        (typeof user.role === "string" && user.role === "Admin");
-
-      const isLandlord =
-        (Array.isArray(user.role) && user.role.includes("Landlord")) ||
-        (typeof user.role === "string" && user.role === "Landlord");
-
-      if (!isAdmin && !isLandlord) {
-        // Redirect unauthorized users
-        navigate("/unauthorized", { replace: true });
+      if(!isAdmin() && !isLandlord()) {
+        navigate("/unauthorized"); // Redirect to home if not admin or landlord
       }
+      console.log("true", isAdmin(), isLandlord());
     }
-  }, [user, navigate]);
+  }, [user, navigate, userLoading]);
 
-  // Handle search input change
-  const handleSearchChange = (e) => {
-    setSearchTerm(e.target.value);
-    setFilterBy({ ...filterBy, search: e.target.value });
+  // Open modal for adding a new homestay
+  const handleAddHomestay = () => {
+    setModalMode("add");
+    setCurrentHomestay(null);
+    setIsModalOpen(true);
   };
 
-  // Handle sort option change
-  const handleSortChange = (option) => {
-    if (sortOption === option) {
-      // If clicking the same option, toggle direction
-      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
-    } else {
-      // If clicking a different option, set it and default to ascending
-      setSortOption(option);
-      setSortDirection("asc");
+  // Open modal for editing a homestay
+  const handleEditHomestay = (homestay) => {
+    setModalMode("edit");
+    setCurrentHomestay(homestay);
+    setIsModalOpen(true);
+  };
+
+  // Handle modal form submission
+  const handleModalSubmit = async (formData, mode) => {
+    try {
+      if (mode === "add") {
+        await addPlace(formData);
+      } else {
+        await updatePlace(currentHomestay.id, formData);
+      }
+
+      // Close modal and refresh data
+      setIsModalOpen(false);
+      fetchPlaces();
+
+      // Show success notification
+      alert(
+        mode === "add"
+          ? "Homestay added successfully!"
+          : "Homestay updated successfully!"
+      );
+    } catch (error) {
+      console.error("Error submitting homestay:", error);
+      alert(`Error: ${error.message || "Something went wrong"}`);
     }
   };
 
+  // Open delete confirmation modal
+  const handleDeleteClick = (homestay) => {
+    setHomestayToDelete(homestay);
+    setIsDeleteModalOpen(true);
+  };
+
+  // Confirm and execute delete
+  const confirmDelete = async () => {
+    if (!homestayToDelete) return;
+
+    try {
+      await deletePlace(homestayToDelete.id);
+      setIsDeleteModalOpen(false);
+      setHomestayToDelete(null);
+
+      // Refresh data
+      fetchPlaces();
+
+      // Show success notification
+      alert("Homestay deleted successfully!");
+    } catch (error) {
+      console.error("Error deleting homestay:", error);
+      alert(`Error: ${error.message || "Something went wrong"}`);
+    }
+  };
+
+  const openApproveModal = (place) => {
+    setApproveModal({
+      isOpen: true,
+      placeId: place.id,
+    });
+  };
+
+  // Hàm hiển thị modal xác nhận từ chối
+  const openRejectModal = (place) => {
+    setRejectModal({
+      isOpen: true,
+      placeId: place.id,
+    });
+  };
+
+  // Hàm hiển thị modal nhập lý do từ chối
+  const openRejectReasonModal = (placeId) => {
+    setRejectReasonModal({
+      isOpen: true,
+      placeId,
+    });
+    setRejectReason(""); // Reset lý do
+  };
+
+  const handleApproveHomestay = async () => {
+    try {
+      
+      const requestBody = {
+        placeId: approveModal.placeId,
+        newStatus: "Active",
+        inactiveFrom: null,
+        inactiveTo: null,
+        reason: "Đã được phê duyệt",
+      };
+
+      const response = await axios.put(
+        `https://localhost:7284/places/update-status`,
+        requestBody,
+        {
+          headers: {
+            Authorization: `Bearer ${user?.token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (response.status === 200) {
+        setApproveModal({ isOpen: false, placeId: null });
+        // Hiển thị modal thành công
+        setSuccessModal({
+          isOpen: true,
+          message: "Homestay đã được phê duyệt thành công!",
+        });
+        fetchPlaces(); // Refresh danh sách
+      }
+    } catch (error) {
+      console.error("Lỗi khi phê duyệt homestay:", error);
+      setApproveModal({ isOpen: false, placeId: null });
+      // Hiển thị modal lỗi
+      setErrorModal({
+        isOpen: true,
+        message: `Lỗi: ${
+          error.response?.data ||
+          error.message ||
+          "Không thể phê duyệt homestay"
+        }`,
+      });
+    }
+  };
+
+  const handleRejectConfirm = () => {
+    setRejectModal({ isOpen: false, placeId: null });
+    const placeId = rejectModal.placeId;
+    if (placeId) {
+      openRejectReasonModal(placeId);
+    }
+  };
+
+  // Function to decline a pending homestay
+  const RejectReasonModal = () => (
+    <div
+      className={`fixed inset-0 flex items-center justify-center z-50 ${
+        rejectReasonModal.isOpen ? "" : "hidden"
+      }`}
+    >
+      <div
+        className="absolute inset-0 bg-black bg-opacity-30 backdrop-blur-sm"
+        onClick={() => setRejectReasonModal({ isOpen: false, placeId: null })}
+      ></div>
+
+      <div className="bg-white rounded-xl p-8 shadow-xl z-10 max-w-md w-full mx-4 relative border border-gray-200">
+        <button
+          className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
+          onClick={() => setRejectReasonModal({ isOpen: false, placeId: null })}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-6 w-6"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M6 18L18 6M6 6l12 12"
+            />
+          </svg>
+        </button>
+
+        <h2 className="text-2xl font-semibold text-primary text-center mb-4">
+          Lý do từ chối
+        </h2>
+
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Vui lòng nhập lý do từ chối homestay này:
+          </label>
+          <textarea
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent"
+            rows="4"
+            value={rejectReason}
+            onChange={(e) => setRejectReason(e.target.value)}
+            placeholder="Nhập lý do từ chối..."
+          ></textarea>
+        </div>
+
+        <div className="flex justify-end gap-2">
+          <button
+            className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+            onClick={() =>
+              setRejectReasonModal({ isOpen: false, placeId: null })
+            }
+          >
+            Hủy
+          </button>
+          <button
+            className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:bg-red-300"
+            disabled={!rejectReason.trim()}
+            onClick={handleDeclineHomestay}
+          >
+            Từ chối
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
+  // Hàm xử lý từ chối homestay sau khi có lý do
+  const handleDeclineHomestay = async () => {
+    try {
+    
+      if (!rejectReason.trim()) {
+        // Hiển thị thông báo lỗi
+        return;
+      }
+
+      // Tạo request body theo đúng định dạng API
+      const requestBody = {
+        placeId: rejectReasonModal.placeId,
+        newStatus: "Inactive",
+        inactiveFrom: new Date().toISOString(),
+        inactiveTo: null,
+        reason: rejectReason,
+      };
+
+      const response = await axios.put(
+        `https://localhost:7284/places/update-status`,
+        requestBody,
+        {
+          headers: {
+            Authorization: `Bearer ${user?.token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (response.status === 200) {
+        setRejectReasonModal({ isOpen: false, placeId: null });
+        // Hiển thị modal thành công
+        setSuccessModal({
+          isOpen: true,
+          message: "Homestay đã bị từ chối thành công",
+        });
+        fetchPlaces(); // Refresh danh sách
+      }
+    } catch (error) {
+      console.error("Lỗi khi từ chối homestay:", error);
+      setRejectReasonModal({ isOpen: false, placeId: null });
+      // Hiển thị modal lỗi
+      setErrorModal({
+        isOpen: true,
+        message: `Lỗi: ${
+          error.response?.data || error.message || "Không thể từ chối homestay"
+        }`,
+      });
+    }
+  };
+
+  const handleToggleStatus = (place) => {
+    setStatusModalState({
+      isOpen: true,
+      placeId: place.id,
+      currentStatus: place.status,
+    });
+
+    // Reset form
+    setStatusFormData({
+      isPermanent: true,
+      inactiveFrom: new Date().toISOString().split("T")[0],
+      inactiveTo: "",
+      reason: "",
+    });
+  };
+
+  const handleCloseStatusModal = () => {
+    setStatusModalState({
+      isOpen: false,
+      placeId: null,
+      currentStatus: null,
+    });
+  };
+
+  // Hàm xử lý khi form thay đổi
+  const handleStatusFormChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setStatusFormData((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+    }));
+  };
+
+  const handleSubmitStatusChange = async () => {
+    // Kiểm tra điều kiện trước khi submit
+    if (!statusFormData.reason.trim()) {
+      // Thông báo lỗi
+      return;
+    }
+
+    if (!statusFormData.isPermanent && !statusFormData.inactiveTo) {
+      // Thông báo lỗi
+      return;
+    }
+
+    try {
+
+      const { placeId, currentStatus } = statusModalState;
+
+      // Tạo request body dựa trên trạng thái hiện tại
+      const requestBody = {
+        placeId: placeId,
+        newStatus: currentStatus === "Active" ? "Inactive" : "Active",
+        inactiveFrom:
+          currentStatus === "Active" ? statusFormData.inactiveFrom : null,
+        inactiveTo:
+          currentStatus === "Active" && !statusFormData.isPermanent
+            ? statusFormData.inactiveTo
+            : null,
+        reason: statusFormData.reason,
+      };
+      console.log("update status");
+      const response = await axios.put(
+        `https://localhost:7284/places/update-status`,
+        requestBody,
+        {
+          headers: {
+            Authorization: `Bearer ${user?.token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      console.log("Response:", response.data);
+      if (response.status === 200) {
+        handleCloseStatusModal();
+        // Hiển thị thông báo thành công
+        fetchPlaces(); // Refresh danh sách
+      }
+    } catch (error) {
+      console.error("Lỗi khi cập nhật trạng thái:", error);
+      handleCloseStatusModal();
+      // Hiển thị thông báo lỗi
+    }
+  };
+
+  // Thêm state cho modal thông báo
+  const [successModal, setSuccessModal] = useState({
+    isOpen: false,
+    message: "",
+  });
+
+  const [errorModal, setErrorModal] = useState({
+    isOpen: false,
+    message: "",
+  });
   // Function to render rating stars
   const renderStars = (rating) => {
     const stars = [];
@@ -147,129 +682,26 @@ const HomestayManagement = () => {
       : text;
   };
 
-  // Open modal for adding a new homestay
-  const handleAddHomestay = () => {
-    setModalMode("add");
-    setCurrentHomestay(null);
-    setIsModalOpen(true);
-  };
+  // Get paginated places
+  const { items: paginatedPlaces, totalPages } =
+    getPaginatedResults(itemsPerPage);
 
-  // Open modal for editing a homestay
-  const handleEditHomestay = (homestay) => {
-    setModalMode("edit");
-    setCurrentHomestay(homestay);
-    setIsModalOpen(true);
-  };
-
-  // Handle modal form submission
-  const handleModalSubmit = async (formData, mode) => {
-    try {
-      if (mode === "add") {
-        await addPlace(formData);
-      } else {
-        await updatePlace(currentHomestay.id, formData);
-      }
-
-      // Close modal and refresh data
-      setIsModalOpen(false);
-      fetchPlaces();
-
-      // Show success notification
-      alert(
-        mode === "add"
-          ? "Homestay added successfully!"
-          : "Homestay updated successfully!"
-      );
-    } catch (error) {
-      console.error("Error submitting homestay:", error);
-      alert(`Error: ${error.message || "Something went wrong"}`);
+  // Pagination handlers
+  const prevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
     }
   };
 
-  // Open delete confirmation modal
-  const handleDeleteClick = (homestay) => {
-    setHomestayToDelete(homestay);
-    setIsDeleteModalOpen(true);
-  };
-
-  // Confirm and execute delete
-  const confirmDelete = async () => {
-    if (!homestayToDelete) return;
-
-    try {
-      await deletePlace(homestayToDelete.id);
-      setIsDeleteModalOpen(false);
-      setHomestayToDelete(null);
-
-      // Refresh data
-      fetchPlaces();
-
-      // Show success notification
-      alert("Homestay deleted successfully!");
-    } catch (error) {
-      console.error("Error deleting homestay:", error);
-      alert(`Error: ${error.message || "Something went wrong"}`);
+  const nextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
     }
   };
 
-  // Sort the filtered places
-  const sortedPlaces = [...filteredPlaces].sort((a, b) => {
-    let valueA, valueB;
-
-    switch (sortOption) {
-      case "id":
-        valueA = a.id;
-        valueB = b.id;
-        break;
-      case "name":
-        valueA = a.name || "";
-        valueB = b.name || "";
-        break;
-      case "rating":
-        valueA = a.rating || 0;
-        valueB = b.rating || 0;
-        break;
-      case "price":
-        valueA = a.price || 0;
-        valueB = b.price || 0;
-        break;
-      case "maxGuests":
-        valueA = a.maxGuests || 0;
-        valueB = b.maxGuests || 0;
-        break;
-      default:
-        valueA = a.id;
-        valueB = b.id;
-    }
-
-    // For string comparison
-    if (typeof valueA === "string" && typeof valueB === "string") {
-      if (sortDirection === "asc") {
-        return valueA.localeCompare(valueB);
-      } else {
-        return valueB.localeCompare(valueA);
-      }
-    }
-
-    // For number comparison
-    if (sortDirection === "asc") {
-      return valueA - valueB;
-    } else {
-      return valueB - valueA;
-    }
-  });
-
-  // Calculate pagination
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = sortedPlaces.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(sortedPlaces.length / itemsPerPage);
-
-  // Change page
-  const paginate = (pageNumber) => setCurrentPage(pageNumber);
-  const nextPage = () =>
-    setCurrentPage((prev) => Math.min(prev + 1, totalPages));
-  const prevPage = () => setCurrentPage((prev) => Math.max(prev - 1, 1));
+  const goToPage = (page) => {
+    setCurrentPage(page);
+  };
 
   // Render loading state
   if (loading) return <Loader />;
@@ -318,12 +750,12 @@ const HomestayManagement = () => {
                     className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
                     placeholder="Tìm theo tên..."
                     value={searchTerm}
-                    onChange={handleSearchChange}
+                    onChange={(e) => setSearchTerm(e.target.value)}
                   />
                 </div>
               </div>
               <button
-                onClick={handleAddHomestay} // Bạn định nghĩa hàm này phía trên
+                onClick={handleAddHomestay}
                 className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition"
               >
                 Thêm
@@ -331,22 +763,19 @@ const HomestayManagement = () => {
             </div>
 
             <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4">
-              {/* <div className="flex flex-col">
-                <label className="mb-1 text-sm text-gray-700">Danh mục</label>
+              <div className="flex flex-col">
+                <label className="mb-1 text-sm text-gray-700">Trạng thái</label>
                 <select
                   className="border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
-                  value={filterBy.category || ""}
-                  onChange={(e) =>
-                    setFilterBy({ ...filterBy, category: e.target.value })
-                  }
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
                 >
-                  <option value="">Tất cả danh mục</option>
-                  <option value="homestay">Homestay</option>
-                  <option value="resort">Resort</option>
-                  <option value="hotel">Hotel</option>
-                  <option value="villa">Villa</option>
+                  <option value="">Tất cả trạng thái</option>
+                  <option value="Active">Hoạt động</option>
+                  <option value="Inactive">Không hoạt động</option>
+                  <option value="Pending">Chờ duyệt</option>
                 </select>
-              </div> */}
+              </div>
 
               <div className="flex flex-col">
                 <label className="mb-1 text-sm text-gray-700">Tầm giá</label>
@@ -355,19 +784,15 @@ const HomestayManagement = () => {
                     type="number"
                     placeholder="Từ"
                     className="border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
-                    value={filterBy.minPrice || ""}
-                    onChange={(e) =>
-                      setFilterBy({ ...filterBy, minPrice: e.target.value })
-                    }
+                    value={priceRange.min}
+                    onChange={(e) => handlePriceChange("min", e.target.value)}
                   />
                   <input
                     type="number"
                     placeholder="Đến"
                     className="border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
-                    value={filterBy.maxPrice || ""}
-                    onChange={(e) =>
-                      setFilterBy({ ...filterBy, maxPrice: e.target.value })
-                    }
+                    value={priceRange.max}
+                    onChange={(e) => handlePriceChange("max", e.target.value)}
                   />
                 </div>
               </div>
@@ -378,10 +803,8 @@ const HomestayManagement = () => {
                 </label>
                 <select
                   className="border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
-                  value={filterBy.minRating || ""}
-                  onChange={(e) =>
-                    setFilterBy({ ...filterBy, minRating: e.target.value })
-                  }
+                  value={ratingFilter}
+                  onChange={(e) => setRatingFilter(e.target.value)}
                 >
                   <option value="">Bất kỳ</option>
                   <option value="3">3+ sao</option>
@@ -396,10 +819,8 @@ const HomestayManagement = () => {
                 </label>
                 <select
                   className="border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
-                  value={filterBy.maxGuests || ""}
-                  onChange={(e) =>
-                    setFilterBy({ ...filterBy, maxGuests: e.target.value })
-                  }
+                  value={guestsFilter}
+                  onChange={(e) => setGuestsFilter(e.target.value)}
                 >
                   <option value="">Bất kỳ</option>
                   <option value="2">2+</option>
@@ -408,6 +829,15 @@ const HomestayManagement = () => {
                   <option value="8">8+</option>
                 </select>
               </div>
+            </div>
+
+            <div className="mt-4 flex justify-end">
+              <button
+                onClick={resetFilters}
+                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition"
+              >
+                Reset Filters
+              </button>
             </div>
           </div>
 
@@ -420,14 +850,20 @@ const HomestayManagement = () => {
                     <th
                       scope="col"
                       className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                      onClick={() => handleSortChange("id")}
+                      onClick={() =>
+                        setSortOption(
+                          sortOption === "id" && sortOption === "asc"
+                            ? "desc"
+                            : "asc"
+                        )
+                      }
                     >
                       <div className="flex items-center">
                         ID
                         {sortOption === "id" && (
                           <svg
                             className={`ml-1 w-4 h-4 ${
-                              sortDirection === "desc"
+                              sortOption === "desc"
                                 ? "transform rotate-180"
                                 : ""
                             }`}
@@ -446,14 +882,18 @@ const HomestayManagement = () => {
                     <th
                       scope="col"
                       className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                      onClick={() => handleSortChange("name")}
+                      onClick={() =>
+                        setSortOption(
+                          sortOption === "name" ? "name-desc" : "name"
+                        )
+                      }
                     >
                       <div className="flex items-center">
                         Tên
-                        {sortOption === "name" && (
+                        {sortOption.includes("name") && (
                           <svg
                             className={`ml-1 w-4 h-4 ${
-                              sortDirection === "desc"
+                              sortOption === "name-desc"
                                 ? "transform rotate-180"
                                 : ""
                             }`}
@@ -478,14 +918,18 @@ const HomestayManagement = () => {
                     <th
                       scope="col"
                       className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                      onClick={() => handleSortChange("rating")}
+                      onClick={() =>
+                        setSortOption(
+                          sortOption === "rating" ? "rating-desc" : "rating"
+                        )
+                      }
                     >
                       <div className="flex items-center">
                         Đánh giá
-                        {sortOption === "rating" && (
+                        {sortOption.includes("rating") && (
                           <svg
                             className={`ml-1 w-4 h-4 ${
-                              sortDirection === "desc"
+                              sortOption === "rating-desc"
                                 ? "transform rotate-180"
                                 : ""
                             }`}
@@ -510,14 +954,20 @@ const HomestayManagement = () => {
                     <th
                       scope="col"
                       className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                      onClick={() => handleSortChange("price")}
+                      onClick={() =>
+                        setSortOption(
+                          sortOption === "price-low-high"
+                            ? "price-high-low"
+                            : "price-low-high"
+                        )
+                      }
                     >
                       <div className="flex items-center">
                         Giá
-                        {sortOption === "price" && (
+                        {sortOption.includes("price") && (
                           <svg
                             className={`ml-1 w-4 h-4 ${
-                              sortDirection === "desc"
+                              sortOption === "price-high-low"
                                 ? "transform rotate-180"
                                 : ""
                             }`}
@@ -536,14 +986,20 @@ const HomestayManagement = () => {
                     <th
                       scope="col"
                       className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                      onClick={() => handleSortChange("maxGuests")}
+                      onClick={() =>
+                        setSortOption(
+                          sortOption === "maxGuests"
+                            ? "maxGuests-desc"
+                            : "maxGuests"
+                        )
+                      }
                     >
                       <div className="flex items-center">
                         Số khách tối đa
-                        {sortOption === "maxGuests" && (
+                        {sortOption.includes("maxGuests") && (
                           <svg
                             className={`ml-1 w-4 h-4 ${
-                              sortDirection === "desc"
+                              sortOption === "maxGuests-desc"
                                 ? "transform rotate-180"
                                 : ""
                             }`}
@@ -559,12 +1015,12 @@ const HomestayManagement = () => {
                         )}
                       </div>
                     </th>
-                    {/* <th
+                    <th
                       scope="col"
                       className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider"
                     >
-                      Mô tả
-                    </th> */}
+                      Trạng thái
+                    </th>
                     <th
                       scope="col"
                       className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider"
@@ -574,8 +1030,8 @@ const HomestayManagement = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {currentItems.length > 0 ? (
-                    currentItems.map((place) => (
+                  {paginatedPlaces.length > 0 ? (
+                    paginatedPlaces.map((place) => (
                       <tr key={place.id} className="hover:bg-gray-50">
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                           {place.id}
@@ -612,58 +1068,152 @@ const HomestayManagement = () => {
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
-                          ${formatPrice(place.price)}
+                          {formatPrice(place.price)} VNĐ
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                           {place.maxGuests || "N/A"}
                         </td>
-                        {/* <td className="px-6 py-4 text-sm text-gray-500 max-w-xs">
-                          <div className="truncate">
-                            {truncateText(place.description, 50)}
-                          </div>
-                        </td> */}
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          <span
+                            className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                              place.status === "Active"
+                                ? "bg-green-100 text-green-800"
+                                : place.status === "Inactive"
+                                ? "bg-red-100 text-red-800"
+                                : "bg-yellow-100 text-yellow-800"
+                            }`}
+                          >
+                            {place.status === "Active"
+                              ? "Hoạt động"
+                              : place.status === "Inactive"
+                              ? "Không hoạt động"
+                              : "Chờ duyệt"}
+                          </span>
+                        </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                           <div className="flex space-x-2">
-                            <button
-                              onClick={() => handleEditHomestay(place)}
-                              className="text-blue-600 hover:text-blue-900"
-                              title="Edit"
-                            >
-                              <svg
-                                className="w-5 h-5"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                                xmlns="http://www.w3.org/2000/svg"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth="2"
-                                  d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
-                                ></path>
-                              </svg>
-                            </button>
-                            <button
-                              onClick={() => handleDeleteClick(place)}
-                              className="text-red-600 hover:text-red-900"
-                              title="Delete"
-                            >
-                              <svg
-                                className="w-5 h-5"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                                xmlns="http://www.w3.org/2000/svg"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth="2"
-                                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                                ></path>
-                              </svg>
-                            </button>
+                            {place.status === "Pending" && isAdmin() ? (
+                              // Show approve/decline buttons for pending homestays
+                              <>
+                                <button
+                                  onClick={() => openApproveModal(place)}
+                                  className="text-green-600 hover:text-green-900"
+                                  title="Approve"
+                                >
+                                  <svg
+                                    className="w-5 h-5"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth="2"
+                                      d="M5 13l4 4L19 7"
+                                    ></path>
+                                  </svg>
+                                </button>
+                                <button
+                                  onClick={() => openRejectModal(place)}
+                                  className="text-red-600 hover:text-red-900"
+                                  title="Decline"
+                                >
+                                  <svg
+                                    className="w-5 h-5"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth="2"
+                                      d="M6 18L18 6M6 6l12 12"
+                                    ></path>
+                                  </svg>
+                                </button>
+                              </>
+                            ) : (
+                              // Show regular action buttons for non-pending homestays
+                              <>
+                                <button
+                                  onClick={() => handleEditHomestay(place)}
+                                  className="text-blue-600 hover:text-blue-900"
+                                  title="Edit"
+                                >
+                                  <svg
+                                    className="w-5 h-5"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth="2"
+                                      d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+                                    ></path>
+                                  </svg>
+                                </button>
+
+                                {/* Nút chuyển đổi trạng thái */}
+
+                                {place.status != "Pending" &&(<button
+                                  onClick={() => handleToggleStatus(place)}
+                                  className={`${
+                                    place.status === "Active"
+                                      ? "text-green-600 hover:text-green-900"
+                                      : "text-gray-600 hover:text-gray-900"
+                                  }`}
+                                  title={
+                                    place.status === "Active"
+                                      ? "Vô hiệu hóa Homestay"
+                                      : "Kích hoạt Homestay"
+                                  }
+                                >
+                                  <svg
+                                    className="w-5 h-5"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth="2"
+                                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                                    ></path>
+                                  </svg>
+                                </button>)}
+
+                                <button
+                                  onClick={() => handleDeleteClick(place)}
+                                  className="text-red-600 hover:text-red-900"
+                                  title="Delete"
+                                >
+                                  <svg
+                                    className="w-5 h-5"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth="2"
+                                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                    ></path>
+                                  </svg>
+                                </button>
+                              </>
+                            )}
+                            {/* View details button is always shown */}
                             <button
                               onClick={() =>
                                 window.open(
@@ -725,7 +1275,7 @@ const HomestayManagement = () => {
                       : "text-gray-700 bg-white hover:bg-gray-50"
                   }`}
                 >
-                  Tiếp
+                  Trước
                 </button>
                 <button
                   onClick={nextPage}
@@ -743,13 +1293,18 @@ const HomestayManagement = () => {
                 <div>
                   <p className="text-sm text-gray-700">
                     Hiển thị{" "}
-                    <span className="font-medium">{indexOfFirstItem + 1}</span>{" "}
+                    <span className="font-medium">
+                      {(currentPage - 1) * itemsPerPage + 1}
+                    </span>{" "}
                     đến{" "}
                     <span className="font-medium">
-                      {Math.min(indexOfLastItem, sortedPlaces.length)}
+                      {Math.min(
+                        currentPage * itemsPerPage,
+                        filteredPlaces.length
+                      )}
                     </span>{" "}
                     trong{" "}
-                    <span className="font-medium">{sortedPlaces.length}</span>{" "}
+                    <span className="font-medium">{filteredPlaces.length}</span>{" "}
                     kết quả được tìm thấy
                   </p>
                 </div>
@@ -784,22 +1339,51 @@ const HomestayManagement = () => {
                     </button>
 
                     {/* Page numbers */}
-                    {[...Array(totalPages).keys()].map((number) => (
-                      <button
-                        key={number + 1}
-                        onClick={() => paginate(number + 1)}
-                        aria-current={
-                          currentPage === number + 1 ? "page" : undefined
-                        }
-                        className={`${
-                          currentPage === number + 1
-                            ? "z-10 bg-blue-50 border-blue-500 text-blue-600"
-                            : "bg-white border-gray-300 text-gray-500 hover:bg-gray-50"
-                        } relative inline-flex items-center px-4 py-2 border text-sm font-medium`}
-                      >
-                        {number + 1}
-                      </button>
-                    ))}
+                    {Array.from({ length: totalPages }, (_, index) => {
+                      const pageNumber = index + 1;
+                      // Show first, last, and pages around current page
+                      if (
+                        pageNumber === 1 ||
+                        pageNumber === totalPages ||
+                        (pageNumber >= currentPage - 1 &&
+                          pageNumber <= currentPage + 1)
+                      ) {
+                        return (
+                          <button
+                            key={pageNumber}
+                            onClick={() => goToPage(pageNumber)}
+                            aria-current={
+                              currentPage === pageNumber ? "page" : undefined
+                            }
+                            className={`${
+                              currentPage === pageNumber
+                                ? "z-10 bg-blue-50 border-blue-500 text-blue-600"
+                                : "bg-white border-gray-300 text-gray-500 hover:bg-gray-50"
+                            } relative inline-flex items-center px-4 py-2 border text-sm font-medium`}
+                          >
+                            {pageNumber}
+                          </button>
+                        );
+                      }
+
+                      // Show ellipsis for gaps
+                      if (
+                        (pageNumber === 2 && currentPage > 3) ||
+                        (pageNumber === totalPages - 1 &&
+                          currentPage < totalPages - 2)
+                      ) {
+                        return (
+                          <span
+                            key={pageNumber}
+                            className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700"
+                          >
+                            ...
+                          </span>
+                        );
+                      }
+
+                      return null;
+                    })}
 
                     <button
                       onClick={nextPage}
@@ -869,6 +1453,58 @@ const HomestayManagement = () => {
           </div>
         </div>
       )}
+
+      <Modal
+        isOpen={approveModal.isOpen}
+        onClose={() => setApproveModal({ isOpen: false, placeId: null })}
+        onContinue={handleApproveHomestay}
+        status="warning"
+        title="Xác nhận phê duyệt"
+        message="Bạn có chắc chắn muốn phê duyệt homestay này không?"
+        confirmText="Phê duyệt"
+      />
+
+      {/* Modal xác nhận từ chối */}
+      <Modal
+        isOpen={rejectModal.isOpen}
+        onClose={() => setRejectModal({ isOpen: false, placeId: null })}
+        onContinue={handleRejectConfirm}
+        status="error"
+        title="Xác nhận từ chối"
+        message="Bạn có chắc chắn muốn từ chối homestay này không?"
+        confirmText="Tiếp tục"
+      />
+
+      {/* Modal nhập lý do từ chối - Custom modal */}
+      <RejectReasonModal />
+
+      {/* Modal thành công */}
+      <Modal
+        isOpen={successModal.isOpen}
+        onClose={() => setSuccessModal({ isOpen: false, message: "" })}
+        status="success"
+        title="Thành công"
+        message={successModal.message}
+      />
+
+      {/* Modal lỗi */}
+      <Modal
+        isOpen={errorModal.isOpen}
+        onClose={() => setErrorModal({ isOpen: false, message: "" })}
+        status="error"
+        title="Lỗi"
+        message={errorModal.message}
+      />
+
+      <StatusToggleModal
+        isOpen={statusModalState.isOpen}
+        onClose={handleCloseStatusModal}
+        placeId={statusModalState.placeId}
+        currentStatus={statusModalState.currentStatus}
+        formData={statusFormData}
+        onFormChange={handleStatusFormChange}
+        onSubmit={handleSubmitStatusChange}
+      />
     </div>
   );
 };

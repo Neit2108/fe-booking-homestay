@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 
+
 function UpdateTitleAndFavicon() {
   const location = useLocation();
 
@@ -61,14 +62,27 @@ function UpdateTitleAndFavicon() {
         document.title = "Danh sách đặt phòng";
         favicon.href = "src/assets/favicon.png";
         break;
+      case "/user-booking-details":
+        document.title = "Chi tiết đặt phòng";
+        favicon.href = "src/assets/favicon.png";
+        break;
+      case "/landlord-booking-dashboard":
+        document.title = "Chủ nhà";
+        favicon.href = "src/assets/favicon.png";
+        break;
+      case "/admin-booking-dashboard":
+        document.title = "Admin";
+        favicon.href = "src/assets/favicon.png";
+        break;
+      
       default:
         // Xử lý các route động như /place-details/:id
         if (location.pathname.startsWith("/place-details/")) {
-          document.title = "Chi tiết chỗ ở";
+          document.title = "Chi tiết homestay";
           favicon.href = "src/assets/favicon.png";
         } else {
           document.title = "Homies Stay";
-          favicon.href = "src/assets/favicon.png";
+          favicon.href =  '../../src/assets/favicon.png';
         }
     }
   }, [location.pathname]);

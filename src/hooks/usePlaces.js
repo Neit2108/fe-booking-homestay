@@ -98,6 +98,7 @@ export const usePlaces = (options = { mode: "managed" }) => {
       description: place.description || "",
       price: place.price || 0,
       maxGuests: place.maxGuests || 0,
+      status: place.status || "pending",
       ownerId: place.ownerId || "",
       images: place.images || []
     }));

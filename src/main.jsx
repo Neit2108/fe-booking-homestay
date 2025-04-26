@@ -20,7 +20,8 @@ import VerifyAccess from "./pages/VerifyAccess/VerifyAccess.jsx";
 import AdminBookingDashboard from "./pages/Dashboard/AdminBookingDashboard.jsx";
 import LandlordBookingDashboard from "./pages/Dashboard/LandlordBookingDashboard.jsx";
 import Error401 from "./pages/ErrorPage/Error401.jsx";
-import PaymentFlow  from "./pages/Payments/PaymentFlow.jsx";
+import PaymentFlow from "./pages/Payments/PaymentFlow.jsx";
+import PaymentResult from "./pages/Payments/PaymentResult.jsx"; // Import the new PaymentResult component
 import TestCaseManager from "./pages/TestCasePage/TestCaseManager.jsx";
 import HomestayRecommendation from "./pages/HomestayRecommend/HomestayRecommendation.jsx";
 import HomestayManagement from "./pages/HomestayManagement/HomestayManagement.jsx";
@@ -60,6 +61,7 @@ const router = createBrowserRouter([
       { path: "/auth/verify-action/:token", element: <VerifyAccess /> },
       { path: "/unauthorized", element: <Error401 /> },
       { path: "/payment", element: <PaymentFlow /> },
+      { path: "/payment-result", element: <PaymentResult /> }, // Add the new PaymentResult route
       { path: "/test-case", element: <TestCaseManager /> },
       { path: "/homestay-recommend", element: <HomestayRecommendation /> },
       { path: "/homestay-management", element: <HomestayManagement /> },

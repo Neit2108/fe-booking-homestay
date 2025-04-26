@@ -139,6 +139,7 @@ const HomestayRecommendation = () => {
     priceRange,
     ratingFilter,
     guestsFilter,
+    statusFilter,
     sortOption,
     setSearchTerm,
     setCategoryFilter,
@@ -148,6 +149,7 @@ const HomestayRecommendation = () => {
     setSortOption,
     currentPage,
     setCurrentPage,
+    setStatusFilter,
     getPaginatedResults,
     resetFilters
   } = useHomestayFiltering(places);

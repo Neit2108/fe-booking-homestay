@@ -51,7 +51,11 @@ const useBookings = (user, statusFilter, startDateFilter, endDateFilter) => {
       });
 
       const responseData = response.data.data || response.data;
+      console.log("placeName", responseData.placeName);
+      console.log("placeAddress", responseData.placeAddress);
+      console.log(responseData);
       setBookings(responseData);
+      console.log(bookings);
     } catch (err) {
       setError("Không thể tải danh sách đặt phòng.");
       console.error("Error fetching bookings:", err);

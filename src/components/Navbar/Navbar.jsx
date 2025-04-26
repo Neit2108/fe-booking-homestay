@@ -143,6 +143,25 @@ function Navbar() {
                     </svg>
                     <span className="flex-1">Tài khoản</span> {/* Đảm bảo chữ không bị đẩy xuống */}
                   </Link>
+                  <Link
+                    to={getDashboardLink()} // Sử dụng getDashboardLink để điều hướng đúng
+                    className="block px-4 py-2 text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path d="M4 3a2 2 0 100 4h12a2 2 0 100-4H4z" />
+                      <path
+                        fillRule="evenodd"
+                        d="M3 8h14v7a2 2 0 01-2 2H5a2 2 0 01-2-2V8zm5 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                    Quản lý đặt phòng
+                  </Link>
                   {/* <Link
                     to={getDashboardLink()} // Sử dụng getDashboardLink để điều hướng đúng
                     className="block px-4 py-2 text-gray-700 hover:bg-gray-100 flex items-center gap-2"

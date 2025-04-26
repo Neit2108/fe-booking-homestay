@@ -25,8 +25,8 @@ const useComment = (placeId) => {
       const commentsWithUserInfo = response.data.map(comment => {
         return {
           id: comment.id,
-          name: user?.fullName || "Anonymous User",
-          avatarUrl: user?.avatarUrl || "/default-avatar.png",
+          name: comment.senderName || "Anonymous User",
+          avatarUrl: comment.senderAvatar || "/default-avatar.png",
           rating: comment.rating,
           date: comment.createdAt,
           text: comment.content,

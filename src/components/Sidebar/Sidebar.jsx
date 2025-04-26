@@ -1,12 +1,23 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import { useLocation, Link } from "react-router-dom";
 import { UserContext } from "../../context/UserContext.jsx";
+import { useNavigate } from "react-router-dom";
+import Loader from "../Loading/Loader.jsx";
+
 
 function Sidebar({ activePage }) {
   const location = useLocation();
   const currentPath = location.pathname;
-  const { user } = useContext(UserContext);
+  const { user, loading: userLoading, isAdmin, isLandlord } = useContext(UserContext);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const navigate = useNavigate();
+
+  // useEffect(() => {
+  //     if (!userLoading && user) {
+        
+  //     }
+  //   }, [user, navigate, userLoading]);
+
 
   const getDashboardLink = () => {
     const roles = Array.isArray(user?.role) ? user.role : [user?.role];
@@ -37,7 +48,7 @@ function Sidebar({ activePage }) {
         </svg>
       ),
     },
-    {
+    ({
       to: "/statistics",
       label: "Thống kê",
       icon: (
@@ -54,7 +65,7 @@ function Sidebar({ activePage }) {
           />
         </svg>
       ),
-    },
+    }),
     {
       to: "/profile",
       label: "Thông tin",

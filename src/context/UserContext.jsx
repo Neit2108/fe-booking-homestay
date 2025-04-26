@@ -89,8 +89,8 @@ const UserProvider = ({ children }) => {
     window.location.href = "/login";
   };
 
-  const isAdmin = () => user?.role === 'admin';
-  const isLandlord = () => user?.role === 'landlord';
+  const isAdmin = () => user?.role.includes('Admin');
+  const isLandlord = () => user?.role.includes('Landlord');
   const hasRole = (role) => user?.role === role;
   const hasAnyRole = (roles) => roles.includes(user?.role);
 
