@@ -1,17 +1,20 @@
-// src/Utils/VNPayUtils.js
+// src/utils/VNPayUtils.js
 
 /**
- * Utility functions for handling VNPay-related operations
+ * Utility functions for handling VNPay payment operations
  */
 import axios from 'axios';
 
+const API_BASE_URL = 'https://localhost:7284';
+
 /**
- * Create a VNPay payment URL for a booking
- * @param {number} bookingId - The ID of the booking to pay for
- * @param {string} token - JWT authentication token
- * @returns {Promise<object>} Payment details including URL and QR code
+ * Creates a VNPay payment request
+ * @param {number} bookingId - ID of the booking
+ * @param {string} paymentMethod - Type of payment method (e.g., "bank_transfer", "credit_card")
+ * @param {string} token - Authentication token
+ * @returns {Promise<object>} - Payment data from the API
  */
-export const createVNPayPayment = async (bookingId, token) => {
+export const createVNPayRequest = async (bookingId, paymentMethod, token) => {
   if (!bookingId) {
     throw new Error('Booking ID is required');
   }
@@ -20,18 +23,25 @@ export const createVNPayPayment = async (bookingId, token) => {
     throw new Error('Authentication token is required');
   }
   
+  // Determine bank code based on payment method
+  let bankCode = undefined;
+  if (paymentMethod === 'credit_card') {
+    bankCode = 'NCB'; // Default bank code for card payments
+  }
+  
   try {
     const response = await axios.post(
-      'https://localhost:7284/vnpay/create-payment',
+      `${API_BASE_URL}/vnpay/create-payment`,
       {
         bookingId: bookingId,
         returnUrl: `${window.location.origin}/payment-result`,
         orderInfo: `Payment for booking #${bookingId}`,
-        locale: 'vn'
+        locale: 'vn',
+        bankCode: bankCode
       },
       {
         headers: {
-          Authorization: `Bearer ${token}`,
+          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       }
@@ -46,9 +56,9 @@ export const createVNPayPayment = async (bookingId, token) => {
 
 /**
  * Get payment details by ID
- * @param {number} paymentId - The ID of the payment to get
- * @param {string} token - JWT authentication token
- * @returns {Promise<object>} Payment details
+ * @param {number} paymentId - Payment ID
+ * @param {string} token - Authentication token
+ * @returns {Promise<object>} - Payment details
  */
 export const getPaymentById = async (paymentId, token) => {
   if (!paymentId) {
@@ -61,10 +71,10 @@ export const getPaymentById = async (paymentId, token) => {
   
   try {
     const response = await axios.get(
-      `https://localhost:7284/vnpay/payment/${paymentId}`,
+      `${API_BASE_URL}/vnpay/payment/${paymentId}`,
       {
         headers: {
-          Authorization: `Bearer ${token}`
+          'Authorization': `Bearer ${token}`
         }
       }
     );
@@ -77,112 +87,45 @@ export const getPaymentById = async (paymentId, token) => {
 };
 
 /**
- * Get all payments for a booking
- * @param {number} bookingId - The ID of the booking
- * @param {string} token - JWT authentication token
- * @returns {Promise<Array>} Array of payment details
- */
-export const getPaymentsByBookingId = async (bookingId, token) => {
-  if (!bookingId) {
-    throw new Error('Booking ID is required');
-  }
-  
-  if (!token) {
-    throw new Error('Authentication token is required');
-  }
-  
-  try {
-    const response = await axios.get(
-      `https://localhost:7284/vnpay/booking/${bookingId}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      }
-    );
-    
-    return response.data;
-  } catch (error) {
-    console.error('Error getting booking payments:', error);
-    throw new Error(error.response?.data?.message || 'Failed to get booking payments');
-  }
-};
-
-/**
- * Get all payments for the current user
- * @param {string} token - JWT authentication token
- * @returns {Promise<Array>} Array of payment details
- */
-export const getUserPayments = async (token) => {
-  if (!token) {
-    throw new Error('Authentication token is required');
-  }
-  
-  try {
-    const response = await axios.get(
-      'https://localhost:7284/vnpay/user',
-      {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      }
-    );
-    
-    return response.data;
-  } catch (error) {
-    console.error('Error getting user payments:', error);
-    throw new Error(error.response?.data?.message || 'Failed to get user payments');
-  }
-};
-
-/**
- * Generate QR code URL from payment URL
- * Since the backend should provide the QR code, this is a fallback
- * @param {string} paymentUrl - The VNPay payment URL
- * @returns {string} Google Charts QR code URL
- */
-export const generateQRCodeUrl = (paymentUrl) => {
-  if (!paymentUrl) return null;
-  
-  // Use Google Charts API to generate QR code
-  const encodedUrl = encodeURIComponent(paymentUrl);
-  return `https://chart.googleapis.com/chart?cht=qr&chl=${encodedUrl}&chs=300x300&chld=L|0`;
-};
-
-/**
  * Format payment status for display
- * @param {string} status - The payment status from API
- * @returns {object} Formatted status with text, color, and icon class
+ * @param {string} status - Payment status from API
+ * @returns {object} - Formatted status with text, color, and icon classes
  */
 export const formatPaymentStatus = (status) => {
-  switch (status) {
-    case 'Success':
+  switch (status?.toLowerCase()) {
+    case 'success':
       return {
         text: 'Thành công',
-        color: 'text-green-600',
+        textColor: 'text-green-600',
         bgColor: 'bg-green-100',
-        iconClass: 'text-green-500'
+        icon: 'text-green-500'
       };
-    case 'Pending':
+    case 'pending':
       return {
         text: 'Đang xử lý',
-        color: 'text-yellow-600',
+        textColor: 'text-yellow-600',
         bgColor: 'bg-yellow-100',
-        iconClass: 'text-yellow-500'
+        icon: 'text-yellow-500'
       };
-    case 'Failed':
+    case 'failed':
       return {
         text: 'Thất bại',
-        color: 'text-red-600',
+        textColor: 'text-red-600',
         bgColor: 'bg-red-100',
-        iconClass: 'text-red-500'
+        icon: 'text-red-500'
       };
     default:
       return {
         text: status || 'Không xác định',
-        color: 'text-gray-600',
+        textColor: 'text-gray-600',
         bgColor: 'bg-gray-100',
-        iconClass: 'text-gray-500'
+        icon: 'text-gray-500'
       };
   }
+};
+
+export default {
+  createVNPayRequest,
+  getPaymentById,
+  formatPaymentStatus
 };

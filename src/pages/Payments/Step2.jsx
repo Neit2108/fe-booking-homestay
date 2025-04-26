@@ -1,58 +1,109 @@
 // src/pages/Payments/Step2.jsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import ProcessBar from "../../components/ProcessBar/ProcessBar";
 import { formatPrice } from "../../Utils/PriceUtils";
 import axios from "axios";
 import Loader from "../../components/Loading/Loader";
+import {QRCodeSVG} from 'qrcode.react'; // You'll need to install this package: npm install qrcode.react
 
 function Step2({ onNext, onBack, paymentMethod, property, days, totalPrice, people, bookingId }) {
   const [paymentData, setPaymentData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [googleQrCode, setGoogleQrCode] = useState(null);
+  const [redirectCountdown, setRedirectCountdown] = useState(null);
+  const redirectTimerRef = useRef(null);
 
-  // Fetch payment data if bank transfer is selected
+  // Function to generate QR code directly in frontend
+  const generateQRCode = (url) => {
+    return (
+      <div className="flex justify-center">
+        <QRCodeSVG
+          value={url}
+          size={200}
+          level={"H"}
+          marginSize={4}
+          renderAs={"canvas"}
+        />
+      </div>
+    );
+  };
+
+  // Alternative QR code generation using Google Charts API
+  const getGoogleQRCodeUrl = (data) => {
+    return `https://chart.googleapis.com/chart?cht=qr&chl=${encodeURIComponent(data)}&chs=200x200&chld=H|0`;
+  };
+
+  // Fetch payment data when component mounts
   useEffect(() => {
     const fetchPaymentData = async () => {
-      if (paymentMethod === "bank_transfer" && bookingId) {
-        setLoading(true);
-        try {
-          const token = localStorage.getItem("token");
-          // Create payment URL request
-          const response = await axios.post(
-            "https://localhost:7284/vnpay/create-payment",
-            {
-              bookingId: bookingId,
-              returnUrl: window.location.origin + "/payment-result",
-              orderInfo: `Payment for ${property.name} - ${days} days`,
-              locale: "vn"
-            },
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-                "Content-Type": "application/json"
-              }
+      if (!bookingId) return;
+      
+      setLoading(true);
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) throw new Error("Authentication token missing");
+        
+        // Make the API call to create payment
+        const response = await axios.post(
+          "https://localhost:7284/vnpay/create-payment",
+          {
+            bookingId: bookingId,
+            returnUrl: window.location.origin + "/payment-result",
+            orderInfo: `Payment for ${property.name} - ${days} days`,
+            locale: "vn",
+            // Pass the bank code if credit card payment is selected
+            bankCode: paymentMethod === "credit_card" ? "NCB" : undefined
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json"
             }
-          );
-          
-          setPaymentData(response.data);
-          
-          // If no QR code is provided, generate one using Google Charts API
-          if (!response.data.qrCodeBase64 && response.data.paymentUrl) {
-            const encodedUrl = encodeURIComponent(response.data.paymentUrl);
-            setGoogleQrCode(`https://chart.googleapis.com/chart?cht=qr&chl=${encodedUrl}&chs=300x300&chld=L|0`);
           }
-        } catch (err) {
-          console.error("Error fetching payment data:", err);
-          setError("Unable to generate payment QR code. Please try again.");
-        } finally {
-          setLoading(false);
+        );
+        
+        setPaymentData(response.data);
+        
+        // Handle redirect for credit card payment
+        if (paymentMethod === "credit_card" && response.data.paymentUrl) {
+          setRedirectCountdown(10);
         }
+      } catch (err) {
+        console.error("Error fetching payment data:", err);
+        setError(err?.response?.data?.message || "Unable to process payment request. Please try again.");
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchPaymentData();
+    
+    // Cleanup function
+    return () => {
+      if (redirectTimerRef.current) {
+        clearInterval(redirectTimerRef.current);
+      }
+    };
   }, [paymentMethod, bookingId, property, days]);
+
+  // Handle countdown and redirect for credit card payment
+  useEffect(() => {
+    if (redirectCountdown === null) return;
+    
+    if (redirectCountdown > 0) {
+      redirectTimerRef.current = setTimeout(() => {
+        setRedirectCountdown(redirectCountdown - 1);
+      }, 1000);
+    } else if (redirectCountdown === 0 && paymentData?.paymentUrl) {
+      window.location.href = paymentData.paymentUrl;
+    }
+    
+    return () => {
+      if (redirectTimerRef.current) {
+        clearTimeout(redirectTimerRef.current);
+      }
+    };
+  }, [redirectCountdown, paymentData]);
 
   const handleNext = () => {
     onNext();
@@ -60,6 +111,13 @@ function Step2({ onNext, onBack, paymentMethod, property, days, totalPrice, peop
 
   const handleBack = () => {
     onBack();
+  };
+
+  // Handle immediate redirect to payment page
+  const handleRedirectNow = () => {
+    if (paymentData?.paymentUrl) {
+      window.location.href = paymentData.paymentUrl;
+    }
   };
 
   const renderPaymentDetails = () => {
@@ -85,38 +143,21 @@ function Step2({ onNext, onBack, paymentMethod, property, days, totalPrice, peop
               </div>
             ) : paymentData ? (
               <>
-                {/* Display QR Code with fallback options */}
-                <div className="flex flex-col items-center">
-                  {paymentData.qrCodeBase64 ? (
-                    // Option 1: Use QR code from API if available
-                    <img
-                      src={`data:image/png;base64,${paymentData.qrCodeBase64}`}
-                      alt="QR Code"
-                      className="w-[200px] h-[200px] border rounded-lg"
-                    />
-                  ) : googleQrCode ? (
-                    // Option 2: Use Google Charts QR code if we generated one
-                    <img
-                      src={googleQrCode}
-                      alt="QR Code"
-                      className="w-[200px] h-[200px] border rounded-lg"
-                    />
+                {/* QR Code Display */}
+                <div className="flex flex-col items-center border border-gray-200 rounded-lg p-4 bg-white">
+                  {/* Use React QRCode component if available, otherwise use Google Charts API */}
+                  {typeof QRCode !== 'undefined' ? (
+                    generateQRCode(paymentData.paymentUrl)
                   ) : (
-                    // Option 3: Fallback if no QR code is available
-                    <div className="border border-gray-300 rounded-lg p-4 text-center w-[200px] h-[200px] flex items-center justify-center bg-gray-50">
-                      <div>
-                        <p className="text-gray-500 mb-2">Mã QR không khả dụng</p>
-                        <a 
-                          href={paymentData.paymentUrl} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="text-blue-500 underline"
-                        >
-                          Mở trang thanh toán
-                        </a>
-                      </div>
-                    </div>
+                    <img
+                      src={getGoogleQRCodeUrl(paymentData.paymentUrl)}
+                      alt="QR Code"
+                      className="w-[200px] h-[200px]"
+                    />
                   )}
+                  <p className="text-sm text-center mt-2 text-gray-600">
+                    Quét mã QR để thanh toán
+                  </p>
                 </div>
                 
                 {/* Payment Information */}
@@ -169,43 +210,71 @@ function Step2({ onNext, onBack, paymentMethod, property, days, totalPrice, peop
       case "credit_card":
         return (
           <div className="flex flex-col gap-4">
-            <div className="text-base text-primary font-semibold">Thông tin thẻ tín dụng</div>
-            <div className="flex flex-col gap-3">
-              <input
-                type="text"
-                placeholder="Số thẻ"
-                className="rounded bg-neutral-100 h-[45px] px-4 text-primary outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  placeholder="Ngày hết hạn (MM/YY)"
-                  className="flex-1 rounded bg-neutral-100 h-[45px] px-4 text-primary outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                <input
-                  type="text"
-                  placeholder="CVV"
-                  className="w-20 rounded bg-neutral-100 h-[45px] px-4 text-primary outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              <input
-                type="text"
-                placeholder="Tên chủ thẻ"
-                className="rounded bg-neutral-100 h-[45px] px-4 text-primary outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
+            <div className="text-base text-primary font-semibold">Thanh toán qua thẻ</div>
             
-            <div className="bg-gray-50 p-4 rounded-lg mt-4">
-              <div className="text-sm font-medium text-gray-700 mb-2">Thông tin thanh toán:</div>
-              <div className="text-sm text-gray-700 mb-1">
-                <span className="font-medium">Tổng tiền:</span> 
-                <span className="ml-2">{formatPrice(totalPrice)} VNĐ</span>
+            {loading ? (
+              <div className="flex justify-center">
+                <Loader />
               </div>
-              <div className="text-sm text-gray-700">
-                <span className="font-medium">Mô tả:</span> 
-                <span className="ml-2">Thanh toán đặt phòng {property.name} - {days} ngày</span>
+            ) : error ? (
+              <div className="text-red-500 text-center">
+                {error}
+                <button
+                  onClick={() => window.location.reload()}
+                  className="block mx-auto mt-2 text-blue-500 underline"
+                >
+                  Thử lại
+                </button>
               </div>
-            </div>
+            ) : paymentData ? (
+              <div className="bg-white rounded-lg border border-gray-200 p-6">
+                <div className="flex items-center justify-center mb-4">
+                  <img src="/src/assets/Payment/vnpay-logo.png" alt="VNPay" className="h-12" 
+                       onError={(e) => { e.target.src = "https://sandbox.vnpayment.vn/paymentv2/images/bank/qr_vnpay_qr.png"; e.target.onerror = null; }} />
+                </div>
+                
+                <div className="text-center mb-6">
+                  <h3 className="text-lg font-medium text-gray-800 mb-2">
+                    Đang chuyển đến cổng thanh toán VNPay
+                  </h3>
+                  
+                  {redirectCountdown !== null && (
+                    <div className="text-sm text-gray-600">
+                      Tự động chuyển sau <span className="font-bold text-blue-600">{redirectCountdown}</span> giây
+                    </div>
+                  )}
+                </div>
+                
+                <div className="bg-blue-50 p-4 rounded-lg mb-4">
+                  <div className="font-medium text-blue-800 mb-2">Thông tin thanh toán:</div>
+                  <div className="text-sm text-gray-700">
+                    <div className="mb-1">
+                      <span className="font-medium">Tổng tiền:</span> 
+                      <span className="ml-2">{formatPrice(totalPrice)} VNĐ</span>
+                    </div>
+                    <div className="mb-1">
+                      <span className="font-medium">Mã thanh toán:</span> 
+                      <span className="ml-2">{paymentData.paymentId}</span>
+                    </div>
+                    <div>
+                      <span className="font-medium">Hết hạn:</span> 
+                      <span className="ml-2">{new Date(paymentData.expireDate).toLocaleString()}</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <button
+                  onClick={handleRedirectNow}
+                  className="w-full bg-accent hover:bg-blue-700 text-white font-medium py-3 rounded-md transition-colors"
+                >
+                  Thanh toán ngay
+                </button>
+              </div>
+            ) : (
+              <div className="text-center text-gray-500">
+                Không có thông tin thanh toán
+              </div>
+            )}
           </div>
         );
         
