@@ -3,34 +3,62 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import ProcessBar from "../../components/ProcessBar/ProcessBar.jsx";
 import usePaymentService from "../../services/PaymentService";
+import Loader from "../../components/Loading/Loader.jsx";
+
+// Import icons
+import { IoCheckmarkCircleOutline } from "react-icons/io5";
 import { MdErrorOutline } from "react-icons/md";
 import { TbProgress } from "react-icons/tb";
-import { Button } from "@headlessui/react";
 
-const Step3 = ({ paymentData, setPaymentData, setCurrentStep }) => {
+const Step3 = ({ paymentData, setCurrentStep }) => {
   const [paymentStatus, setPaymentStatus] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [paymentDetails, setPaymentDetails] = useState(null);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const location = useLocation();
   const paymentService = usePaymentService();
 
+  // Parse any query parameters
   const queryParams = new URLSearchParams(location.search);
-  const paymentId = queryParams.get("paymentId");
-  const statusParam = queryParams.get("status");
+  const queryPaymentId = queryParams.get("paymentId");
+  const queryStatus = queryParams.get("status");
   const vnpResponseCode = queryParams.get("vnp_ResponseCode");
 
-  const checkPaymentStatus = async (paymentId) => {
-    if (!paymentId) return;
-    setLoading(true);
+  // Get the payment ID from either query params or provided data
+  const paymentId = queryPaymentId || paymentData?.id;
+
+  // Check payment status from the API
+  const checkPaymentStatus = async (id) => {
+    if (!id) {
+      console.error("No payment ID available to check status");
+      setLoading(false);
+      return;
+    }
+    
     try {
+      console.log("Checking payment status for ID:", id);
       let attempts = 0;
       const maxAttempts = 5;
+      
       while (attempts < maxAttempts) {
-        const payment = await paymentService.getPaymentById(paymentId);
-        setPaymentStatus(payment.status.toLowerCase());
-        setPaymentData({ ...paymentData, id: paymentId });
-        if (payment.status.toLowerCase() !== "pending") break;
-        await new Promise(resolve => setTimeout(resolve, 3000)); // Wait 3s
+        const payment = await paymentService.getPaymentById(id);
+        console.log("Payment data from API:", payment);
+        
+        if (payment) {
+          setPaymentDetails(payment);
+          setPaymentStatus(payment.status.toLowerCase());
+          
+          // If we have a definitive status, break the loop
+          if (payment.status.toLowerCase() !== "pending") {
+            break;
+          }
+        }
+        
+        // Wait before trying again
+        if (attempts < maxAttempts - 1) {
+          await new Promise(resolve => setTimeout(resolve, 3000));
+        }
+        
         attempts++;
       }
     } catch (error) {
@@ -42,73 +70,160 @@ const Step3 = ({ paymentData, setPaymentData, setCurrentStep }) => {
   };
 
   useEffect(() => {
-    // Ưu tiên trạng thái từ vnp_ResponseCode (nếu có)
-    if (vnpResponseCode) {
-      if (vnpResponseCode === "00") {
-        setPaymentStatus("success");
-      } else {
-        setPaymentStatus("failed");
-      }
-      // Gọi API để cập nhật trạng thái thủ công nếu cần
-      if (paymentId && vnpResponseCode === "00") {
-        checkPaymentStatus(paymentId);
-      }
+    console.log("Step3 received paymentData:", paymentData);
+    
+    // First, try to get status from props or query params
+    if (paymentData?.status) {
+      setPaymentStatus(paymentData.status.toLowerCase());
+      setPaymentDetails(paymentData);
+    } else if (queryStatus) {
+      setPaymentStatus(queryStatus.toLowerCase());
+    } else if (vnpResponseCode === "00") {
+      setPaymentStatus("success");
+    } else if (vnpResponseCode && vnpResponseCode !== "00") {
+      setPaymentStatus("failed");
     }
-    // Nếu không có vnp_ResponseCode, dùng status từ query hoặc API
-    else if (statusParam) {
-      setPaymentStatus(statusParam.toLowerCase());
-    } else if (paymentData?.id) {
-      checkPaymentStatus(paymentData.id);
-    } else if (paymentId) {
+    
+    // In all cases, verify with the API if we have a payment ID
+    if (paymentId) {
       checkPaymentStatus(paymentId);
+    } else {
+      setLoading(false);
     }
-  }, [paymentData, location.search]);
+  }, [paymentId, paymentData]);
 
   const handleComplete = () => {
-    navigate("/profile");
+    navigate("/user-booking-dashboard");
+  };
+  
+  const handleTryAgain = () => {
+    // Go back to step 2
+    if (setCurrentStep) {
+      setCurrentStep(2);
+    } else {
+      navigate(-1);
+    }
   };
 
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center w-full bg-white min-h-screen">
+        <div className="flex justify-center items-center w-full h-20 border border-neutral-200">
+          <div className="text-2xl">
+            <span className="text-accent">Homies</span>
+            <span className="text-primary">Stay.</span>
+          </div>
+        </div>
+        <div className="flex flex-col items-center justify-center flex-grow p-6">
+          <Loader />
+          <p className="mt-4 text-gray-600">Đang kiểm tra trạng thái thanh toán...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="step3-container">
-      {loading ? (
-        <div>Loading...</div>
-      ) : paymentStatus === "success" ? (
-        <div className="payment-success">
-          <CheckCircleOutlineIcon style={{ color: "green", fontSize: 60 }} />
-          <h2>Thanh toán thành công</h2>
-          <p>Cảm ơn bạn đã đặt phòng!</p>
-          <p>Chúng tôi đã gửi thông tin đặt phòng qua email của bạn.</p>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={handleComplete}
-            sx={{ mt: 2 }}
-          >
-            Hoàn tất
-          </Button>
+    <div className="flex flex-col items-center w-full bg-white min-h-screen">
+      <div className="flex justify-center items-center w-full h-20 border border-neutral-200">
+        <div className="text-2xl">
+          <span className="text-accent">Homies</span>
+          <span className="text-primary">Stay.</span>
         </div>
-      ) : paymentStatus === "failed" ? (
-        <div className="payment-failed">
-          <MdErrorOutline style={{ color: "red", fontSize: 60 }} />
-          <h2>Thanh toán thất bại</h2>
-          <p>Đã có lỗi xảy ra trong quá trình thanh toán.</p>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={() => setCurrentStep(2)}
-            sx={{ mt: 2 }}
-          >
-            Thử lại
-          </Button>
+      </div>
+      
+      <div className="flex flex-col items-center mt-12 w-full max-w-3xl px-4">
+        <div className="flex flex-col items-center mb-12">
+          <ProcessBar currentStep={3} />
+          <div className="mb-2.5 text-4xl font-semibold text-primary">
+            Kết quả thanh toán
+          </div>
         </div>
-      ) : (
-        <div className="payment-pending">
-          <TbProgress />
-          <h2>Đang xử lý thanh toán...</h2>
-          <p>Vui lòng chờ trong giây lát.</p>
+        
+        <div className="w-full max-w-md bg-white rounded-lg shadow-lg p-8 text-center">
+          {paymentStatus === "success" ? (
+            <div className="payment-success">
+              <div className="w-20 h-20 mx-auto mb-6 flex items-center justify-center bg-green-100 rounded-full">
+                <IoCheckmarkCircleOutline className="w-12 h-12 text-green-600" />
+              </div>
+              <h2 className="text-2xl font-bold text-green-700 mb-4">Thanh toán thành công</h2>
+              <p className="text-gray-600 mb-2">Cảm ơn bạn đã đặt phòng!</p>
+              <p className="text-gray-600 mb-6">Chúng tôi đã gửi thông tin đặt phòng qua email của bạn.</p>
+              
+              {paymentDetails && (
+                <div className="bg-gray-50 p-4 rounded-lg mb-6 text-left">
+                  <p className="text-gray-700 mb-2">
+                    <span className="font-medium">Mã thanh toán:</span> #{paymentDetails.id}
+                  </p>
+                  <p className="text-gray-700 mb-2">
+                    <span className="font-medium">Mã giao dịch:</span> {paymentDetails.transactionId || 'N/A'}
+                  </p>
+                  <p className="text-gray-700 mb-2">
+                    <span className="font-medium">Số tiền:</span> {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(paymentDetails.amount)}
+                  </p>
+                </div>
+              )}
+              
+              <button
+                className="w-full bg-accent hover:bg-blue-700 text-white font-medium py-3 rounded-md transition-colors"
+                onClick={handleComplete}
+              >
+                Xem đơn đặt phòng
+              </button>
+            </div>
+          ) : paymentStatus === "failed" ? (
+            <div className="payment-failed">
+              <div className="w-20 h-20 mx-auto mb-6 flex items-center justify-center bg-red-100 rounded-full">
+                <MdErrorOutline className="w-12 h-12 text-red-600" />
+              </div>
+              <h2 className="text-2xl font-bold text-red-700 mb-4">Thanh toán thất bại</h2>
+              <p className="text-gray-600 mb-6">Đã có lỗi xảy ra trong quá trình thanh toán.</p>
+              
+              <div className="flex flex-col gap-3">
+                <button
+                  className="w-full bg-accent hover:bg-blue-700 text-white font-medium py-3 rounded-md transition-colors"
+                  onClick={handleTryAgain}
+                >
+                  Thử lại
+                </button>
+                <button
+                  className="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-3 rounded-md transition-colors"
+                  onClick={handleComplete}
+                >
+                  Đơn đặt phòng của tôi
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="payment-pending">
+              <div className="w-20 h-20 mx-auto mb-6 flex items-center justify-center bg-yellow-100 rounded-full">
+                <TbProgress className="w-12 h-12 text-yellow-600" />
+              </div>
+              <h2 className="text-2xl font-bold text-yellow-700 mb-4">Đang xử lý thanh toán...</h2>
+              <p className="text-gray-600 mb-4">Vui lòng chờ trong giây lát.</p>
+              <p className="text-sm text-gray-500 mb-6">
+                Thanh toán của bạn đang được xử lý. Việc này có thể mất vài phút.
+              </p>
+              
+              <div className="flex flex-col gap-3">
+                <button
+                  className="w-full bg-accent hover:bg-blue-700 text-white font-medium py-3 rounded-md transition-colors"
+                  onClick={() => window.location.reload()}
+                >
+                  Kiểm tra lại
+                </button>
+                <button
+                  className="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-3 rounded-md transition-colors"
+                  onClick={handleComplete}
+                >
+                  Đơn đặt phòng của tôi
+                </button>
+              </div>
+            </div>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 };
+
 export default Step3;

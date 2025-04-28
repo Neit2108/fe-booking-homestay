@@ -14,6 +14,8 @@ const statusStyles = {
   Confirmed: "bg-green-100 text-green-700",
   Cancelled: "bg-red-100 text-red-700",
   Completed: "bg-blue-100 text-blue-700",
+  Paid: "bg-green-100 text-green-700",
+  Unpaid: "bg-red-100 text-red-700",
 };
 
 const BookingList = ({ bookings, searchTerm, refreshBookings }) => {
@@ -26,8 +28,10 @@ const BookingList = ({ bookings, searchTerm, refreshBookings }) => {
 
   const [isModalSuccessOpen, setIsModalSuccessOpen] = useState(false);
   const [isModalErrorOpen, setIsModalErrorOpen] = useState(false);
-  const [isModalRequestCancelSuccessOpen, setIsModalRequestCancelSuccessOpen] = useState(false);
-  const [isModalRequestCancelErrorOpen, setIsModalRequestCancelErrorOpen] = useState(false);
+  const [isModalRequestCancelSuccessOpen, setIsModalRequestCancelSuccessOpen] =
+    useState(false);
+  const [isModalRequestCancelErrorOpen, setIsModalRequestCancelErrorOpen] =
+    useState(false);
 
   const filteredBookings = bookings.filter((booking) =>
     booking.placeId.toString().includes(searchTerm.toLowerCase())
@@ -152,19 +156,21 @@ const BookingList = ({ bookings, searchTerm, refreshBookings }) => {
     // Calculate days from startDate and endDate
     const startDate = new Date(booking.startDate);
     const endDate = new Date(booking.endDate);
-    const numberOfDays = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
-    
+    const numberOfDays = Math.ceil(
+      (endDate - startDate) / (1000 * 60 * 60 * 24)
+    );
+
     // Add calculated days to the booking object
     const bookingWithDays = {
       ...booking,
-      days: numberOfDays
+      days: numberOfDays,
     };
-    
+
     // Navigate to payment flow with the booking information
-    navigate("/payment", { 
-      state: { 
-        booking: bookingWithDays 
-      } 
+    navigate("/payment", {
+      state: {
+        booking: bookingWithDays,
+      },
     });
   };
 
@@ -178,9 +184,10 @@ const BookingList = ({ bookings, searchTerm, refreshBookings }) => {
         filteredBookings.map((booking, index) => {
           const startDate = new Date(booking.startDate);
           const endDate = new Date(booking.endDate);
-          const numberOfDays = Math.ceil(
-            (endDate - startDate) / (1000 * 60 * 60 * 24)
-          );
+          const numberOfDays =
+            endDate === startDate
+              ? 1
+              : Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
           const pricePerNight = booking.totalPrice / numberOfDays;
 
           return (
@@ -221,24 +228,35 @@ const BookingList = ({ bookings, searchTerm, refreshBookings }) => {
                 Trạng thái:{" "}
                 <span
                   className={`px-2 py-1 rounded ${
-                    statusStyles[booking.status] || "bg-gray-100 text-gray-700"
+                    statusStyles[
+                      booking.status === "Confirmed"
+                        ? booking.paymentStatus
+                        : booking.status
+                    ] || "bg-gray-100 text-gray-700"
                   }`}
                 >
-                  {booking.status}
+                  {(booking.status === "Pending" && "Chờ xác nhận") ||
+                    (booking.status === "Cancelled" && "Đã hủy") ||
+                    (booking.status === "Confirmed" &&
+                      (booking.paymentStatus === "Paid"
+                        ? "Đã thanh toán"
+                        : "Chưa thanh toán")) ||
+                    booking.status}
                 </span>
               </p>
+
               <div className="mt-2 flex justify-end items-center space-x-2">
                 {!isAdminOrHost && (
                   <div className="flex items-center space-x-2">
-                    {booking.status === "Confirmed" && (
-                      <button 
+                    {booking.status === "Confirmed" && booking.paymentStatus != "Paid" && (
+                      <button
                         className="p-2 bg-green-100 text-green-700 rounded hover:bg-green-200 transition-colors"
                         onClick={() => handlePayment(booking)}
                       >
                         💳 Thanh toán
                       </button>
                     )}
-                    
+
                     <button
                       onClick={() => handleDelete(booking)}
                       className="p-2 bg-red-100 text-red-700 rounded hover:bg-red-200 transition-colors"

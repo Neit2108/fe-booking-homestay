@@ -53,6 +53,7 @@ const useBookings = (user, statusFilter, startDateFilter, endDateFilter) => {
       const responseData = response.data.data || response.data;
       console.log("placeName", responseData.placeName);
       console.log("placeAddress", responseData.placeAddress);
+      console.log("paymentStatus", responseData.paymentStatus);
       console.log(responseData);
       setBookings(responseData);
       console.log(bookings);

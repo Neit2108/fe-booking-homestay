@@ -2,7 +2,7 @@
 
 /**
  * QR Code generation service
- * Provides multiple methods to generate QR codes depending on available options
+ * Provides methods to generate QR codes using Google Charts API (no external dependencies)
  */
 const QRCodeService = {
   /**
@@ -18,42 +18,6 @@ const QRCodeService = {
   },
 
   /**
-   * Generate a QR code base64 data URI using a canvas-based solution
-   * This is a fallback method when no QR code library is available
-   * @param {string} data - The data to encode in the QR code
-   * @returns {Promise<string>} - Base64 data URI of the QR code
-   */
-  generateQRCodeDataUri: async (data) => {
-    // Try to import QRCode.js dynamically if it's available
-    try {
-      const QRCode = await import('qrcode');
-      return await QRCode.toDataURL(data, {
-        width: 200,
-        margin: 1,
-        errorCorrectionLevel: 'H'
-      });
-    } catch (error) {
-      // Fallback to Google Charts API if QRCode.js is not available
-      console.warn('QRCode library not available, using Google Charts API fallback');
-      return QRCodeService.getGoogleQRCodeUrl(data);
-    }
-  },
-
-  /**
-   * Creates a QR code SVG string
-   * @param {string} data - The data to encode in the QR code
-   * @returns {string} - SVG string representation of the QR code
-   */
-  generateSVGString: (data) => {
-    // Return a simple SVG string with a link to Google Charts API
-    // This acts as a placeholder until a better SVG generator is implemented
-    const googleUrl = QRCodeService.getGoogleQRCodeUrl(data);
-    return `<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-      <image href="${googleUrl}" width="200" height="200"/>
-    </svg>`;
-  },
-
-  /**
    * Get appropriate URL for payment QR code
    * @param {object} paymentData - Payment data object from the API
    * @returns {string} - URL to display QR code
@@ -63,12 +27,44 @@ const QRCodeService = {
     if (paymentData?.qrCodeUrl) {
       return paymentData.qrCodeUrl;
     }
+    // Try QR code base64 if available
+    else if (paymentData?.qrCodeBase64) {
+      return `data:image/png;base64,${paymentData.qrCodeBase64}`;
+    }
     // Fallback to payment URL
     else if (paymentData?.paymentUrl) {
+      // Just return the Google Charts QR code URL
       return QRCodeService.getGoogleQRCodeUrl(paymentData.paymentUrl);
     }
     // No valid data available
     return null;
+  },
+
+  /**
+   * Generate direct VNPay QR code URL
+   * 
+   * This function creates a QR code that encodes a slightly modified payment URL
+   * to improve compatibility when scanning with mobile banking apps
+   * 
+   * @param {object} paymentData - The payment data from the API
+   * @returns {string} QR code URL
+   */
+  getVNPayDirectQRCode: (paymentData) => {
+    if (!paymentData || !paymentData.paymentUrl) {
+      return null;
+    }
+
+    try {
+      // Get the original payment URL
+      const paymentUrl = paymentData.paymentUrl;
+      
+      // Create a QR code URL with Google Charts API
+      return QRCodeService.getGoogleQRCodeUrl(paymentUrl);
+    } catch (error) {
+      console.error("Error generating VNPay QR code:", error);
+      // Fallback to standard QR
+      return QRCodeService.getGoogleQRCodeUrl(paymentData.paymentUrl);
+    }
   }
 };
 

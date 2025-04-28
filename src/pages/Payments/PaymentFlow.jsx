@@ -14,23 +14,46 @@ function PaymentFlow() {
   const [paymentMethod, setPaymentMethod] = useState("");
   const [bookingData, setBookingData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [paymentResultData, setPaymentResultData] = useState(null);
+  const [paymentData, setPaymentData] = useState(null);
 
   useEffect(() => {
     try {
+      console.log("PaymentFlow location state:", location.state);
+      
       // Check if navigation is from payment result page
       if (location.state?.fromPaymentResult && location.state?.paymentData) {
         console.log('Navigated from payment result', location.state.paymentData);
-        setPaymentResultData(location.state.paymentData);
+        setPaymentData(location.state.paymentData);
+        
+        // Set current step directly to 3
+        setCurrentStep(3);
+        
+        // Try to get booking ID from payment data
+        const bookingId = location.state.paymentData.bookingId;
+        
+        if (bookingId) {
+          setBookingData({
+            id: bookingId,
+            property: {
+              id: 1, // Default value, will be updated if possible
+              name: "Homestay",
+              address: "Address",
+              mainImage: "https://via.placeholder.com/300x200?text=Không+có+ảnh",
+              price: location.state.paymentData.amount || 0
+            },
+            people: 2,
+            days: 1,
+            totalPrice: location.state.paymentData.amount || 0,
+            startDate: new Date(),
+            endDate: new Date(new Date().setDate(new Date().getDate() + 1))
+          });
+        }
         
         // Reset location state to prevent re-triggering
         window.history.replaceState({}, document.title);
-        
-        // If we have payment data, go directly to Step 3
-        setCurrentStep(3);
-      }
-
-      if (location.state?.booking) {
+      } 
+      // Regular flow from booking
+      else if (location.state?.booking) {
         const booking = location.state.booking;
         
         // Calculate dates if they are provided
@@ -50,7 +73,7 @@ function PaymentFlow() {
             mainImage: booking.imageUrl || 'https://via.placeholder.com/300x200?text=Không+có+ảnh'
           },
           people: booking.numberOfGuests || 2,
-          days: daysDiff,
+          days: daysDiff === 0 ? 1 : daysDiff,
           totalPrice: booking.totalPrice || 300,
           startDate: startDate,
           endDate: endDate
@@ -74,7 +97,7 @@ function PaymentFlow() {
         });
       }
     } catch (err) {
-      console.error("Error processing booking data:", err);
+      console.error("Error processing booking/payment data:", err);
     } finally {
       setLoading(false);
     }
@@ -98,18 +121,18 @@ function PaymentFlow() {
     }
   };
 
-  // Show loading until we have booking data
+  // Show loading until we have necessary data
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50">
         <Loader />
-        <p className="mt-4 text-gray-600">Đang tải thông tin đặt phòng...</p>
+        <p className="mt-4 text-gray-600">Đang tải thông tin...</p>
       </div>
     );
   }
 
-  // Ensure booking data exists
-  if (!bookingData) {
+  // Ensure we have data to display
+  if (!bookingData && !paymentData) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50">
         <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full text-center">
@@ -119,7 +142,7 @@ function PaymentFlow() {
             </svg>
           </div>
           <h2 className="text-2xl font-bold text-red-700 mb-4">Lỗi dữ liệu</h2>
-          <p className="text-gray-600 mb-6">Không thể tải thông tin đặt phòng. Vui lòng thử lại sau.</p>
+          <p className="text-gray-600 mb-6">Không thể tải thông tin. Vui lòng thử lại sau.</p>
           <button
             onClick={() => navigate(-1)}
             className="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md transition-colors"
@@ -135,7 +158,7 @@ function PaymentFlow() {
   
   return (
     <>
-      {currentStep === 1 && (
+      {currentStep === 1 && bookingData && (
         <Step1
           onNext={handleNext}
           setPaymentMethod={setPaymentMethod}
@@ -148,7 +171,7 @@ function PaymentFlow() {
         />
       )}
       
-      {currentStep === 2 && (
+      {currentStep === 2 && bookingData && (
         <Step2
           onNext={handleNext}
           onBack={handleBack}
@@ -164,11 +187,13 @@ function PaymentFlow() {
       {currentStep === 3 && (
         <Step3
           onBack={handleBack}
-          paymentData={paymentResultData || {
-            id: bookingData.id,
-            bookingId: bookingData.id,
-            amount: bookingData.totalPrice
+          paymentData={paymentData || {
+            id: bookingData?.id,
+            bookingId: bookingData?.id,
+            amount: bookingData?.totalPrice,
+            status: 'pending' // Default status if not provided
           }}
+          setCurrentStep={setCurrentStep}
         />
       )}
     </>

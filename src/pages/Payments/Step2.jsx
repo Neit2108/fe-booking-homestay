@@ -4,13 +4,15 @@ import ProcessBar from "../../components/ProcessBar/ProcessBar";
 import { formatPrice } from "../../Utils/PriceUtils";
 import axios from "axios";
 import Loader from "../../components/Loading/Loader";
-import {QRCodeSVG} from 'qrcode.react'; // You'll need to install this package: npm install qrcode.react
+import { QRCodeSVG } from 'qrcode.react'; // Make sure this is installed: npm install qrcode.react
+import QRCodeService from '../../services/QRCodeService';
 
 function Step2({ onNext, onBack, paymentMethod, property, days, totalPrice, people, bookingId }) {
   const [paymentData, setPaymentData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [redirectCountdown, setRedirectCountdown] = useState(null);
+  const [directQRValue, setDirectQRValue] = useState(null);
   const redirectTimerRef = useRef(null);
 
   // Function to generate QR code directly in frontend
@@ -22,15 +24,36 @@ function Step2({ onNext, onBack, paymentMethod, property, days, totalPrice, peop
           size={200}
           level={"H"}
           marginSize={4}
-          renderAs={"canvas"}
         />
       </div>
     );
   };
 
-  // Alternative QR code generation using Google Charts API
-  const getGoogleQRCodeUrl = (data) => {
-    return `https://chart.googleapis.com/chart?cht=qr&chl=${encodeURIComponent(data)}&chs=200x200&chld=H|0`;
+  // Extract the direct payment URL for QR code
+  const extractDirectPaymentUrl = async (paymentUrl) => {
+    // This is a common URL pattern for VNPay payment links
+    // If the URL contains these parameters, it might be a redirect URL
+    if (paymentUrl.includes('vnpayment') && paymentUrl.includes('vnp_')) {
+      // For VNPay, we may need to directly use this URL in the QR code
+      setDirectQRValue(paymentUrl);
+      return paymentUrl;
+    }
+    
+    try {
+      // If we need to simulate a direct API call to get VNPay QR info
+      const token = localStorage.getItem("token");
+      if (!token) throw new Error("Authentication token missing");
+      
+      // We could make an API call to get direct QR code data if needed
+      // For now, we'll use the payment URL directly
+      setDirectQRValue(paymentUrl);
+      return paymentUrl;
+    } catch (err) {
+      console.error("Error extracting direct payment URL:", err);
+      // Fallback to original URL
+      setDirectQRValue(paymentUrl);
+      return paymentUrl;
+    }
   };
 
   // Fetch payment data when component mounts
@@ -43,6 +66,14 @@ function Step2({ onNext, onBack, paymentMethod, property, days, totalPrice, peop
         const token = localStorage.getItem("token");
         if (!token) throw new Error("Authentication token missing");
         
+        // For bank transfers, we need a different bankCode
+        let bankCode = undefined;
+        if (paymentMethod === 'credit_card') {
+          bankCode = 'NCB'; // Default for card payments
+        } else if (paymentMethod === 'bank_transfer') {
+          bankCode = ''; // Use VNPAYQR for direct QR payments
+        }
+        
         // Make the API call to create payment
         const response = await axios.post(
           "https://localhost:7284/vnpay/create-payment",
@@ -51,7 +82,7 @@ function Step2({ onNext, onBack, paymentMethod, property, days, totalPrice, peop
             returnUrl: window.location.origin + "/payment-result",
             orderInfo: `Payment for ${property.name} - ${days} days`,
             locale: "vn",
-            bankCode: paymentMethod === "credit_card" ? "NCB" : undefined
+            bankCode: bankCode
           },
           {
             headers: {
@@ -61,10 +92,16 @@ function Step2({ onNext, onBack, paymentMethod, property, days, totalPrice, peop
           }
         );
         
-        setPaymentData(response.data);
+        const data = response.data;
+        setPaymentData(data);
+        
+        // For bank transfers, extract the direct QR code URL
+        if (paymentMethod === 'bank_transfer' && data.paymentUrl) {
+          await extractDirectPaymentUrl(data.paymentUrl);
+        }
         
         // Handle redirect for credit card payment
-        if (paymentMethod === "credit_card" && response.data.paymentUrl) {
+        if (paymentMethod === 'credit_card' && data.paymentUrl) {
           setRedirectCountdown(10);
         }
       } catch (err) {
@@ -144,12 +181,17 @@ function Step2({ onNext, onBack, paymentMethod, property, days, totalPrice, peop
               <>
                 {/* QR Code Display */}
                 <div className="flex flex-col items-center border border-gray-200 rounded-lg p-4 bg-white">
-                  {/* Use React QRCode component if available, otherwise use Google Charts API */}
-                  {typeof QRCode !== 'undefined' ? (
-                    generateQRCode(paymentData.paymentUrl)
+                  {/* Use direct QR rendering with the extracted URL */}
+                  {directQRValue ? (
+                    <QRCodeSVG
+                      value={directQRValue}
+                      size={200}
+                      level={"H"}
+                      includeMargin={true}
+                    />
                   ) : (
                     <img
-                      src={getGoogleQRCodeUrl(paymentData.paymentUrl)}
+                      src={QRCodeService.getGoogleQRCodeUrl(paymentData.paymentUrl)}
                       alt="QR Code"
                       className="w-[200px] h-[200px]"
                     />

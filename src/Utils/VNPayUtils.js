@@ -25,8 +25,14 @@ export const createVNPayRequest = async (bookingId, paymentMethod, token) => {
   
   // Determine bank code based on payment method
   let bankCode = undefined;
+  let requestDirectQR = false;
+  
   if (paymentMethod === 'credit_card') {
     bankCode = 'NCB'; // Default bank code for card payments
+  } else if (paymentMethod === 'bank_transfer') {
+    // Use VNPAYQR for direct QR code payments
+    bankCode = 'VNPAYQR';
+    requestDirectQR = true;
   }
   
   try {
@@ -37,7 +43,8 @@ export const createVNPayRequest = async (bookingId, paymentMethod, token) => {
         returnUrl: `${window.location.origin}/payment-result`,
         orderInfo: `Payment for booking #${bookingId}`,
         locale: 'vn',
-        bankCode: bankCode
+        bankCode: bankCode,
+        requestDirectQR: requestDirectQR
       },
       {
         headers: {
@@ -51,6 +58,50 @@ export const createVNPayRequest = async (bookingId, paymentMethod, token) => {
   } catch (error) {
     console.error('Error creating VNPay payment:', error);
     throw new Error(error.response?.data?.message || 'Failed to create payment');
+  }
+};
+
+/**
+ * Generate a direct QR code link for a payment
+ * 
+ * @param {string} paymentUrl - Payment URL from VNPay
+ * @param {number} amount - Payment amount
+ * @param {string} orderId - Order ID or transaction reference
+ * @returns {string} - Direct QR code URL
+ */
+export const generateDirectQRUrl = (paymentUrl, amount, orderId) => {
+  // Check if this is already a QR code URL
+  if (paymentUrl.includes('qrcode') || paymentUrl.includes('qr.')) {
+    return paymentUrl;
+  }
+  
+  // Extract parameters from the payment URL
+  let qrParams = {};
+  try {
+    // Parse the existing URL to extract VNPay parameters
+    const urlObj = new URL(paymentUrl);
+    const searchParams = new URLSearchParams(urlObj.search);
+    
+    // Extract key parameters needed for QR code
+    searchParams.forEach((value, key) => {
+      qrParams[key] = value;
+    });
+    
+    // Add any missing required parameters
+    if (!qrParams['vnp_Amount'] && amount) {
+      qrParams['vnp_Amount'] = Math.round(amount * 100).toString();
+    }
+    
+    if (!qrParams['vnp_TxnRef'] && orderId) {
+      qrParams['vnp_TxnRef'] = orderId.toString();
+    }
+    
+    // For direct QR, we can use Google Charts API as a fallback if needed
+    return `https://chart.googleapis.com/chart?cht=qr&chl=${encodeURIComponent(paymentUrl)}&chs=300x300&chld=L|0`;
+  } catch (error) {
+    console.error('Error generating direct QR URL:', error);
+    // Fallback to original URL
+    return paymentUrl;
   }
 };
 
@@ -127,5 +178,6 @@ export const formatPaymentStatus = (status) => {
 export default {
   createVNPayRequest,
   getPaymentById,
-  formatPaymentStatus
+  formatPaymentStatus,
+  generateDirectQRUrl
 };

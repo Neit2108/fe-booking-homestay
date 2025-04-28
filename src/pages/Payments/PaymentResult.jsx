@@ -55,6 +55,11 @@ const PaymentResult = () => {
 
             setPaymentDetails(response.data);
             setPaymentStatus(response.data.status);
+            
+            // Auto-redirect to Step3 after getting payment details
+            if (response.data) {
+              redirectToStep3(response.data);
+            }
           } catch (err) {
             console.error('Error fetching payment details by transaction reference:', err);
             setError('Unable to retrieve payment details');
@@ -79,6 +84,11 @@ const PaymentResult = () => {
           
           setPaymentDetails(response.data);
           setPaymentStatus(response.data.status);
+          
+          // Auto-redirect to Step3 after getting payment details
+          if (response.data) {
+            redirectToStep3(response.data);
+          }
         } catch (err) {
           console.error('Error fetching payment details:', err);
           setError('Failed to fetch payment details. Please try again.');
@@ -91,6 +101,17 @@ const PaymentResult = () => {
     fetchPaymentDetails();
   }, [paymentId, location.search]);
 
+  // Function to redirect to Step3
+  const redirectToStep3 = (paymentData) => {
+    navigate('/payment', {
+      state: {
+        fromPaymentResult: true,
+        paymentData: paymentData,
+        currentStep: 3
+      }
+    });
+  };
+
   const handleGoToBookings = () => {
     navigate('/user-booking-dashboard');
   };
@@ -98,10 +119,8 @@ const PaymentResult = () => {
   const handleGoToHome = () => {
     navigate('/');
   };
-  
-  // Rest of the component remains the same as your original implementation
-  // (loading, error, and success rendering logic)
 
+  // In case auto-redirect fails, show this UI
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50">
@@ -142,7 +161,7 @@ const PaymentResult = () => {
     );
   }
   
-  // Success payment result - redirect to Step3
+  // Success payment result - this shouldn't normally be seen due to auto-redirect
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-4">
       <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full text-center">
@@ -181,10 +200,7 @@ const PaymentResult = () => {
         
         <div className="flex flex-col gap-3">
           <button
-            onClick={() => {
-              // Redirect to Step3 with payment details
-              handleGoToBookings();
-            }}
+            onClick={() => redirectToStep3(paymentDetails)}
             className="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md transition-colors"
           >
             Xem chi tiết
