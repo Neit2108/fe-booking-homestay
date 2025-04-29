@@ -1,160 +1,177 @@
 import React, { useContext, useState, useEffect } from "react";
-import { useLocation, Link } from "react-router-dom";
+import { useLocation, Link, useNavigate } from "react-router-dom";
 import { UserContext } from "../../context/UserContext.jsx";
-import { useNavigate } from "react-router-dom";
-import Loader from "../Loading/Loader.jsx";
 
+// Import icons for better visual representation
+import { 
+  HomeIcon, 
+  UserIcon, 
+  CalendarIcon, 
+  ChartBarIcon, 
+  OfficeBuildingIcon, 
+  HeartIcon, 
+  CogIcon, 
+  LogoutIcon, 
+  BookmarkIcon,
+  SearchIcon,
+  ChatIcon,
+  XIcon
+} from "@heroicons/react/outline";
 
 function Sidebar({ activePage }) {
   const location = useLocation();
   const currentPath = location.pathname;
-  const { user, loading: userLoading, isAdmin, isLandlord } = useContext(UserContext);
+  const { user, logout, isAdmin, isLandlord } = useContext(UserContext);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const navigate = useNavigate();
 
-  // useEffect(() => {
-  //     if (!userLoading && user) {
-        
-  //     }
-  //   }, [user, navigate, userLoading]);
-
-
-  const getDashboardLink = () => {
-    const roles = Array.isArray(user?.role) ? user.role : [user?.role];
-    if (roles.includes("Admin")) {
-      return "/admin-booking-dashboard";
-    } else if (roles.includes("Landlord")) {
-      return "/landlord-booking-dashboard";
-    }
-    return "/user-booking-dashboard";
+  // Function to handle logout with proper navigation
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
   };
+
+  // Close sidebar when route changes (for mobile)
+  useEffect(() => {
+    setIsMobileOpen(false);
+  }, [location.pathname]);
 
   const toggleMobileSidebar = () => {
     setIsMobileOpen(!isMobileOpen);
   };
 
-  const navItems = [
-    {
-      to: "/",
-      label: "Trang chủ",
-      icon: (
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="h-5 w-5"
-          viewBox="0 0 20 20"
-          fill="currentColor"
-        >
-          <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
-        </svg>
-      ),
-    },
-    ({
-      to: "/statistics",
-      label: "Thống kê",
-      icon: (
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="h-5 w-5"
-          viewBox="0 0 20 20"
-          fill="currentColor"
-        >
-          <path
-            fillRule="evenodd"
-            d="M3 3a1 1 0 00-1 1v12a1 1 0 001 1h14a1 1 0 001-1V4a1 1 0 00-1-1H3zm4 9H5V7h2v5zm4 2H9V5h2v9zm4-4h-2V8h2v2z"
-            clipRule="evenodd"
-          />
-        </svg>
-      ),
-    }),
-    {
-      to: "/profile",
-      label: "Thông tin",
-      icon: (
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="h-5 w-5"
-          viewBox="0 0 20 20"
-          fill="currentColor"
-        >
-          <path
-            fillRule="evenodd"
-            d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z"
-            clipRule="evenodd"
-          />
-        </svg>
-      ),
-    },
-    {
-      to: getDashboardLink(),
-      label: "Đặt phòng",
-      icon: (
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="h-5 w-5"
-          viewBox="0 0 20 20"
-          fill="currentColor"
-        >
-          <path d="M4 3a2 2 0 100 4h12a2 2 0 100-4H4z" />
-          <path
-            fillRule="evenodd"
-            d="M3 8h14v7a2 2 0 01-2 2H5a2 2 0 01-2-2V8zm5 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z"
-            clipRule="evenodd"
-          />
-        </svg>
-      ),
-    },
-    {
-      to: "/homestay-management",
-      label: "Quản lý Homestay",
-      icon: (
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="h-5 w-5"
-          viewBox="0 0 20 20"
-          fill="currentColor"
-        >
-          <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.5 8.456v6.044a1 1 0 001 1h7a1 1 0 001-1V8.456l2.894-1.236a1 1 0 000-1.84l-7-3zM4 9.506l-1.414.604a1 1 0 000 1.84l7 3a1 1 0 00.788 0l7-3a1 1 0 000-1.84L16 9.506v5.044a2 2 0 01-2 2H6a2 2 0 01-2-2V9.506z" />
-        </svg>
-      ),
-    },
-    {
+  // Generate menu items based on user roles
+  const getMenuItems = () => {
+    // Base items that all users have access to
+    let items = [
+      {
+        to: "/",
+        label: "Trang chủ",
+        icon: <HomeIcon className="w-5 h-5" />,
+      },
+    ];
+
+    // Role-specific items
+    if (user) {
+      // Add profile link for logged in users
+      items.push({
+        to: "/profile",
+        label: "Thông tin cá nhân",
+        icon: <UserIcon className="w-5 h-5" />,
+      });
+      
+      if (isAdmin()) {
+        // Admin-specific items
+        items = [
+          ...items,
+          {
+            to: "/admin-booking-dashboard",
+            label: "Quản lý đặt phòng",
+            icon: <CalendarIcon className="w-5 h-5" />,
+          },
+          {
+            to: "/homestay-management",
+            label: "Quản lý Homestay",
+            icon: <OfficeBuildingIcon className="w-5 h-5" />,
+          },
+          {
+            to: "/statistics",
+            label: "Thống kê",
+            icon: <ChartBarIcon className="w-5 h-5" />,
+          },
+        ];
+      } else if (isLandlord()) {
+        // Landlord-specific items
+        items = [
+          ...items,
+          {
+            to: "/landlord-booking-dashboard",
+            label: "Quản lý đặt phòng",
+            icon: <CalendarIcon className="w-5 h-5" />,
+          },
+          {
+            to: "/homestay-management",
+            label: "Quản lý Homestay",
+            icon: <OfficeBuildingIcon className="w-5 h-5" />,
+          },
+        ];
+      } else {
+        // Regular user items
+        items = [
+          ...items,
+          {
+            to: "/user-booking-dashboard",
+            label: "Đơn đặt phòng",
+            icon: <CalendarIcon className="w-5 h-5" />,
+          },
+          {
+            to: "/homestay-recommend",
+            label: "Gợi ý Homestay",
+            icon: <SearchIcon className="w-5 h-5" />,
+          },
+          {
+            to: "/favorites",
+            label: "Yêu thích",
+            icon: <HeartIcon className="w-5 h-5" />,
+          },
+          {
+            to: "/saved-searches",
+            label: "Tìm kiếm đã lưu",
+            icon: <BookmarkIcon className="w-5 h-5" />,
+          },
+        ];
+      }
+      
+      // Add contact support for all logged in users
+      items.push({
+        to: "/contact",
+        label: "Liên hệ hỗ trợ",
+        icon: <ChatIcon className="w-5 h-5" />,
+      });
+    } else {
+      // Guest-specific items (not logged in)
+      items = [
+        ...items,
+        {
+          to: "/login",
+          label: "Đăng nhập",
+          icon: <UserIcon className="w-5 h-5" />,
+        },
+        {
+          to: "/register",
+          label: "Đăng ký",
+          icon: <UserIcon className="w-5 h-5" />,
+        },
+        {
+          to: "/homestay-recommend",
+          label: "Tìm Homestay",
+          icon: <SearchIcon className="w-5 h-5" />,
+        },
+        {
+          to: "/contact",
+          label: "Liên hệ hỗ trợ",
+          icon: <ChatIcon className="w-5 h-5" />,
+        },
+        {
+          to: "/host-register",
+          label: "Đăng ký cho thuê",
+          icon: <OfficeBuildingIcon className="w-5 h-5" />,
+        },
+      ];
+    }
+
+    // Add settings menu for all users at the end
+    items.push({
       to: "/settings",
       label: "Cài đặt",
-      icon: (
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="h-5 w-5"
-          viewBox="0 0 20 20"
-          fill="currentColor"
-        >
-          <path
-            fillRule="evenodd"
-            d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z"
-            clipRule="evenodd"
-          />
-        </svg>
-      ),
-    },
-    {
-      to: "/logout",
-      label: "Logout",
-      icon: (
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="h-5 w-5"
-          viewBox="0 0 20 20"
-          fill="currentColor"
-        >
-          <path
-            fillRule="evenodd"
-            d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z"
-            clipRule="evenodd"
-          />
-        </svg>
-      ),
-      className: "text-red-400 hover:text-red-600",
-    },
-  ];
+      icon: <CogIcon className="w-5 h-5" />,
+    });
+
+    return items;
+  };
+
+  // Get the menu items based on current user
+  const menuItems = getMenuItems();
 
   return (
     <>
@@ -181,33 +198,55 @@ function Sidebar({ activePage }) {
 
       {/* Sidebar */}
       <div
-        className={`fixed left-0 top-0 h-full w-64 bg-white text-primary p-6 z-40 shadow-xl border-r border-gray-200 transform transition-transform duration-300 ${
+        className={`fixed left-0 top-0 h-full w-64 bg-white text-primary p-5 z-40 shadow-xl border-r border-gray-200 transform transition-transform duration-300 overflow-y-auto ${
           isMobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         }`}
       >
-        <div className="mt-16 flex flex-col h-full">
-          <h2 className="text-3xl font-bold mb-10 font-poppins">
+        <div className="mt-8 flex flex-col h-full">
+          {/* Logo and Brand */}
+          <h2 className="text-3xl font-bold mb-6 font-poppins text-center">
             <span className="text-[#3252DF]">Homies</span>
             <span className="text-[#152C5B]">Stay</span>
           </h2>
+          
+          {/* User Profile Section (if logged in) */}
+          {user && (
+            <div className="flex items-center gap-3 mb-5 p-3 bg-gray-50 rounded-lg">
+              <div className="w-10 h-10 rounded-full overflow-hidden">
+                <img 
+                  src={user.avatarUrl || "/default-avatar.png"} 
+                  alt="Profile" 
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-gray-900 truncate">
+                  {user.fullName || "Người dùng"}
+                </p>
+                <p className="text-xs text-gray-500 truncate">
+                  {isAdmin() ? "Quản trị viên" : isLandlord() ? "Chủ nhà" : "Người dùng"}
+                </p>
+              </div>
+            </div>
+          )}
+          
+          {/* Navigation Menu */}
           <nav className="flex-1">
             <ul className="space-y-2">
-              {navItems.map((item, index) => (
+              {menuItems.map((item, index) => (
                 <li key={index}>
                   <Link
                     to={item.to}
-                    className={`flex items-center gap-3 py-3 px-4 rounded-lg relative group transition-all duration-300 ${
+                    className={`flex items-center gap-3 py-2.5 px-4 rounded-lg relative group transition-all duration-300 ${
                       currentPath === item.to
-                        ? `bg-[#3252DF] text-white shadow-md ${
-                            item.className || ""
-                          }`
-                        : `text-gray-600 hover:bg-gray-100 hover:text-[#3252DF] ${
-                            item.className || ""
-                          }`
+                        ? `bg-[#3252DF] text-white shadow-md`
+                        : `text-gray-600 hover:bg-gray-100 hover:text-[#3252DF]`
                     }`}
                     onClick={() => setIsMobileOpen(false)}
                   >
-                    {item.icon}
+                    <span className={currentPath === item.to ? "text-white" : "text-gray-500"}>
+                      {item.icon}
+                    </span>
                     <span
                       className={`text-sm font-medium font-['Open_Sans'] ${
                         currentPath === item.to ? "font-semibold" : ""
@@ -220,6 +259,19 @@ function Sidebar({ activePage }) {
               ))}
             </ul>
           </nav>
+          
+          {/* Logout Button (only shown when logged in) */}
+          {user && (
+            <div className="mt-4 pt-4 border-t border-gray-200">
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-3 py-2.5 px-4 rounded-lg text-red-500 hover:bg-red-50 w-full transition-colors"
+              >
+                <LogoutIcon className="w-5 h-5" />
+                <span className="text-sm font-medium">Đăng xuất</span>
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
