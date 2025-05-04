@@ -71,7 +71,7 @@ function Step2({ onNext, onBack, paymentMethod, property, days, totalPrice, peop
         if (paymentMethod === 'credit_card') {
           bankCode = 'NCB'; // Default for card payments
         } else if (paymentMethod === 'bank_transfer') {
-          bankCode = ''; // Use VNPAYQR for direct QR payments
+          bankCode = '';
         }
         
         // Make the API call to create payment

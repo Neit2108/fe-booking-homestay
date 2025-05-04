@@ -301,6 +301,7 @@ import HomeSearch from "../../components/HomeSearch/HomeSearch";
 import PropertyCard from "../../components/PropertyCard/PropertyCard";
 import Footer from "../../components/Footer/Footer";
 import Loader from "../../components/Loading/Loader";
+import PromotionBanner from "../../components/Promotion/PromotionBanner";
 
 // Utils
 import { formatPrice } from "../../Utils/PriceUtils";
@@ -308,6 +309,7 @@ import { formatPrice } from "../../Utils/PriceUtils";
 // Sections
 import PropertySection from "./sections/PropertySection";
 import FeaturesList from "./sections/FeaturesList";
+import PromotionSection from "./sections/PromotionSection";
 
 function HomePage() {
   const [featuredProperty, setFeaturedProperty] = useState(null);
@@ -436,10 +438,13 @@ function HomePage() {
 
       <main className="w-full max-w-[1140px] px-5">
         <Hero />
+        
 
         <div className="mt-8">
           <HomeSearch />
         </div>
+
+        <PromotionSection />
 
         <section className="mt-16">
           {/* Section Heading - Now above all images */}
@@ -491,6 +496,7 @@ function HomePage() {
         </section>
 
         <FeaturesList />
+
 
         {/* Recommended Properties */}
         <PropertySection

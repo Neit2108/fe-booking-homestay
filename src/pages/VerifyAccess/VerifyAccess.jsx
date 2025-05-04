@@ -52,6 +52,12 @@ function VerifyAccess() {
               navigate("/unauthorized");
             }
             break;
+          case "PaymentSuccess":
+            navigate(`/user-booking-dashboard`);
+            break;
+          case "PaymentFailure":
+            navigate(`/user-booking-dashboard`);
+            break;
           default:
             setError("Không xác định hành động");
         }

@@ -26,6 +26,7 @@ import TestCaseManager from "./pages/TestCasePage/TestCaseManager.jsx";
 import HomestayRecommendation from "./pages/HomestayRecommend/HomestayRecommendation.jsx";
 import HomestayManagement from "./pages/HomestayManagement/HomestayManagement.jsx";
 import Statistics from "./pages/Statistics/Statistics.jsx";
+import PromotionsPage from "./pages/Promotion/PromotionsPage.jsx";
 import { UserProvider } from "./context/UserContext.jsx";
 import ContactPage from "./pages/Contact/ContactPage.jsx";
 
@@ -67,6 +68,7 @@ const router = createBrowserRouter([
       { path: "/homestay-management", element: <HomestayManagement /> },
       { path: "/statistics", element: <Statistics /> },
       { path: "/contact", element: <ContactPage /> },
+      { path : "/promotion", element: <PromotionsPage />}
     ],
   },
 ]);
