@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
+import { API_URL } from "../../constant/config";
 
 const useBookings = (user, statusFilter, startDateFilter, endDateFilter) => {
   const [bookings, setBookings] = useState([]);
@@ -35,11 +36,11 @@ const useBookings = (user, statusFilter, startDateFilter, endDateFilter) => {
     if (endDateFilter) params.endDate = endDateFilter;
 
     if (newRoleToUse === "customer") {
-      endpoint = `https://homiesstay.onrender.com/bookings/user-bookings/${user.id}`;
+      endpoint = `${API_URL}/bookings/user-bookings/${user.id}`;
     } else if (newRoleToUse === "admin") {
-      endpoint = `https://homiesstay.onrender.com/bookings/all-bookings`;
+      endpoint = `${API_URL}/bookings/all-bookings`;
     } else if (newRoleToUse === "landlord") {
-      endpoint = `https://homiesstay.onrender.com/bookings/landlord-s-bookings/${user.id}`;
+      endpoint = `${API_URL}/bookings/landlord-s-bookings/${user.id}`;
     }
 
     try {

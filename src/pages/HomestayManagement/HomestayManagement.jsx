@@ -10,6 +10,7 @@ import Sidebar from "../../components/Sidebar/Sidebar";
 import Modal from "../../components/Modal/Modal";
 import { formatPrice } from "../../Utils/PriceUtils";
 import axios from "axios";
+import { API_URL } from "../../../constant/config";
 
 // 1. Tách thành component riêng
 const StatusToggleModal = ({
@@ -351,7 +352,7 @@ const HomestayManagement = () => {
       };
 
       const response = await axios.put(
-        `https://homiesstay.onrender.com/places/update-status`,
+        `${API_URL}/places/update-status`,
         requestBody,
         {
           headers: {
@@ -483,7 +484,7 @@ const HomestayManagement = () => {
       };
 
       const response = await axios.put(
-        `https://homiesstay.onrender.com/places/update-status`,
+        `${API_URL}/places/update-status`,
         requestBody,
         {
           headers: {
@@ -578,7 +579,7 @@ const HomestayManagement = () => {
       };
       console.log("update status");
       const response = await axios.put(
-        `https://homiesstay.onrender.com/places/update-status`,
+        `${API_URL}/places/update-status`,
         requestBody,
         {
           headers: {

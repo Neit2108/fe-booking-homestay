@@ -8,6 +8,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import Loader from "../../components/Loading/Loader";
 import CommentSection from "../../components/Comment/CommentSection";
+import { API_URL } from "../../../constant/config";
 
 import bedroomIcon from "../../assets/Detail/ic_bedroom.png";
 import livingroomIcon from "../../assets/Detail/ic_livingroom.png";
@@ -47,7 +48,7 @@ function PropertyDetails() {
 
       try {
         const response = await axios.get(
-          `https://homiesstay.onrender.com/bookings/can-comment/${id}`,
+          `${API_URL}/bookings/can-comment/${id}`,
           {
             headers: { Authorization: `Bearer ${user.token}` },
           }
@@ -105,7 +106,7 @@ function PropertyDetails() {
     const fetchRelatedProperties = async () => {
       try {
         const response = await axios.get(
-          `https://homiesstay.onrender.com/places/get-same-category/${id}`
+          `${API_URL}/places/get-same-category/${id}`
         );
         const data = response.data;
 
@@ -131,7 +132,7 @@ function PropertyDetails() {
       try {
         setLoading(true);
         const response = await axios.get(
-          `https://homiesstay.onrender.com/places/place-details/${id}`
+          `${API_URL}/places/place-details/${id}`
         ); // Sửa lỗi cú pháp URL
         const data = response.data;
         const relatedProperties = await fetchRelatedProperties();
@@ -202,7 +203,7 @@ function PropertyDetails() {
       // After successful comment submission, refresh the property data to get updated rating
       try {
         const response = await axios.get(
-          `https://homiesstay.onrender.com/places/place-details/${id}`
+          `${API_URL}/places/place-details/${id}`
         );
         const updatedPropertyData = response.data;
         setProperty((prevProperty) => ({

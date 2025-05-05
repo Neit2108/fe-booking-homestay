@@ -1,6 +1,7 @@
 import { useState, useEffect, useContext } from "react";
 import axios from "axios";
 import { UserContext } from "../context/UserContext";
+import { API_URL } from "../../constant/config";
 
 /**
  * Custom hook to fetch and manage homestay places data
@@ -23,7 +24,7 @@ export const usePlaces = (options = { mode: "managed" }) => {
       // If in public mode, fetch all places regardless of user role
       if (options.mode === "public") {
         const response = await axios.get(
-          "https://homiesstay.onrender.com/places/get-all"
+          `${API_URL}/places/get-all`
         );
         const processedData = processResponse(response.data);
         setPlaces(processedData);
@@ -53,14 +54,14 @@ export const usePlaces = (options = { mode: "managed" }) => {
       if (isAdmin) {
         // Admin can see all places
         const response = await axios.get(
-          "https://homiesstay.onrender.com/places/get-all"
+          `${API_URL}/places/get-all`
         );
         processedData = processResponse(response.data);
         console.log("Admin fetched all places:", processedData.length);
       } else if (isLandlord && user.id) {
         // Landlord can only see their own places
         const response = await axios.get(
-          `https://homiesstay.onrender.com/places/get-all-for-landlord/${user.id}`,
+          `${API_URL}/places/get-all-for-landlord/${user.id}`,
           {
             headers: {
               Authorization: `Bearer ${user.token}`,
@@ -109,7 +110,7 @@ export const usePlaces = (options = { mode: "managed" }) => {
     try {
       setLoading(true);
       const response = await axios.post(
-        "https://homiesstay.onrender.com/places/add-place",
+          `${API_URL}/places/add-place`,
         placeData,
         {
           headers: { 
@@ -135,7 +136,7 @@ export const usePlaces = (options = { mode: "managed" }) => {
     try {
       setLoading(true);
       const response = await axios.put(
-        `https://homiesstay.onrender.com/places/update/${id}`,
+        `${API_URL}/places/update/${id}`,
         placeData,
         {
           headers: { 
@@ -161,7 +162,7 @@ export const usePlaces = (options = { mode: "managed" }) => {
   const deletePlace = async (id) => {
     try {
       setLoading(true);
-      await axios.delete(`https://homiesstay.onrender.com/places/delete/${id}`, {
+      await axios.delete(`${API_URL}/places/delete/${id}`, {
         headers: { 
           Authorization: `Bearer ${user.token}`
         },

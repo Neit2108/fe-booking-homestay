@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom"; // ← đổi sang us
 import axios from "axios";
 import Loader from "../../components/Loading/Loader";
 import { UserContext } from "../../context/UserContext";
+import { API_URL } from "../../../constant/config";
 
 function VerifyAccess() {
   const { token } = useParams(); // ← lấy token từ URL path param
@@ -29,7 +30,7 @@ function VerifyAccess() {
 
       try {
         const res = await axios.post(
-          "https://homiesstay.onrender.com/account/auth/verify-action",
+          `${API_URL}/account/auth/verify-action`,
           {
             token,
           }

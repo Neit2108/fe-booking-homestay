@@ -1,8 +1,9 @@
 // hooks/useBookingFilters.js - Updated version
 import { useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
+import { API_URL } from '../../constant/config';
 
-const useBookingFilters = (user, initialUrl = 'https://homiesstay.onrender.com/bookings') => {
+const useBookingFilters = (user, initialUrl = `${API_URL}/bookings`) => {
   // Filter states
   const [statusFilter, setStatusFilter] = useState('');
   const [paymentStatusFilter, setPaymentStatusFilter] = useState('');

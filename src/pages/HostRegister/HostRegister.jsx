@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import HostRegisterSuccess from "./HostRegisterSuccess";
 import HostRegisterFailed from "./HostRegisterFailed";
 import Loader from "../../components/Loading/Loader";
+import { API_URL } from "../../../constant/config";
 
 const HostRegister = () => {
   const navigate = useNavigate();
@@ -151,7 +152,7 @@ const HostRegister = () => {
 
     try {
       const response = await axios.post(
-        "https://homiesstay.onrender.com/owners/register",
+        `${API_URL}/owners/register`,
         formData,
         {
           headers: { "Content-Type": "multipart/form-data" },

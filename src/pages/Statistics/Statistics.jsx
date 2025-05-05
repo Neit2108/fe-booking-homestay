@@ -18,6 +18,7 @@ import axios from "axios";
 import Sidebar from "../../components/Sidebar/Sidebar";
 import Loader from "../../components/Loading/Loader";
 import { formatPrice } from "../../Utils/PriceUtils";
+import { API_URL } from "../../../constant/config";
 
 // Register Chart.js components
 ChartJS.register(
@@ -91,7 +92,7 @@ const Statistics = () => {
 
       try {
         const response = await axios.get(
-          "https://homiesstay.onrender.com/statistics",
+          `${API_URL}/statistics`,
           {
             headers: { Authorization: `Bearer ${user.token}` },
           }
@@ -187,7 +188,7 @@ const Statistics = () => {
         try {
           const userIdsParam = userIds.join(",");
           const userResponse = await axios.get(
-            `https://homiesstay.onrender.com/user/bulk?ids=${userIdsParam}`,
+            `${API_URL}/user/bulk?ids=${userIdsParam}`,
             {
               headers: { Authorization: `Bearer ${user.token}` },
             }
@@ -212,7 +213,7 @@ const Statistics = () => {
         try {
           const placeIdsParam = placeIds.join(",");
           const placeResponse = await axios.get(
-            `https://homiesstay.onrender.com/places/bulk?ids=${placeIdsParam}`,
+            `${API_URL}/places/bulk?ids=${placeIdsParam}`,
             {
               headers: { Authorization: `Bearer ${user.token}` },
             }

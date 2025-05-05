@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import Loader from '../../components/Loading/Loader';
+import { API_URL } from '../../../constant/config';
 
 const PaymentResult = () => {
   const [loading, setLoading] = useState(true);
@@ -47,7 +48,7 @@ const PaymentResult = () => {
               throw new Error('No authentication token found');
             }
 
-            const response = await axios.get(`https://homiesstay.onrender.com/vnpay/payment/${vnpTxnRef}`, {
+            const response = await axios.get(`${API_URL}/vnpay/payment/${vnpTxnRef}`, {
               headers: {
                 Authorization: `Bearer ${token}`
               }
@@ -76,7 +77,7 @@ const PaymentResult = () => {
             throw new Error('You must be logged in to view payment details');
           }
           
-          const response = await axios.get(`https://homiesstay.onrender.com/vnpay/payment/${paymentId}`, {
+          const response = await axios.get(`${API_URL}/vnpay/payment/${paymentId}`, {
             headers: {
               Authorization: `Bearer ${token}`
             }

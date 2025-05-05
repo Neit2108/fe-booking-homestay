@@ -1,5 +1,6 @@
 import React, { createContext, useState, useEffect, useCallback } from "react";
 import axios from "axios";
+import { API_URL } from "../../constant/config";
 // Tạo Context
 const UserContext = createContext();
 
@@ -38,7 +39,7 @@ const UserProvider = ({ children }) => {
       const token = localStorage.getItem("token");
       if (!token) return;
 
-      const response = await axios.get("https://homiesstay.onrender.com/user/profile", {
+      const response = await axios.get(`${API_URL}/user/profile`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 

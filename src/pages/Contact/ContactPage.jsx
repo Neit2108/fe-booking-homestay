@@ -3,6 +3,7 @@ import { FaPhone, FaEnvelope, FaMapMarkerAlt, FaTwitter, FaInstagram, FaFacebook
 import Navbar from "../../components/Navbar/Navbar";
 import Input from '../../components/Input/Input';
 import axios from 'axios';
+import { API_URL } from '../../../constant/config';
 
 const FormInput = ({ label, id, name, type = 'text', value, placeholder, required = false, onChange }) => (
   <div className="flex-1">
@@ -87,7 +88,7 @@ const ContactPage = () => {
       };
       
       // Make API call with axios
-      const response = await axios.post('https://homiesstay.onrender.com/contacts/add-contact', contactRequest);
+      const response = await axios.post(`${API_URL}/contacts/add-contact`, contactRequest);
       
       // Handle successful response
       setSubmitResponse({

@@ -1,8 +1,7 @@
 // src/services/authService.js
 import axios from 'axios';
 import jwtDecode from 'jwt-decode'; // Add this package
-
-const API_URL = 'https://homiesstay.onrender.com';
+import { API_URL } from '../../constant/config';
 
 // Store tokens in memory for better security
 let _accessToken = null;

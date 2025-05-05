@@ -4,8 +4,8 @@
  * Utility functions for handling VNPay payment operations
  */
 import axios from 'axios';
+import { API_URL } from '../../constant/config';
 
-const API_BASE_URL = 'https://homiesstay.onrender.com';
 
 /**
  * Creates a VNPay payment request
@@ -37,7 +37,7 @@ export const createVNPayRequest = async (bookingId, paymentMethod, token) => {
   
   try {
     const response = await axios.post(
-      `${API_BASE_URL}/vnpay/create-payment`,
+      `${API_URL}/vnpay/create-payment`,
       {
         bookingId: bookingId,
         returnUrl: `${window.location.origin}/payment-result`,
@@ -122,7 +122,7 @@ export const getPaymentById = async (paymentId, token) => {
   
   try {
     const response = await axios.get(
-      `${API_BASE_URL}/vnpay/payment/${paymentId}`,
+      `${API_URL}/vnpay/payment/${paymentId}`,
       {
         headers: {
           'Authorization': `Bearer ${token}`

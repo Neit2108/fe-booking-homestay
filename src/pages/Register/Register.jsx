@@ -8,6 +8,7 @@ import styles from "./Register.module.css";
 import RegisterSuccess from "./RegisterSuccess";
 import RegisterFailed from "./RegisterFailed";
 import Loader from "../../components/Loading/Loader";
+import { API_URL } from "../../../constant/config";
 
 const Register = () => {
   const navigate = useNavigate();
@@ -75,7 +76,7 @@ const Register = () => {
 
     try {
       const response = await axios.post(
-        "https://homiesstay.onrender.com/Account/Auth/Register",
+        `${API_URL}/Account/Auth/Register`,
         formData,
         {
           headers: { "Content-Type": "application/json" },

@@ -7,6 +7,7 @@ import axios from "axios";
 import Loader from "../../components/Loading/Loader";
 import Modal from "../../components/Modal/Modal"; // Import your Modal component
 import { formatPrice } from "../../Utils/PriceUtils";
+import { API_URL } from "../../../constant/config";
 function BookingRequest() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -37,7 +38,7 @@ function BookingRequest() {
 
     try {
       const response = await axios.post(
-        "https://homiesstay.onrender.com/utils/voucher/validate",
+        `${API_URL}/utils/voucher/validate`,
         { Code: voucher }, // Gửi dữ liệu đúng định dạng VoucherRequest
         {
           headers: { "Content-Type": "application/json" }, // Sử dụng JSON thay vì multipart
@@ -174,7 +175,7 @@ function BookingRequest() {
     try {
       // Gửi POST request lên /bookings/new-booking
       const response = await axios.post(
-        "https://homiesstay.onrender.com/bookings/new-booking",
+        `${API_URL}/bookings/new-booking`,
         bookingRequest,
         {
           headers: { "Content-Type": "application/json",

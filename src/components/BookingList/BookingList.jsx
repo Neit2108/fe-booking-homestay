@@ -8,6 +8,7 @@ import Swal from "sweetalert2";
 import axios from "axios";
 import Modal from "../Modal/Modal.jsx";
 import { formatPrice } from "../../Utils/PriceUtils.js";
+import { API_URL } from "../../../constant/config.js";
 
 const statusStyles = {
   Pending: "bg-yellow-100 text-yellow-700",
@@ -37,7 +38,7 @@ const BookingList = ({ bookings, refreshBookings }) => {
   const handleAccept = async (booking) => {
     try {
       const response = await axios.put(
-        `https://homiesstay.onrender.com/bookings/accept-booking-request/${booking.id}`,
+        `${API_URL}/bookings/accept-booking-request/${booking.id}`,
         {},
         {
           headers: {
@@ -82,7 +83,7 @@ const BookingList = ({ bookings, refreshBookings }) => {
       }
 
       const response = await axios.put(
-        `https://homiesstay.onrender.com/bookings/reject-booking-request/${booking.id}`,
+        `${API_URL}/bookings/reject-booking-request/${booking.id}`,
         { reason: rejectReason },
         {
           headers: {

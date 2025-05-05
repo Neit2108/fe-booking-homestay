@@ -1,6 +1,7 @@
 import axios from "axios";
 import React, { useState, useEffect, useContext } from "react";
 import { UserContext } from "../../context/UserContext";
+import { API_URL } from "../../../constant/config";
 
 function ProfileDetails() {
   const [formData, setFormData] = useState({
@@ -58,7 +59,7 @@ function ProfileDetails() {
       console.log("Request body:", requestBody);
       const token = localStorage.getItem("token");
       const response = await axios.put(
-        "https://homiesstay.onrender.com/user/update-profile",
+        `${API_URL}/user/update-profile`,
         requestBody,
         {
           headers: {

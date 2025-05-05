@@ -2,6 +2,8 @@ import { useContext, useState } from "react";
 import axios from "axios";
 import Loader from "../../components/Loading/Loader";
 import { UserContext } from "../../context/UserContext";
+import { API_URL } from "../../../constant/config";
+import React from "react";
 
 function ProfileHeader() {
   const { user, setUser } = useContext(UserContext);
@@ -18,7 +20,7 @@ function ProfileHeader() {
     try {
       setLoading(true);
       const token = localStorage.getItem("token");
-      const response = await axios.put("https://homiesstay.onrender.com/uploads/update-image", formData, {
+      const response = await axios.put(`${API_URL}/uploads/update-image`, formData, {
         headers: {
           Authorization: `Bearer ${token}`
         },

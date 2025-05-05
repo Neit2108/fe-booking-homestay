@@ -6,6 +6,7 @@ import axios from "axios";
 import Loader from "../../components/Loading/Loader";
 import { QRCodeSVG } from 'qrcode.react'; // Make sure this is installed: npm install qrcode.react
 import QRCodeService from '../../services/QRCodeService';
+import { API_URL } from "../../../constant/config";
 
 function Step2({ onNext, onBack, paymentMethod, property, days, totalPrice, people, bookingId }) {
   const [paymentData, setPaymentData] = useState(null);
@@ -76,7 +77,7 @@ function Step2({ onNext, onBack, paymentMethod, property, days, totalPrice, peop
         
         // Make the API call to create payment
         const response = await axios.post(
-          "https://homiesstay.onrender.com/vnpay/create-payment",
+          `${API_URL}/vnpay/create-payment`,
           {
             bookingId: bookingId,
             returnUrl: window.location.origin + "/payment-result",

@@ -7,6 +7,7 @@ import Card from "../../components/Card/Card";
 import styles from "./Login.module.css";
 import { UserContext } from "../../context/UserContext";
 import Modal from "../../components/Modal/Modal"; // Import your Modal component
+import { API_URL } from "../../../constant/config";
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -37,7 +38,7 @@ const Login = () => {
 
     try {
       const response = await axios.post(
-        "https://homiesstay.onrender.com/Account/Auth/Login",
+        `${API_URL}/Account/Auth/Login`,
         formData,
         { headers: { "Content-Type": "application/json" } }
       );

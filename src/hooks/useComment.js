@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback, useContext } from 'react';
 import axios from 'axios';
 import { UserContext } from '../context/UserContext';
+import { API_URL } from '../../constant/config';
 
-const API_URL = 'https://homiesstay.onrender.com/comments'; 
+const URL = `${API_URL}/comments`; 
 
 const useComment = (placeId) => {
   const [comments, setComments] = useState([]);
@@ -18,7 +19,7 @@ const useComment = (placeId) => {
     setError(null);
     
     try {
-      const response = await axios.get(`${API_URL}/all-comments-of-place/${placeId}`);
+      const response = await axios.get(`${URL}/all-comments-of-place/${placeId}`);
       console.log('Comments response:', response.data);
       
       // Map the response to match the format expected by the CommentSection component
@@ -75,7 +76,7 @@ const useComment = (placeId) => {
         });
       }
 
-      const response = await axios.post(`${API_URL}/add-comment`, formData, {
+      const response = await axios.post(`${URL}/add-comment`, formData, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'multipart/form-data'

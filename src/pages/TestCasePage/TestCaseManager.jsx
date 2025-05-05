@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import Papa from 'papaparse';
 import axios from 'axios'; // Import axios
+import { API_URL } from '../../../constant/config';
 
 const TestCaseManager = () => {
   // ... (all your state declarations remain unchanged)
@@ -21,14 +22,12 @@ const TestCaseManager = () => {
     note: ''
   });
 
-  const API_BASE_URL = 'https://homiesstay.onrender.com/testcase';
-
   // Fetch all test cases using axios
   const fetchTestCases = async () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await axios.get(`${API_BASE_URL}/all`);
+      const response = await axios.get(`${API_URL}/all`);
       setTestCases(response.data);
     } catch (err) {
       setError(`Failed to fetch test cases: ${err.message}`);
@@ -48,7 +47,7 @@ const TestCaseManager = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await axios.post(`${API_BASE_URL}/create`, {
+      const response = await axios.post(`${API_URL}/create`, {
         testId: newTestCase.testId,
         name: newTestCase.name,
         target: newTestCase.target,
