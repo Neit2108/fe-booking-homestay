@@ -76,7 +76,7 @@ function Step2({ onNext, onBack, paymentMethod, property, days, totalPrice, peop
         
         // Make the API call to create payment
         const response = await axios.post(
-          "https://localhost:7284/vnpay/create-payment",
+          "https://homiesstay.onrender.com/vnpay/create-payment",
           {
             bookingId: bookingId,
             returnUrl: window.location.origin + "/payment-result",

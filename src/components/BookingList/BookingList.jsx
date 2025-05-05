@@ -37,7 +37,7 @@ const BookingList = ({ bookings, refreshBookings }) => {
   const handleAccept = async (booking) => {
     try {
       const response = await axios.put(
-        `https://localhost:7284/bookings/accept-booking-request/${booking.id}`,
+        `https://homiesstay.onrender.com/bookings/accept-booking-request/${booking.id}`,
         {},
         {
           headers: {
@@ -82,7 +82,7 @@ const BookingList = ({ bookings, refreshBookings }) => {
       }
 
       const response = await axios.put(
-        `https://localhost:7284/bookings/reject-booking-request/${booking.id}`,
+        `https://homiesstay.onrender.com/bookings/reject-booking-request/${booking.id}`,
         { reason: rejectReason },
         {
           headers: {

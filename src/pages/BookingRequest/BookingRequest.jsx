@@ -37,7 +37,7 @@ function BookingRequest() {
 
     try {
       const response = await axios.post(
-        "https://localhost:7284/utils/voucher/validate",
+        "https://homiesstay.onrender.com/utils/voucher/validate",
         { Code: voucher }, // Gửi dữ liệu đúng định dạng VoucherRequest
         {
           headers: { "Content-Type": "application/json" }, // Sử dụng JSON thay vì multipart
@@ -174,7 +174,7 @@ function BookingRequest() {
     try {
       // Gửi POST request lên /bookings/new-booking
       const response = await axios.post(
-        "https://localhost:7284/bookings/new-booking",
+        "https://homiesstay.onrender.com/bookings/new-booking",
         bookingRequest,
         {
           headers: { "Content-Type": "application/json",

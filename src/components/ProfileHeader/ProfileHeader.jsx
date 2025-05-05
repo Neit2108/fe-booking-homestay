@@ -18,7 +18,7 @@ function ProfileHeader() {
     try {
       setLoading(true);
       const token = localStorage.getItem("token");
-      const response = await axios.put("https://localhost:7284/uploads/update-image", formData, {
+      const response = await axios.put("https://homiesstay.onrender.com/uploads/update-image", formData, {
         headers: {
           Authorization: `Bearer ${token}`
         },

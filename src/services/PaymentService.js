@@ -3,7 +3,7 @@ import axios from 'axios';
 import { useContext, useEffect } from 'react';
 import { UserContext } from '../context/UserContext';
 
-const API_URL = "https://localhost:7284";
+const API_URL = "https://homiesstay.onrender.com";
 
 const usePaymentService = () => {
   const { user, loading: userLoading} = useContext(UserContext); // Lấy thông tin người dùng từ context

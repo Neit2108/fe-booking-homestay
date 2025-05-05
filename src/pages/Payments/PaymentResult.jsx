@@ -47,7 +47,7 @@ const PaymentResult = () => {
               throw new Error('No authentication token found');
             }
 
-            const response = await axios.get(`https://localhost:7284/vnpay/payment/${vnpTxnRef}`, {
+            const response = await axios.get(`https://homiesstay.onrender.com/vnpay/payment/${vnpTxnRef}`, {
               headers: {
                 Authorization: `Bearer ${token}`
               }
@@ -76,7 +76,7 @@ const PaymentResult = () => {
             throw new Error('You must be logged in to view payment details');
           }
           
-          const response = await axios.get(`https://localhost:7284/vnpay/payment/${paymentId}`, {
+          const response = await axios.get(`https://homiesstay.onrender.com/vnpay/payment/${paymentId}`, {
             headers: {
               Authorization: `Bearer ${token}`
             }

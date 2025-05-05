@@ -47,7 +47,7 @@ function PropertyDetails() {
 
       try {
         const response = await axios.get(
-          `https://localhost:7284/bookings/can-comment/${id}`,
+          `https://homiesstay.onrender.com/bookings/can-comment/${id}`,
           {
             headers: { Authorization: `Bearer ${user.token}` },
           }
@@ -105,7 +105,7 @@ function PropertyDetails() {
     const fetchRelatedProperties = async () => {
       try {
         const response = await axios.get(
-          `https://localhost:7284/places/get-same-category/${id}`
+          `https://homiesstay.onrender.com/places/get-same-category/${id}`
         );
         const data = response.data;
 
@@ -131,7 +131,7 @@ function PropertyDetails() {
       try {
         setLoading(true);
         const response = await axios.get(
-          `https://localhost:7284/places/place-details/${id}`
+          `https://homiesstay.onrender.com/places/place-details/${id}`
         ); // Sửa lỗi cú pháp URL
         const data = response.data;
         const relatedProperties = await fetchRelatedProperties();
@@ -202,7 +202,7 @@ function PropertyDetails() {
       // After successful comment submission, refresh the property data to get updated rating
       try {
         const response = await axios.get(
-          `https://localhost:7284/places/place-details/${id}`
+          `https://homiesstay.onrender.com/places/place-details/${id}`
         );
         const updatedPropertyData = response.data;
         setProperty((prevProperty) => ({

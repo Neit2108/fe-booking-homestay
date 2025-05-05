@@ -151,7 +151,7 @@ const HostRegister = () => {
 
     try {
       const response = await axios.post(
-        "https://localhost:7284/owners/register",
+        "https://homiesstay.onrender.com/owners/register",
         formData,
         {
           headers: { "Content-Type": "multipart/form-data" },

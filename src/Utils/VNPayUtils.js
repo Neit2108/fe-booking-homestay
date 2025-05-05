@@ -5,7 +5,7 @@
  */
 import axios from 'axios';
 
-const API_BASE_URL = 'https://localhost:7284';
+const API_BASE_URL = 'https://homiesstay.onrender.com';
 
 /**
  * Creates a VNPay payment request

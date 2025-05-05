@@ -58,7 +58,7 @@ function ProfileDetails() {
       console.log("Request body:", requestBody);
       const token = localStorage.getItem("token");
       const response = await axios.put(
-        "https://localhost:7284/user/update-profile",
+        "https://homiesstay.onrender.com/user/update-profile",
         requestBody,
         {
           headers: {

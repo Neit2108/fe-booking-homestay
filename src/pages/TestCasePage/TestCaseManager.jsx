@@ -21,7 +21,7 @@ const TestCaseManager = () => {
     note: ''
   });
 
-  const API_BASE_URL = 'https://localhost:7284/testcase';
+  const API_BASE_URL = 'https://homiesstay.onrender.com/testcase';
 
   // Fetch all test cases using axios
   const fetchTestCases = async () => {

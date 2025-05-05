@@ -29,7 +29,7 @@ function VerifyAccess() {
 
       try {
         const res = await axios.post(
-          "https://localhost:7284/account/auth/verify-action",
+          "https://homiesstay.onrender.com/account/auth/verify-action",
           {
             token,
           }

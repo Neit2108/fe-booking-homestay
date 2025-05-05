@@ -41,7 +41,7 @@
 //         setLoading(true);
 
 //         // Gọi API top-rating cho phần "Most Picked"
-//         const topRatedResponse = await axios.get("https://localhost:7284/places/top-rating", {
+//         const topRatedResponse = await axios.get("https://homiesstay.onrender.com/places/top-rating", {
 //           params: { limit: 5 },
 //         });
 //         const topPlaces = topRatedResponse.data;
@@ -67,7 +67,7 @@
 //           );
 //         }
 
-//         const allPlacesResponse = await axios.get("https://localhost:7284/places/get-all");
+//         const allPlacesResponse = await axios.get("https://homiesstay.onrender.com/places/get-all");
 //         const allPlaces = allPlacesResponse.data;
 //         //console.log("All Places (from /get-all):", allPlaces);
 
@@ -331,7 +331,7 @@ function HomePage() {
 
         // Fetch top-rated properties
         const topRatedResponse = await axios.get(
-          "https://localhost:7284/places/top-rating",
+          "https://homiesstay.onrender.com/places/top-rating",
           {
             params: { limit: 5 },
           }
@@ -370,7 +370,7 @@ function HomePage() {
 
         // Fetch all properties for recommendations
         const allPlacesResponse = await axios.get(
-          "https://localhost:7284/places/get-all"
+          "https://homiesstay.onrender.com/places/get-all"
         );
         const allPlaces = allPlacesResponse.data;
 

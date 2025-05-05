@@ -2,7 +2,7 @@
 import axios from 'axios';
 import jwtDecode from 'jwt-decode'; // Add this package
 
-const API_URL = 'https://localhost:7284';
+const API_URL = 'https://homiesstay.onrender.com';
 
 // Store tokens in memory for better security
 let _accessToken = null;

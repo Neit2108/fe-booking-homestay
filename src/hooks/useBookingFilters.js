@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
 
-const useBookingFilters = (user, initialUrl = 'https://localhost:7284/bookings') => {
+const useBookingFilters = (user, initialUrl = 'https://homiesstay.onrender.com/bookings') => {
   // Filter states
   const [statusFilter, setStatusFilter] = useState('');
   const [paymentStatusFilter, setPaymentStatusFilter] = useState('');

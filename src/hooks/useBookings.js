@@ -35,11 +35,11 @@ const useBookings = (user, statusFilter, startDateFilter, endDateFilter) => {
     if (endDateFilter) params.endDate = endDateFilter;
 
     if (newRoleToUse === "customer") {
-      endpoint = `https://localhost:7284/bookings/user-bookings/${user.id}`;
+      endpoint = `https://homiesstay.onrender.com/bookings/user-bookings/${user.id}`;
     } else if (newRoleToUse === "admin") {
-      endpoint = `https://localhost:7284/bookings/all-bookings`;
+      endpoint = `https://homiesstay.onrender.com/bookings/all-bookings`;
     } else if (newRoleToUse === "landlord") {
-      endpoint = `https://localhost:7284/bookings/landlord-s-bookings/${user.id}`;
+      endpoint = `https://homiesstay.onrender.com/bookings/landlord-s-bookings/${user.id}`;
     }
 
     try {

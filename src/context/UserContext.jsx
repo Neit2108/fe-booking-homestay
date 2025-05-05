@@ -38,7 +38,7 @@ const UserProvider = ({ children }) => {
       const token = localStorage.getItem("token");
       if (!token) return;
 
-      const response = await axios.get("https://localhost:7284/user/profile", {
+      const response = await axios.get("https://homiesstay.onrender.com/user/profile", {
         headers: { Authorization: `Bearer ${token}` },
       });
 

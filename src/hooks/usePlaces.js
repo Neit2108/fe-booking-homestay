@@ -23,7 +23,7 @@ export const usePlaces = (options = { mode: "managed" }) => {
       // If in public mode, fetch all places regardless of user role
       if (options.mode === "public") {
         const response = await axios.get(
-          "https://localhost:7284/places/get-all"
+          "https://homiesstay.onrender.com/places/get-all"
         );
         const processedData = processResponse(response.data);
         setPlaces(processedData);
@@ -53,14 +53,14 @@ export const usePlaces = (options = { mode: "managed" }) => {
       if (isAdmin) {
         // Admin can see all places
         const response = await axios.get(
-          "https://localhost:7284/places/get-all"
+          "https://homiesstay.onrender.com/places/get-all"
         );
         processedData = processResponse(response.data);
         console.log("Admin fetched all places:", processedData.length);
       } else if (isLandlord && user.id) {
         // Landlord can only see their own places
         const response = await axios.get(
-          `https://localhost:7284/places/get-all-for-landlord/${user.id}`,
+          `https://homiesstay.onrender.com/places/get-all-for-landlord/${user.id}`,
           {
             headers: {
               Authorization: `Bearer ${user.token}`,
@@ -109,7 +109,7 @@ export const usePlaces = (options = { mode: "managed" }) => {
     try {
       setLoading(true);
       const response = await axios.post(
-        "https://localhost:7284/places/add-place",
+        "https://homiesstay.onrender.com/places/add-place",
         placeData,
         {
           headers: { 
@@ -135,7 +135,7 @@ export const usePlaces = (options = { mode: "managed" }) => {
     try {
       setLoading(true);
       const response = await axios.put(
-        `https://localhost:7284/places/update/${id}`,
+        `https://homiesstay.onrender.com/places/update/${id}`,
         placeData,
         {
           headers: { 
@@ -161,7 +161,7 @@ export const usePlaces = (options = { mode: "managed" }) => {
   const deletePlace = async (id) => {
     try {
       setLoading(true);
-      await axios.delete(`https://localhost:7284/places/delete/${id}`, {
+      await axios.delete(`https://homiesstay.onrender.com/places/delete/${id}`, {
         headers: { 
           Authorization: `Bearer ${user.token}`
         },

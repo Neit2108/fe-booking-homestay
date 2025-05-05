@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useContext } from 'react';
 import axios from 'axios';
 import { UserContext } from '../context/UserContext';
 
-const API_URL = 'https://localhost:7284/comments'; 
+const API_URL = 'https://homiesstay.onrender.com/comments'; 
 
 const useComment = (placeId) => {
   const [comments, setComments] = useState([]);

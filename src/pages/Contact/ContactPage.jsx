@@ -87,7 +87,7 @@ const ContactPage = () => {
       };
       
       // Make API call with axios
-      const response = await axios.post('https://localhost:7284/contacts/add-contact', contactRequest);
+      const response = await axios.post('https://homiesstay.onrender.com/contacts/add-contact', contactRequest);
       
       // Handle successful response
       setSubmitResponse({

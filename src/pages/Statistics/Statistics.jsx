@@ -91,7 +91,7 @@ const Statistics = () => {
 
       try {
         const response = await axios.get(
-          "https://localhost:7284/statistics",
+          "https://homiesstay.onrender.com/statistics",
           {
             headers: { Authorization: `Bearer ${user.token}` },
           }
@@ -187,7 +187,7 @@ const Statistics = () => {
         try {
           const userIdsParam = userIds.join(",");
           const userResponse = await axios.get(
-            `https://localhost:7284/user/bulk?ids=${userIdsParam}`,
+            `https://homiesstay.onrender.com/user/bulk?ids=${userIdsParam}`,
             {
               headers: { Authorization: `Bearer ${user.token}` },
             }
@@ -212,7 +212,7 @@ const Statistics = () => {
         try {
           const placeIdsParam = placeIds.join(",");
           const placeResponse = await axios.get(
-            `https://localhost:7284/places/bulk?ids=${placeIdsParam}`,
+            `https://homiesstay.onrender.com/places/bulk?ids=${placeIdsParam}`,
             {
               headers: { Authorization: `Bearer ${user.token}` },
             }

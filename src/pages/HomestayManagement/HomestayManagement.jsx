@@ -351,7 +351,7 @@ const HomestayManagement = () => {
       };
 
       const response = await axios.put(
-        `https://localhost:7284/places/update-status`,
+        `https://homiesstay.onrender.com/places/update-status`,
         requestBody,
         {
           headers: {
@@ -483,7 +483,7 @@ const HomestayManagement = () => {
       };
 
       const response = await axios.put(
-        `https://localhost:7284/places/update-status`,
+        `https://homiesstay.onrender.com/places/update-status`,
         requestBody,
         {
           headers: {
@@ -578,7 +578,7 @@ const HomestayManagement = () => {
       };
       console.log("update status");
       const response = await axios.put(
-        `https://localhost:7284/places/update-status`,
+        `https://homiesstay.onrender.com/places/update-status`,
         requestBody,
         {
           headers: {
