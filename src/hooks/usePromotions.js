@@ -1,11 +1,12 @@
 // src/hooks/usePromotions.js
 import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
+import { API_URL } from '../../constant/config';
 
 /**
  * Custom hook for managing promotions
  * @param {Object} options Configuration options
- * @param {string} options.category Filter promotions by category
+ * @param {string} options.promotionType Filter promotions by type (Global/Personal)
  * @param {boolean} options.active Only return active promotions
  * @param {number} options.limit Limit number of promotions returned
  * @returns {Object} Promotions data and methods
@@ -15,149 +16,129 @@ const usePromotions = (options = {}) => {
   const [featuredPromotions, setFeaturedPromotions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
-  // For now, use dummy data until API integration
-  const dummyPromotions = [
-    {
-      id: 1,
-      title: "Khuyến mãi tháng 5",
-      subtitle: "Chào hè cùng HomiesStay",
-      description: "Giảm đến 30% cho tất cả các đặt phòng từ 15/5 đến 30/5, áp dụng cho homestay tại các thành phố biển.",
-      code: "SUMMER2025",
-      discount: "30%",
-      expiry: "30/05/2025",
-      startDate: "15/05/2025",
-      category: "seasonal",
-      featured: true,
-      active: true,
-      image: "/path/to/summer-promotion.jpg",
-      bgColor: "bg-gradient-to-r from-blue-500 to-cyan-500",
-      locations: ["Đà Nẵng", "Nha Trang", "Phú Quốc"]
-    },
-    {
-      id: 2,
-      title: "Ưu đãi nhóm",
-      subtitle: "Đi cùng bạn bè, tiết kiệm hơn",
-      description: "Đặt phòng cho nhóm từ 6 người trở lên, nhận ngay ưu đãi 15% tổng hóa đơn và dịch vụ đưa đón miễn phí.",
-      code: "GROUP2025",
-      discount: "15%",
-      expiry: "31/12/2025",
-      startDate: "01/01/2025",
-      category: "group",
-      featured: true,
-      active: true,
-      image: "/path/to/group-promotion.jpg",
-      bgColor: "bg-gradient-to-r from-amber-500 to-pink-500",
-      locations: ["Tất cả địa điểm"]
-    },
-    {
-      id: 3,
-      title: "Kỳ nghỉ dài hạn",
-      subtitle: "Ở lâu, giá càng tốt",
-      description: "Đặt phòng từ 7 đêm trở lên, tự động được giảm 25% tổng hóa đơn và nâng cấp loại phòng miễn phí nếu còn trống.",
-      code: "LONGSTAY",
-      discount: "25%",
-      expiry: "31/12/2025",
-      startDate: "01/01/2025",
-      category: "duration",
-      featured: true,
-      active: true,
-      image: "/path/to/longstay-promotion.jpg",
-      bgColor: "bg-gradient-to-r from-emerald-500 to-teal-500",
-      locations: ["Tất cả địa điểm"]
-    },
-    {
-      id: 4,
-      title: "Kỳ nghỉ lễ 30/4 - 1/5",
-      description: "Ưu đãi đặc biệt cho kỳ nghỉ lễ với nhiều quà tặng hấp dẫn và dịch vụ cao cấp.",
-      discount: "20%",
-      expiry: "01/05/2025",
-      startDate: "15/04/2025",
-      category: "holiday",
-      featured: false,
-      active: true,
-      image: "/path/to/holiday-1.jpg",
-      bgColor: "bg-red-600",
-      locations: ["Đà Nẵng", "Nha Trang", "Phú Quốc"]
-    },
-    {
-      id: 5,
-      title: "Nghỉ hè sôi động",
-      description: "Khám phá những điểm du lịch hot nhất mùa hè với ưu đãi dành riêng cho gia đình.",
-      discount: "15%",
-      expiry: "31/08/2025",
-      startDate: "01/06/2025",
-      category: "seasonal",
-      featured: false,
-      active: true,
-      image: "/path/to/holiday-2.jpg",
-      bgColor: "bg-blue-600",
-      locations: ["Đà Lạt", "Hạ Long", "Sapa"]
-    },
-    {
-      id: 6,
-      title: "Nghỉ lễ Quốc Khánh",
-      description: "Đặt trước cho kỳ nghỉ lễ Quốc Khánh và nhận ưu đãi độc quyền cùng dịch vụ VIP.",
-      discount: "25%",
-      expiry: "02/09/2025",
-      startDate: "15/08/2025",
-      category: "holiday",
-      featured: false,
-      active: true,
-      image: "/path/to/holiday-3.jpg",
-      bgColor: "bg-green-600",
-      locations: ["TP. Hồ Chí Minh", "Hà Nội", "Huế"]
-    }
-  ];
-
-  // Fetch promotions
+  
+  
+  // Convert options object to a string for dependency comparison
+  const optionsString = JSON.stringify(options);
+  
+  // Fetch promotions from API
   const fetchPromotions = useCallback(async () => {
     setLoading(true);
     setError(null);
 
     try {
-      // For now, use dummy data
-      // Later, this will be replaced with actual API calls:
-      // const response = await axios.get('/api/promotions', { params: options });
-      // const data = response.data;
-
-      // Simulating API delay
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      // Filter dummy data based on options
-      let filteredPromotions = [...dummyPromotions];
-
-      if (options.category) {
+      // Fetch promotions from API
+      const response = await axios.get(`${API_URL}/promotions/all-promotions`);
+      let fetchedPromotions = response.data;
+      
+      // Format promotions from API to match the expected structure
+      const formattedPromotions = fetchedPromotions.map(promo => ({
+        id: promo.voucherId || promo.id, // Using voucher ID as promotion ID
+        title: promo.title,
+        name: promo.name,
+        description: promo.description,
+        startDate: new Date(promo.startDate).toLocaleDateString('vi-VN'),
+        endDate: new Date(promo.endDate).toLocaleDateString('vi-VN'),
+        expiry: new Date(promo.endDate).toLocaleDateString('vi-VN'),
+        image: promo.image,
+        promotionType: promo.promotionType,
+        // Additional fields to match existing structure
+        featured: true, // You can determine this based on certain criteria if needed
+        active: new Date() <= new Date(promo.endDate), // Check if promotion is still active
+        category: getCategoryFromPromotion(promo), // Map to category based on some logic
+        discount: getDiscountFromPromotion(promo),
+        code: getCodeFromPromotion(promo),
+        locations: promo.promotionType === 'Personal' && promo.place ? 
+          promo.place.map(place => place.name) : ['Tất cả địa điểm']
+      }));
+      
+      // Apply filters based on options
+      let filteredPromotions = [...formattedPromotions];
+      
+      // Filter by promotion type if specified
+      if (options.promotionType) {
         filteredPromotions = filteredPromotions.filter(
-          promo => promo.category === options.category
+          promo => promo.promotionType === options.promotionType
         );
       }
-
+      
+      // Filter by active status if specified
       if (options.active) {
         filteredPromotions = filteredPromotions.filter(promo => promo.active);
       }
-
-      if (options.limit) {
+      
+      // Apply limit if specified
+      if (options.limit && options.limit > 0) {
         filteredPromotions = filteredPromotions.slice(0, options.limit);
       }
-
-      // Set featured promotions
-      const featured = filteredPromotions.filter(promo => promo.featured);
-
+      
+      // Set featured promotions (for example, the first 3 active promotions)
+      const codes = ["SUMMER2025", "GROUP2025", "LONGSTAY"];
+      const featured = filteredPromotions
+        .filter(promo => promo.active && codes.includes(promo.code))
+        .slice(0, 3);
+      
       setPromotions(filteredPromotions);
       setFeaturedPromotions(featured);
       setLoading(false);
+      console.log(filteredPromotions);
     } catch (err) {
       console.error('Error fetching promotions:', err);
       setError('Failed to load promotions. Please try again later.');
       setLoading(false);
     }
-  }, [options]);
+  }, [API_URL, optionsString]); // Use stringified options in the dependency array
 
-  // Fetch promotions on mount and when options change
+  // Fetch promotions only once on mount and when options change
   useEffect(() => {
     fetchPromotions();
   }, [fetchPromotions]);
+  
+  /**
+   * Helper function to determine category from promotion
+   * @param {Object} promotion Promotion object from API
+   * @returns {string} Category name
+   */
+  const getCategoryFromPromotion = (promotion) => {
+    // You can implement custom logic to determine category
+    // For example, based on title keywords or description
+    const title = promotion.title?.toLowerCase() || '';
+    const description = promotion.description?.toLowerCase() || '';
+    
+    if (title.includes('lễ') || description.includes('lễ')) {
+      return 'holiday';
+    } else if (title.includes('nhóm') || description.includes('nhóm')) {
+      return 'group';
+    } else if (title.includes('mùa') || description.includes('mùa')) {
+      return 'seasonal';
+    } else if (title.includes('dài') || description.includes('dài')) {
+      return 'duration';
+    }
+    
+    // Default category
+    return 'seasonal';
+  };
+  
+  /**
+   * Helper function to extract discount information from promotion
+   * @param {Object} promotion Promotion object from API
+   * @returns {string} Formatted discount string
+   */
+  const getDiscountFromPromotion = (promotion) => {
+    return promotion.discount;
+  };
+  
+  /**
+   * Helper function to extract voucher code from promotion
+   * @param {Object} promotion Promotion object from API
+   * @returns {string} Voucher code
+   */
+  const getCodeFromPromotion = (promotion) => {
+    // This would depend on your voucher structure
+    // For now, we'll return a placeholder based on the promotion name
+    // In a real app, you would extract this from the voucher
+    return promotion.voucherCode;
+  };
 
   /**
    * Apply a promotion code
@@ -167,12 +148,12 @@ const usePromotions = (options = {}) => {
    */
   const applyPromotionCode = async (code, bookingDetails) => {
     try {
-      // This will be an API call in the future
-      // const response = await axios.post('/api/promotions/apply', { code, bookingDetails });
+      // In a real app, this would be an API call
+      // const response = await axios.post(`${API_URL}/promotions/apply`, { code, bookingDetails });
       // return response.data;
-
-      // For now, simulate validation logic:
-      const promotion = dummyPromotions.find(
+      
+      // For now, simulate validation logic using our local promotions
+      const promotion = promotions.find(
         p => p.code && p.code.toUpperCase() === code.toUpperCase() && p.active
       );
 
@@ -205,24 +186,24 @@ const usePromotions = (options = {}) => {
    */
   const validatePromotion = async (promotionId, bookingDetails) => {
     try {
-      // This will be an API call in the future
-      // const response = await axios.post('/api/promotions/validate', { 
+      // In a real app, this would be an API call
+      // const response = await axios.post(`${API_URL}/promotions/validate`, { 
       //   promotionId, 
       //   bookingDetails 
       // });
       // return response.data.valid;
-
-      // For now, simulate validation logic:
-      const promotion = dummyPromotions.find(p => p.id === promotionId);
+      
+      // For now, simulate validation logic
+      const promotion = promotions.find(p => p.id === promotionId);
       
       if (!promotion || !promotion.active) {
         return false;
       }
       
-      // Simple validation logic - in real app this would be more complex
+      // Simple validation logic
       const now = new Date();
-      const expiryDate = parseDate(promotion.expiry);
-      const startDate = parseDate(promotion.startDate);
+      const expiryDate = new Date(promotion.endDate);
+      const startDate = new Date(promotion.startDate);
       
       // Check promotion dates
       if (now > expiryDate || now < startDate) {
@@ -244,12 +225,6 @@ const usePromotions = (options = {}) => {
       console.error('Error validating promotion:', err);
       return false;
     }
-  };
-
-  // Helper function to parse date strings
-  const parseDate = (dateString) => {
-    const [day, month, year] = dateString.split('/');
-    return new Date(year, month - 1, day);
   };
 
   return {

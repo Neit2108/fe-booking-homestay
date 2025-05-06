@@ -20,7 +20,7 @@ const VietnameseFlag = () => {
         </div>
       </div>
       
-      <style jsx>{`
+      <style jsx="true">{`
         .flag-container {
           position: relative;
           width: 100%;

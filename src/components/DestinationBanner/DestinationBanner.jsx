@@ -154,7 +154,7 @@ const DestinationBanner = ({
       </div>
       
       {/* CSS animations */}
-      <style jsx>{`
+      <style jsx="true">{`
         @keyframes progress {
           0% { width: 0%; }
           100% { width: 100%; }

@@ -36,7 +36,7 @@ const PromoCode = ({ code, discount, expiry, className = '' }) => {
         {discount && (
           <div className="flex justify-center mb-3">
             <span className="bg-[#4182F9]/10 text-[#4182F9] px-3 py-1 rounded-full font-medium text-sm">
-              Giảm {discount}
+              Giảm {discount}%
             </span>
           </div>
         )}

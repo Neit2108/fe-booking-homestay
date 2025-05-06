@@ -23,7 +23,7 @@ const PromotionCard = ({ variant = 'basic', data, onClick, className = '' }) => 
       >
         <div className="p-6">
           <span className="inline-block px-3 py-1 bg-[#4182F9]/10 text-[#4182F9] rounded-full text-sm font-medium mb-4">
-            {data.discount || 'Special Offer'}
+            Giảm {data.discount || 'Special Offer'}%
           </span>
           <h3 className="text-xl font-bold text-[#152C5B] mb-2">{data.title}</h3>
           <p className="text-[#B0B0B0] line-clamp-2 mb-4">{data.description}</p>
@@ -103,7 +103,7 @@ const PromotionCard = ({ variant = 'basic', data, onClick, className = '' }) => 
           <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
             {data.discount && (
               <span className="bg-[#4182F9] text-white px-2 py-1 rounded-md text-sm font-medium">
-                {data.discount}
+                Giảm {data.discount}%
               </span>
             )}
             <h3 className="text-xl font-bold mt-2">{data.title}</h3>
@@ -154,7 +154,7 @@ const PromotionCard = ({ variant = 'basic', data, onClick, className = '' }) => 
               {data.expiry && (
                 <div className="bg-white/20 rounded-lg p-4 backdrop-blur-sm">
                   <p className="text-sm text-white opacity-80">Hiệu lực đến</p>
-                  <p className="text-xl font-bold text-white">{data.expiry}</p>
+                  <p className="text-xl font-bold text-white">--</p>
                 </div>
               )}
             </div>

@@ -339,7 +339,7 @@ const HomestayRecommendation = () => {
             </div>
 
             {/* Assistant Image */}
-            <div className="hidden md:block relative mt-8">
+            {/* <div className="hidden md:block relative mt-8">
               <img
                 src="/src/assets/woman-illustration.png"
                 alt="Assistant"
@@ -350,7 +350,7 @@ const HomestayRecommendation = () => {
                     "https://via.placeholder.com/200x300?text=Assistant";
                 }}
               />
-            </div>
+            </div> */}
           </div>
 
           {/* Right Content - Place Listings */}

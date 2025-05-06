@@ -5,16 +5,18 @@ import "react-datepicker/dist/react-datepicker.css";
 import { UserContext } from "../../context/UserContext";
 import axios from "axios";
 import Loader from "../../components/Loading/Loader";
-import Modal from "../../components/Modal/Modal"; // Import your Modal component
+import Modal from "../../components/Modal/Modal";
 import { formatPrice } from "../../Utils/PriceUtils";
 import { API_URL } from "../../../constant/config";
+
 function BookingRequest() {
   const location = useLocation();
   const navigate = useNavigate();
   const property = location.state?.property;
-  const {user} = useContext(UserContext);
+  const { user, isLandlord, isAdmin } = useContext(UserContext);
   const userId = user?.id;
 
+  // State management
   const [days, setDays] = useState(2);
   const [people, setPeople] = useState(1);
   const [dateRange, setDateRange] = useState([
@@ -28,7 +30,20 @@ function BookingRequest() {
   const [discount, setDiscount] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isFailModalOpen, setIsFailModalOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
+  // Navigate to the appropriate booking dashboard based on user role
+  const navigateToBookingDashboard = () => {
+    if (isAdmin()) {
+      navigate("/admin-booking-dashboard");
+    } else if (isLandlord()) {
+      navigate("/landlord-booking-dashboard");
+    } else {
+      navigate("/user-booking-dashboard");
+    }
+  };
+
+  // Handle voucher validation
   const handleApplyVoucher = async () => {
     if (!voucher || voucher.trim() === "") {
       setDiscount(0);
@@ -39,22 +54,22 @@ function BookingRequest() {
     try {
       const response = await axios.post(
         `${API_URL}/utils/voucher/validate`,
-        { Code: voucher }, // Gửi dữ liệu đúng định dạng VoucherRequest
+        { Code: voucher },
         {
-          headers: { "Content-Type": "application/json" }, // Sử dụng JSON thay vì multipart
+          headers: { "Content-Type": "application/json" },
         }
       );
 
       const voucherRes = response.data;
-      console.log(voucherRes);
-      setDiscount(voucherRes.discount); // Cập nhật discount từ response
-      setVoucherValid(true); // Đánh dấu voucher hợp lệ
+      setDiscount(voucherRes.discount);
+      setVoucherValid(true);
     } catch (error) {
       console.error("Error applying voucher:", error);
-      setVoucherValid(false); // Đánh dấu voucher không hợp lệ nếu có lỗi
+      setVoucherValid(false);
     }
   };
 
+  // Calculate total price based on factors
   useEffect(() => {
     if (!property) {
       navigate("/");
@@ -68,20 +83,18 @@ function BookingRequest() {
         basePrice = basePrice * 1.3;
       }
       if (discount !== 0) {
-        // Sử dụng !== thay vì != để kiểm tra chính xác hơn
         basePrice -= basePrice * (discount / 100);
       }
 
       setTotalPrice(Math.round(basePrice));
     }
-  }, [property, days, people, discount, navigate]); // Thêm discount vào dependency array
+  }, [property, days, people, discount, navigate]);
 
-  // Calculate days between two dates
+  // Calculate days between selected dates
   useEffect(() => {
     if (startDate && endDate) {
-      // Check if dates are the same
       if (startDate.toDateString() === endDate.toDateString()) {
-        setDays(1); // Same day counts as 1 day
+        setDays(1);
       } else {
         const diffTime = Math.abs(endDate - startDate);
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
@@ -90,11 +103,11 @@ function BookingRequest() {
     }
   }, [startDate, endDate]);
 
+  // Adjust number of days
   const handleDaysChange = (increment) => {
     const newDays = increment ? days + 1 : Math.max(1, days - 1);
     setDays(newDays);
 
-    // Update end date based on new days
     if (startDate) {
       const newEndDate = new Date(startDate);
       newEndDate.setDate(startDate.getDate() + newDays - 1);
@@ -102,13 +115,12 @@ function BookingRequest() {
     }
   };
 
+  // Adjust number of people
   const handlePeopleChange = (increment) => {
     if (increment) {
-      // Don't allow more than maxGuests + 2
       if (property.maxGuests && people < property.maxGuests + 2) {
         setPeople(people + 1);
       } else if (!property.maxGuests) {
-        // If maxGuests is not defined, still allow incrementing
         setPeople(people + 1);
       }
     } else {
@@ -116,6 +128,7 @@ function BookingRequest() {
     }
   };
 
+  // Format the date range for display
   const formatDateRange = () => {
     if (!startDate || !endDate) return "";
 
@@ -128,69 +141,70 @@ function BookingRequest() {
     return `${formatDate(startDate)} - ${formatDate(endDate)}`;
   };
 
-  const handleCancel = () => {
-    navigate(-1);
-  };
-
+  // Modal handlers
   const handleCloseModal = () => {
     setIsModalOpen(false);
+    navigateToBookingDashboard(); // Navigate to booking dashboard after closing success modal
   };
 
   const handleRetryModalFail = () => {
     setIsFailModalOpen(false);
   };
 
-  const handleContinue = () => {
-    setIsModalOpen(false);
-    // Navigate to home page after clicking continue
-    navigate("/");
-  };
-
+  // Handle booking creation
   const handleBookNow = async () => {
     const token = localStorage.getItem("token");
-    console.log("ID", userId)
-    // if (!userId) {
-    //   alert("Please log in to book!");
-    //   navigate("/login"); // Điều hướng đến trang đăng nhập nếu chưa có user
-    //   return;
-    // }
+    
+    if (!token) {
+      alert("Please log in to book!");
+      navigate("/login");
+      return;
+    }
 
     if (!property?.id) {
       console.error("Property ID is missing!");
       return;
     }
 
-    // Tạo object BookingRequest
+    // Create booking request object
     const bookingRequest = {
       UserId: userId,
-      PlaceId: property.id, // Giả định property.id là PlaceId
-      StartDate: startDate.toISOString(), 
+      PlaceId: property.id,
+      StartDate: startDate.toISOString(),
       EndDate: endDate.toISOString(),
       NumberOfGuests: people,
       TotalPrice: totalPrice,
-      Voucher: voucher || null, // Nếu không có voucher thì gửi null
-      Status: "Pending", // Giá trị mặc định là Pending
+      Voucher: voucher || null,
+      Status: "Pending",
     };
 
+    setIsLoading(true);
+    
     try {
-      // Gửi POST request lên /bookings/new-booking
       const response = await axios.post(
         `${API_URL}/bookings/new-booking`,
         bookingRequest,
         {
-          headers: { "Content-Type": "application/json",
+          headers: { 
+            "Content-Type": "application/json",
             Authorization: `Bearer ${token}`
-           },
+          },
         }
       );
 
       console.log("Booking successful:", response.data);
-      setIsModalOpen(true); // Hiển thị modal xác nhận khi đặt phòng thành công
+      setIsModalOpen(true);
     } catch (error) {
-      setIsFailModalOpen(true);
       console.error("Error creating booking:", error);
-      //alert("Failed to create booking. Please try again.");
+      setIsFailModalOpen(true);
+    } finally {
+      setIsLoading(false);
     }
+  };
+
+  // Handle cancel button
+  const handleCancel = () => {
+    navigate(-1);
   };
 
   if (!property) {
@@ -215,6 +229,7 @@ function BookingRequest() {
           </div>
         </div>
         <div className="flex gap-20 px-5 max-md:flex-col">
+          {/* Property Information Section */}
           <div className="w-[420px] max-md:w-full">
             <img
               src={property.mainImage}
@@ -226,7 +241,10 @@ function BookingRequest() {
               <div className="text-base text-zinc-400">{property.address}</div>
             </div>
           </div>
+          
+          {/* Booking Options Section */}
           <div className="flex flex-col gap-6 w-80 max-md:w-full">
+            {/* People Selection */}
             <div className="flex flex-col gap-2">
               <div className="text-base text-primary">
                 Số người{" "}
@@ -256,6 +274,7 @@ function BookingRequest() {
               )}
             </div>
 
+            {/* Date Selection */}
             <div className="flex flex-col gap-2">
               <div className="text-base text-primary">Chọn ngày</div>
               <div className="relative flex items-center rounded bg-neutral-100 h-[45px]">
@@ -311,6 +330,7 @@ function BookingRequest() {
               </div>
             </div>
 
+            {/* Voucher Section */}
             <div className="flex flex-col gap-2">
               <div className="text-base text-primary">Mã Voucher</div>
               <div className="flex items-center rounded bg-neutral-100 h-[45px] overflow-hidden">
@@ -347,6 +367,7 @@ function BookingRequest() {
               )}
             </div>
 
+            {/* Total Price Display */}
             <div className="mt-6 text-2xl">
               <span className="text-zinc-400">Bạn cần trả </span>
               <span className="text-primary">{formatPrice(totalPrice)} VNĐ</span>
@@ -357,33 +378,40 @@ function BookingRequest() {
             </div>
           </div>
         </div>
+        
+        {/* Action Buttons */}
         <div className="flex flex-col gap-4 items-center mt-16 mb-10">
           <button
-            className="text-2xl bg-accent rounded-xl h-[58px] text-neutral-50 w-[323px] hover:bg-blue-800 transition-colors"
+            className="text-2xl bg-accent rounded-xl h-[58px] text-neutral-50 w-[323px] hover:bg-blue-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={handleBookNow}
+            disabled={isLoading}
           >
-            Đặt ngay
+            {isLoading ? "Đang xử lý..." : "Đặt ngay"}
           </button>
           <button
             className="text-lg rounded bg-neutral-100 h-[50px] text-zinc-400 w-[300px] hover:bg-neutral-200 transition-colors"
             onClick={handleCancel}
+            disabled={isLoading}
           >
             Cancel
           </button>
         </div>
       </div>
 
+      {/* Success Modal */}
       <Modal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={handleCloseModal}
         status="success"
         title="Đặt phòng thành công"
         message="Đơn đặt phòng đã được gửi. Vui lòng chờ xác nhận từ chủ nhà."
-        confirmText="Đóng"
+        confirmText="Đi đến trang quản lý đặt phòng"
       />
+      
+      {/* Error Modal */}
       <Modal
         isOpen={isFailModalOpen}
-        onClose={() => setIsFailModalOpen(false)}
+        onClose={handleRetryModalFail}
         status="error"
         title="Đặt phòng thất bại"
         message="Có lỗi xảy ra. Vui lòng thử lại."

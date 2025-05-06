@@ -82,7 +82,6 @@ const PromotionList = ({
     );
   }
   
-  // Render in list layout
   return (
     <div className={`w-full ${className}`}>
       <div className="space-y-6">

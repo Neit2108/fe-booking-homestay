@@ -17,6 +17,7 @@ import {
   ChatIcon,
   XIcon
 } from "@heroicons/react/outline";
+import { GiftIcon } from "lucide-react";
 
 function Sidebar({ activePage }) {
   const location = useLocation();
@@ -79,6 +80,11 @@ function Sidebar({ activePage }) {
             label: "Thống kê",
             icon: <ChartBarIcon className="w-5 h-5" />,
           },
+          {
+            to: "/voucher",
+            label : "Khuyến mãi",
+            icon: <GiftIcon className="w-5 h-5" />
+          }
         ];
       } else if (isLandlord()) {
         // Landlord-specific items
@@ -94,6 +100,11 @@ function Sidebar({ activePage }) {
             label: "Quản lý Homestay",
             icon: <OfficeBuildingIcon className="w-5 h-5" />,
           },
+          {
+            to: "/voucher",
+            label : "Khuyến mãi",
+            icon: <GiftIcon className="w-5 h-5" />
+          }
         ];
       } else {
         // Regular user items
