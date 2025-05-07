@@ -81,7 +81,7 @@ function Sidebar({ activePage }) {
             icon: <ChartBarIcon className="w-5 h-5" />,
           },
           {
-            to: "/voucher",
+            to: "/promotion-management",
             label : "Khuyến mãi",
             icon: <GiftIcon className="w-5 h-5" />
           }
@@ -101,7 +101,7 @@ function Sidebar({ activePage }) {
             icon: <OfficeBuildingIcon className="w-5 h-5" />,
           },
           {
-            to: "/voucher",
+            to: "/promotion-management",
             label : "Khuyến mãi",
             icon: <GiftIcon className="w-5 h-5" />
           }

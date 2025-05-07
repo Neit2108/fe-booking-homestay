@@ -5,13 +5,48 @@ import { TbCameraSpark } from "react-icons/tb";
 import { GrMapLocation } from "react-icons/gr";
 import { FaFlag } from "react-icons/fa";
 import DestinationBanner from "../DestinationBanner/DestinationBanner";
-
+import usePromotions from "../../hooks/usePromotions";
+import { formatDate } from "../../Utils/DateUtils";
 function Hero() {
-  // Calculate today's date to determine if it's near April 30th
+  const { promotions } = usePromotions();
+
   const today = new Date();
-  const isApril = today.getMonth() === 3; // April is month 3 (0-indexed)
-  const isNearHoliday = isApril && today.getDate() >= 25;
-  const isHoliday = isApril && today.getDate() === 30;
+
+  const parseDate = (str) => {
+    const [day, month, year] = str.split("/").map(Number);
+    return new Date(year, month - 1, day);
+  };
+
+  // Lọc promotions theo category "holiday"
+  const holidayPromotions = promotions.filter((p) => p.category === "holiday");
+
+  const isNearHoliday = holidayPromotions.some((p) => {
+    const startDate = parseDate(p.startDate);
+    const diffDays = (startDate - today) / (1000 * 60 * 60 * 24);
+    return diffDays <= 14 && diffDays > 0; 
+  });
+
+  const isHoliday = holidayPromotions.some((p) => {
+    const startDate = parseDate(p.startDate);
+    
+    const endDate = parseDate(p.endDate);
+    return today > startDate && today <= endDate;
+  });
+
+  const nearHoliday = holidayPromotions.find(p => {
+    const startDate = parseDate(p.startDate);
+    const diffDays = (startDate - today) / (1000 * 60 * 60 * 24);
+    return diffDays <= 14 && diffDays > 0;
+  });
+  
+  // Tìm promotion đang trong thời gian diễn ra
+  const currentHoliday = holidayPromotions.find(p => {
+    const startDate = parseDate(p.startDate);
+    const endDate = parseDate(p.endDate);
+    return today > startDate && today <= endDate;
+  });
+
+  const activeHoliday = currentHoliday || nearHoliday;
 
   // Features stats section data
   const features = [
@@ -46,7 +81,9 @@ function Hero() {
             <p className="text-[#B0B0B0] font-light leading-relaxed mt-6 text-base">
               <span className="block">Chúng tôi cung cấp những gì bạn cần</span>
               <span className="block">để tận hưởng cùng với gia đình. </span>
-              <span className="block">Thời gian để tạo nên những kỷ niệm đáng nhớ.</span>
+              <span className="block">
+                Thời gian để tạo nên những kỷ niệm đáng nhớ.
+              </span>
             </p>
 
             {/* Holiday badge - displayed conditionally near April 30th */}
@@ -54,9 +91,9 @@ function Hero() {
               <div className="mt-4 bg-red-600 text-white px-4 py-2 rounded-full inline-flex items-center gap-2 animate-pulse">
                 <FaFlag className="text-yellow-300" />
                 <span>
-                  {isHoliday 
-                    ? "Chúc mừng ngày Thống nhất 30/4!" 
-                    : "Sắp đến ngày Giải phóng miền Nam 30/4"}
+                  {isHoliday
+                    ? activeHoliday.title
+                    : "Sắp tới " + activeHoliday.title}
                 </span>
               </div>
             )}
@@ -71,12 +108,17 @@ function Hero() {
             <div className="mt-20 max-md:mt-10 max-md:flex max-md:justify-center">
               <div className="flex gap-8 max-md:flex-wrap max-md:justify-center">
                 {features.map((feature, index) => (
-                  <div key={index} className="flex flex-col items-center md:items-start">
+                  <div
+                    key={index}
+                    className="flex flex-col items-center md:items-start"
+                  >
                     <div className="bg-blue-50 p-3 rounded-full">
                       {feature.icon}
                     </div>
                     <div className="mt-3 text-center md:text-left">
-                      <span className="font-medium text-primary text-xl">{feature.count}</span>
+                      <span className="font-medium text-primary text-xl">
+                        {feature.count}
+                      </span>
                       <span className="text-gray-600"> {feature.label}</span>
                     </div>
                   </div>
@@ -91,12 +133,12 @@ function Hero() {
           <div className="relative w-full aspect-[4/3]">
             {/* Background decoration */}
             <div className="absolute -top-4 -right-4 w-full h-full bg-blue-100 rounded-3xl"></div>
-            
+
             {/* Destination Banner Component */}
             <div className="relative z-10 w-full h-full">
               <DestinationBanner />
             </div>
-            
+
             {/* Circular decoration */}
             <div className="absolute -bottom-2 -left-2 w-20 h-20 bg-blue-500 rounded-full z-0 animate-pulse"></div>
           </div>

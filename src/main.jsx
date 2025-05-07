@@ -29,6 +29,7 @@ import Statistics from "./pages/Statistics/Statistics.jsx";
 import PromotionsPage from "./pages/Promotion/PromotionsPage.jsx";
 import { UserProvider } from "./context/UserContext.jsx";
 import ContactPage from "./pages/Contact/ContactPage.jsx";
+import PromotionManagement from "./pages/Promotion/PromotionManagement.jsx";
 
 function AppLayout() {
   return (
@@ -68,7 +69,8 @@ const router = createBrowserRouter([
       { path: "/homestay-management", element: <HomestayManagement /> },
       { path: "/statistics", element: <Statistics /> },
       { path: "/contact", element: <ContactPage /> },
-      { path : "/promotion", element: <PromotionsPage />}
+      { path: "/promotion", element: <PromotionsPage />},
+      { path: "/promotion-management", element: <PromotionManagement />}
     ],
   },
 ]);

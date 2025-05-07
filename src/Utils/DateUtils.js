@@ -9,52 +9,28 @@
  * @param {object} [options.customOptions] - Custom Intl.DateTimeFormat options for 'custom' format.
  * @returns {string} - Formatted date string (e.g., "4/11/2025" or "11/04/2025").
  */
-export const formatDate = (
-    date,
-    {
-      locale = "en-US",
-      format = "short",
-      customOptions = {
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-      },
-    } = {}
-  ) => {
-    if (!date) return "Invalid Date";
+// Format date to display only day, month, year in a readable format
+export const formatDate = (dateString) => {
+  if (!dateString) return "Not set";
   
-    const dateObj = typeof date === "string" ? new Date(date) : date;
-  
-    if (isNaN(dateObj.getTime())) return "Invalid Date";
-  
-    // Define format presets
-    const formatOptions = {
-      short: {
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-      },
-      medium: {
-        year: "numeric",
-        month: "short",
-        day: "2-digit",
-      },
-      long: {
-        year: "numeric",
-        month: "long",
-        day: "2-digit",
-        weekday: "long",
-      },
-    };
-  
-    // Choose formatting options based on format type
-    const options =
-      format === "custom" ? customOptions : formatOptions[format] || formatOptions.short;
-  
-    try {
-      return new Intl.DateTimeFormat(locale, options).format(dateObj);
-    } catch (error) {
-      console.error("Error formatting date:", error);
+  try {
+    // Try to parse the timestamp format: "2025-05-01 17:34:46.890118+00"
+    const date = new Date(dateString);
+    
+    // Check if date is valid
+    if (isNaN(date.getTime())) {
+      console.log(`Invalid date: ${dateString}`);
       return "Invalid Date";
     }
-  };
+    
+    // Format as DD/MM/YYYY
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
+    
+    return `${day}/${month}/${year}`;
+  } catch (error) {
+    console.error(`Error formatting date: ${dateString}`, error);
+    return "Invalid Date";
+  }
+};

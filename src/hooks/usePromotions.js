@@ -42,10 +42,10 @@ const usePromotions = (options = {}) => {
         expiry: new Date(promo.endDate).toLocaleDateString('vi-VN'),
         image: promo.image,
         promotionType: promo.promotionType,
-        // Additional fields to match existing structure
-        featured: true, // You can determine this based on certain criteria if needed
-        active: new Date() <= new Date(promo.endDate), // Check if promotion is still active
-        category: getCategoryFromPromotion(promo), // Map to category based on some logic
+        isActive:promo.isActive,
+        featured: true, 
+        active: new Date() <= new Date(promo.endDate), 
+        category: getCategoryFromPromotion(promo), 
         discount: getDiscountFromPromotion(promo),
         code: getCodeFromPromotion(promo),
         locations: promo.promotionType === 'Personal' && promo.place ? 
@@ -81,7 +81,6 @@ const usePromotions = (options = {}) => {
       setPromotions(filteredPromotions);
       setFeaturedPromotions(featured);
       setLoading(false);
-      console.log(filteredPromotions);
     } catch (err) {
       console.error('Error fetching promotions:', err);
       setError('Failed to load promotions. Please try again later.');

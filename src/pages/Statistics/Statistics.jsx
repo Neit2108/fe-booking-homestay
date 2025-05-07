@@ -98,7 +98,6 @@ const Statistics = () => {
           }
         );
 
-        // Log dữ liệu thô từ API để debug
         console.log("Raw doughnutChartData from API:", response.data.doughnutChartData);
 
         // Xử lý dữ liệu biểu đồ để đảm bảo tương thích với react-chartjs-2
