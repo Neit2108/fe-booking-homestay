@@ -30,6 +30,7 @@ import PromotionsPage from "./pages/Promotion/PromotionsPage.jsx";
 import { UserProvider } from "./context/UserContext.jsx";
 import ContactPage from "./pages/Contact/ContactPage.jsx";
 import PromotionManagement from "./pages/Promotion/PromotionManagement.jsx";
+import WalletPage from "./pages/Wallet/WalletPage.jsx";
 
 function AppLayout() {
   return (
@@ -70,7 +71,8 @@ const router = createBrowserRouter([
       { path: "/statistics", element: <Statistics /> },
       { path: "/contact", element: <ContactPage /> },
       { path: "/promotion", element: <PromotionsPage />},
-      { path: "/promotion-management", element: <PromotionManagement />}
+      { path: "/promotion-management", element: <PromotionManagement />},
+      { path: "/wallet", element: <WalletPage />}
     ],
   },
 ]);

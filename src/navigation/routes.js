@@ -35,6 +35,12 @@ export const routes = [
       roles: ['User'], 
       icon: 'bookingUserIcon' 
     },
+    {
+      path: '/wallet',
+      label: 'Ví của tôi',
+      roles: ['User', 'Landlord', 'Admin'],
+      icon: 'walletIcon'
+    },
     { 
       path: '/profile', 
       label: 'Tài khoản', 

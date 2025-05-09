@@ -8,7 +8,8 @@ import { formatPrice } from "../../Utils/PriceUtils.js";
 const PAYMENT_METHODS = {
   BANK_TRANSFER: "bank_transfer",
   CREDIT_CARD: "credit_card",
-  AT_RECEPTION: "paypal"
+  AT_RECEPTION: "paypal",
+  WALLET: "wallet"
 };
 
 function Step1({ onNext, setPaymentMethod, property, people, days, totalPrice, startDate, endDate }) {

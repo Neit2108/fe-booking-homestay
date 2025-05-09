@@ -93,6 +93,8 @@ function Step2({ onNext, onBack, paymentMethod, property, days, totalPrice, peop
           }
         );
         
+        console.log("URL" + `${API_URL}/vnpay/create-payment`);
+        console.log(response.data);
         const data = response.data;
         setPaymentData(data);
         

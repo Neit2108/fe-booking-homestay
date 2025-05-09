@@ -1,1 +1,1 @@
-export const API_URL = 'https://homiesstay.onrender.com';
+export const API_URL = 'https://localhost:7284';
