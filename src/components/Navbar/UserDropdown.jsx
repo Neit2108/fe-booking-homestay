@@ -2,7 +2,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Menu, Transition } from "@headlessui/react";
-import { UserCircleIcon, CogIcon, LogoutIcon } from "@heroicons/react/outline";
+import { UserCircleIcon, CogIcon, LogoutIcon, ChevronDownIcon  } from "@heroicons/react/outline";
 
 const UserDropdown = ({ user, onLogout }) => {
   const navigate = useNavigate();

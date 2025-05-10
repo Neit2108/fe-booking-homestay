@@ -1,8 +1,11 @@
-// src/pages/Payments/Step1.jsx
 import React, { useState, useEffect } from "react";
 import "react-datepicker/dist/react-datepicker.css";
 import ProcessBar from "../../components/ProcessBar/ProcessBar.jsx";
 import { formatPrice } from "../../Utils/PriceUtils.js";
+import axios from "axios";
+import { API_URL } from "../../../constant/config.js";
+import { useContext } from "react";
+import { UserContext } from "../../context/UserContext.jsx";
 
 // Payment method constants
 const PAYMENT_METHODS = {
@@ -15,6 +18,10 @@ const PAYMENT_METHODS = {
 function Step1({ onNext, setPaymentMethod, property, people, days, totalPrice, startDate, endDate }) {
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("");
   const [error, setError] = useState("");
+  const [walletBalance, setWalletBalance] = useState(0);
+  const [hasPin, setHasPin] = useState(false);
+  const [loadingWallet, setLoadingWallet] = useState(false);
+  const { user } = useContext(UserContext);
 
   // Format the date range for display
   const formatDateRange = () => {
@@ -29,11 +36,63 @@ function Step1({ onNext, setPaymentMethod, property, people, days, totalPrice, s
     return `${formatDate(startDate)} - ${formatDate(endDate)}`;
   };
 
+  // Fetch wallet balance when component mounts or when wallet payment method is selected
+  useEffect(() => {
+    if (selectedPaymentMethod === PAYMENT_METHODS.WALLET && user?.token) {
+      fetchWalletInfo();
+    }
+  }, [selectedPaymentMethod, user]);
+
+  // Fetch wallet balance and PIN status
+  const fetchWalletInfo = async () => {
+    setLoadingWallet(true);
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        return;
+      }
+
+      // Fetch balance
+      const balanceResponse = await axios.get(`${API_URL}/wallet/balance`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (balanceResponse.data) {
+        setWalletBalance(balanceResponse.data.balance);
+      }
+
+      // Check if user has set PIN
+      const pinResponse = await axios.get(`${API_URL}/wallet/has-pin`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      setHasPin(pinResponse.data.hasPin);
+    } catch (error) {
+      console.error("Error fetching wallet info:", error);
+      setError("Không thể kết nối đến ví. Vui lòng thử lại sau.");
+    } finally {
+      setLoadingWallet(false);
+    }
+  };
+
   // Handle next button click
   const handleNext = () => {
     if (!selectedPaymentMethod) {
       setError("Vui lòng chọn phương thức thanh toán");
       return;
+    }
+
+    // Validate wallet payment if selected
+    if (selectedPaymentMethod === PAYMENT_METHODS.WALLET) {
+      if (!hasPin) {
+        setError("Bạn cần thiết lập mã PIN cho ví trước khi thanh toán. Vui lòng vào trang Ví để thiết lập.");
+        return;
+      }
+
+      if (walletBalance < totalPrice) {
+        setError("Số dư ví không đủ để thanh toán. Vui lòng nạp thêm tiền hoặc chọn phương thức khác.");
+        return;
+      }
     }
     
     setError("");
@@ -133,6 +192,60 @@ function Step1({ onNext, setPaymentMethod, property, people, days, totalPrice, s
               
               {/* Payment Methods as Cards */}
               <div className="flex flex-col gap-2">
+                {/* Wallet Payment Option */}
+                <div 
+                  className={`flex items-center p-3 rounded border cursor-pointer transition-all ${
+                    selectedPaymentMethod === PAYMENT_METHODS.WALLET 
+                      ? "border-accent bg-blue-50" 
+                      : "border-gray-200 hover:border-gray-300"
+                  }`}
+                  onClick={() => handlePaymentMethodChange(PAYMENT_METHODS.WALLET)}
+                >
+                  <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center bg-purple-100 rounded-full mr-3">
+                    <svg className="w-6 h-6 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                  </div>
+                  <div className="flex-grow">
+                    <div className="text-primary font-medium">Thanh toán bằng ví</div>
+                    <div className="text-xs text-gray-500">Thanh toán trực tiếp từ ví HomiesStay</div>
+                    
+                    {/* Show balance if wallet payment is selected */}
+                    {selectedPaymentMethod === PAYMENT_METHODS.WALLET && (
+                      <div className="mt-2">
+                        {loadingWallet ? (
+                          <div className="text-sm text-gray-500">Đang tải thông tin ví...</div>
+                        ) : (
+                          <div className="flex flex-col">
+                            <div className={`text-sm font-medium ${walletBalance >= totalPrice ? 'text-green-600' : 'text-red-600'}`}>
+                              Số dư: {formatPrice(walletBalance)} VNĐ
+                            </div>
+                            
+                            {!hasPin && (
+                              <div className="text-xs text-orange-500 mt-1">
+                                Bạn cần thiết lập mã PIN ví trước khi thanh toán.
+                              </div>
+                            )}
+                            
+                            {walletBalance < totalPrice && (
+                              <div className="text-xs text-red-500 mt-1">
+                                Số dư không đủ để thanh toán!
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-shrink-0 w-6 h-6 flex items-center justify-center">
+                    {selectedPaymentMethod === PAYMENT_METHODS.WALLET && (
+                      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M8.33333 12.9883L5.58333 10.2383L6.76666 9.05498L8.33333 10.6216L13.2333 5.72165L14.4167 6.90498L8.33333 12.9883Z" fill="#3B82F6"/>
+                      </svg>
+                    )}
+                  </div>
+                </div>
+                
                 {/* Bank Transfer Option */}
                 <div 
                   className={`flex items-center p-3 rounded border cursor-pointer transition-all ${
@@ -216,7 +329,7 @@ function Step1({ onNext, setPaymentMethod, property, people, days, totalPrice, s
                 </div>
               </div>
               
-              {error && <div className="text-red-500 text-sm mt-1">{error}</div>}
+              {error && <div className="text-red-500 text-sm mt-2">{error}</div>}
             </div>
 
             <div className="mt-6 text-2xl">
@@ -237,7 +350,9 @@ function Step1({ onNext, setPaymentMethod, property, people, days, totalPrice, s
                 : "bg-gray-400 cursor-not-allowed"
             }`}
             onClick={handleNext}
-            disabled={!selectedPaymentMethod}
+            disabled={!selectedPaymentMethod || 
+              (selectedPaymentMethod === PAYMENT_METHODS.WALLET && 
+               (!hasPin || walletBalance < totalPrice || loadingWallet))}
           >
             Tiếp tục
           </button>

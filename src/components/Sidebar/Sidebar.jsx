@@ -91,6 +91,11 @@ function Sidebar({ activePage }) {
         items = [
           ...items,
           {
+            to: "/statistics",
+            label: "Thống kê",
+            icon: <ChartBarIcon className="w-5 h-5" />,
+          },
+          {
             to: "/landlord-booking-dashboard",
             label: "Quản lý đặt phòng",
             icon: <CalendarIcon className="w-5 h-5" />,

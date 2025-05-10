@@ -3,17 +3,17 @@ import { useNavigate } from "react-router-dom"; // Thêm useNavigate
 import { UserContext } from "../../context/UserContext";
 
 function DashboardHeader() {
-  const { user, logout } = useContext(UserContext); // Thêm logout từ UserContext
+  const { user, logout, isAdmin, isLandlord } = useContext(UserContext); // Thêm logout từ UserContext
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
   const navigate = useNavigate(); // Khởi tạo useNavigate
-  const isAdmin =
-    (Array.isArray(user.role) && user.role.includes("Admin")) ||
-    (typeof user.role === "string" && user.role === "Admin");
+  // const isAdmin =
+  //   (Array.isArray(user.role) && user.role.includes("Admin")) ||
+  //   (typeof user.role === "string" && user.role === "Admin");
 
-  const isLandlord =
-    (Array.isArray(user.role) && user.role.includes("Landlord")) ||
-    (typeof user.role === "string" && user.role === "Landlord");
+  // const isLandlord =
+  //   (Array.isArray(user.role) && user.role.includes("Landlord")) ||
+  //   (typeof user.role === "string" && user.role === "Landlord");
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -105,7 +105,7 @@ function DashboardHeader() {
               {user?.fullName || "Admin User"}
             </div>
             <div className="text-xs text-neutral-950">
-              {isAdmin ? "Admin" : isLandlord ? "Chủ nhà" : "Người dùng"}
+              {isAdmin() ? "Admin" : isLandlord() ? "Chủ nhà" : "Người dùng"}
             </div>
           </div>
 

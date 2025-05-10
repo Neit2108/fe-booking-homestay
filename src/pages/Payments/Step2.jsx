@@ -1,4 +1,3 @@
-// src/pages/Payments/Step2.jsx
 import React, { useState, useEffect, useRef } from "react";
 import ProcessBar from "../../components/ProcessBar/ProcessBar";
 import { formatPrice } from "../../Utils/PriceUtils";
@@ -7,6 +6,7 @@ import Loader from "../../components/Loading/Loader";
 import { QRCodeSVG } from 'qrcode.react'; // Make sure this is installed: npm install qrcode.react
 import QRCodeService from '../../services/QRCodeService';
 import { API_URL } from "../../../constant/config";
+import WalletPinVerificationModal from "../../components/Wallet/WalletPinVerificationModal";
 
 function Step2({ onNext, onBack, paymentMethod, property, days, totalPrice, people, bookingId }) {
   const [paymentData, setPaymentData] = useState(null);
@@ -14,6 +14,11 @@ function Step2({ onNext, onBack, paymentMethod, property, days, totalPrice, peop
   const [error, setError] = useState(null);
   const [redirectCountdown, setRedirectCountdown] = useState(null);
   const [directQRValue, setDirectQRValue] = useState(null);
+  const [walletBalance, setWalletBalance] = useState(0);
+  const [isPinModalOpen, setIsPinModalOpen] = useState(false);
+  const [pinError, setPinError] = useState("");
+  const [processingWalletPayment, setProcessingWalletPayment] = useState(false);
+  
   const redirectTimerRef = useRef(null);
 
   // Function to generate QR code directly in frontend
@@ -57,65 +62,101 @@ function Step2({ onNext, onBack, paymentMethod, property, days, totalPrice, peop
     }
   };
 
+  // Fetch wallet balance if payment method is wallet
+  useEffect(() => {
+    if (paymentMethod === 'wallet') {
+      fetchWalletBalance();
+    }
+  }, [paymentMethod]);
+
+  // Fetch wallet balance
+  const fetchWalletBalance = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) throw new Error("Authentication token missing");
+      
+      const response = await axios.get(`${API_URL}/wallet/balance`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      
+      if (response.data) {
+        setWalletBalance(response.data.balance);
+      }
+    } catch (err) {
+      console.error("Error fetching wallet balance:", err);
+      setError("Không thể lấy thông tin ví. Vui lòng thử lại sau.");
+    }
+  };
+
   // Fetch payment data when component mounts
   useEffect(() => {
-    const fetchPaymentData = async () => {
-      if (!bookingId) return;
-      
-      setLoading(true);
-      try {
-        const token = localStorage.getItem("token");
-        if (!token) throw new Error("Authentication token missing");
+    // Only fetch payment data for bank transfers and credit cards
+    if (paymentMethod !== 'wallet' && paymentMethod !== 'paypal') {
+      const fetchPaymentData = async () => {
+        if (!bookingId) return;
         
-        // For bank transfers, we need a different bankCode
-        let bankCode = undefined;
-        if (paymentMethod === 'credit_card') {
-          bankCode = 'NCB'; // Default for card payments
-        } else if (paymentMethod === 'bank_transfer') {
-          bankCode = '';
-        }
-        
-        // Make the API call to create payment
-        const response = await axios.post(
-          `${API_URL}/vnpay/create-payment`,
-          {
-            bookingId: bookingId,
-            returnUrl: window.location.origin + "/payment-result",
-            orderInfo: `Payment for ${property.name} - ${days} days`,
-            locale: "vn",
-            bankCode: bankCode
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json"
-            }
+        setLoading(true);
+        try {
+          const token = localStorage.getItem("token");
+          if (!token) throw new Error("Authentication token missing");
+          
+          // For bank transfers, we need a different bankCode
+          let bankCode = undefined;
+          if (paymentMethod === 'credit_card') {
+            bankCode = 'NCB'; // Default for card payments
+          } else if (paymentMethod === 'bank_transfer') {
+            bankCode = '';
           }
-        );
-        
-        console.log("URL" + `${API_URL}/vnpay/create-payment`);
-        console.log(response.data);
-        const data = response.data;
-        setPaymentData(data);
-        
-        // For bank transfers, extract the direct QR code URL
-        if (paymentMethod === 'bank_transfer' && data.paymentUrl) {
-          await extractDirectPaymentUrl(data.paymentUrl);
+          
+          // Make the API call to create payment
+          const response = await axios.post(
+            `${API_URL}/vnpay/create-payment`,
+            {
+              bookingId: bookingId,
+              returnUrl: window.location.origin + "/payment-result",
+              orderInfo: `Payment for ${property.name} - ${days} days`,
+              locale: "vn",
+              bankCode: bankCode
+            },
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json"
+              }
+            }
+          );
+          
+          console.log("URL" + `${API_URL}/vnpay/create-payment`);
+          console.log(response.data);
+          const data = response.data;
+          setPaymentData(data);
+          
+          // For bank transfers, extract the direct QR code URL
+          if (paymentMethod === 'bank_transfer' && data.paymentUrl) {
+            await extractDirectPaymentUrl(data.paymentUrl);
+          }
+          
+          // Handle redirect for credit card payment
+          if (paymentMethod === 'credit_card' && data.paymentUrl) {
+            setRedirectCountdown(10);
+          }
+        } catch (err) {
+          console.error("Error fetching payment data:", err);
+          setError(err?.response?.data?.message || "Unable to process payment request. Please try again.");
+        } finally {
+          setLoading(false);
         }
-        
-        // Handle redirect for credit card payment
-        if (paymentMethod === 'credit_card' && data.paymentUrl) {
-          setRedirectCountdown(10);
-        }
-      } catch (err) {
-        console.error("Error fetching payment data:", err);
-        setError(err?.response?.data?.message || "Unable to process payment request. Please try again.");
-      } finally {
-        setLoading(false);
-      }
-    };
+      };
 
-    fetchPaymentData();
+      fetchPaymentData();
+    }
+    
+    // Show PIN modal for wallet payment
+    if (paymentMethod === 'wallet') {
+      setIsPinModalOpen(true);
+    }
     
     // Cleanup function
     return () => {
@@ -144,6 +185,41 @@ function Step2({ onNext, onBack, paymentMethod, property, days, totalPrice, peop
     };
   }, [redirectCountdown, paymentData]);
 
+  // Handle PIN verification for wallet payment
+  const handlePinVerification = async (pin) => {
+    setProcessingWalletPayment(true);
+    setPinError("");
+    
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) throw new Error("Authentication token missing");
+
+      // Call API to pay with PIN
+      const response = await axios.post(
+        `${API_URL}/bookings/pay-with-wallet`,
+        {
+          bookingId: bookingId,
+          pin: pin
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json"
+          }
+        }
+      );
+
+      // On success, close modal and go to next step
+      setIsPinModalOpen(false);
+      onNext();
+    } catch (err) {
+      console.error("Error processing wallet payment:", err);
+      setPinError(err?.response?.data?.message || "Thanh toán thất bại. Vui lòng kiểm tra mã PIN và thử lại.");
+    } finally {
+      setProcessingWalletPayment(false);
+    }
+  };
+
   const handleNext = () => {
     onNext();
   };
@@ -161,6 +237,59 @@ function Step2({ onNext, onBack, paymentMethod, property, days, totalPrice, peop
 
   const renderPaymentDetails = () => {
     switch (paymentMethod) {
+      case "wallet":
+        return (
+          <div className="flex flex-col gap-4">
+            <div className="text-base text-primary font-semibold">Thanh toán bằng ví</div>
+            <div className="bg-white rounded-lg border border-gray-200 p-6">
+              <div className="text-center mb-6">
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-8 h-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                  </svg>
+                </div>
+                
+                <h3 className="text-lg font-medium text-gray-800 mb-2">
+                  Thanh toán bằng ví HomiesStay
+                </h3>
+                
+                <div className="text-sm text-gray-600">
+                  Sử dụng số dư ví của bạn để thanh toán đơn đặt phòng
+                </div>
+              </div>
+              
+              <div className="bg-blue-50 p-4 rounded-lg mb-4">
+                <div className="font-medium text-blue-800 mb-2">Thông tin thanh toán:</div>
+                <div className="text-sm">
+                  <div className="flex justify-between mb-1">
+                    <span className="font-medium">Số dư ví:</span> 
+                    <span>{formatPrice(walletBalance)} VNĐ</span>
+                  </div>
+                  <div className="flex justify-between mb-1">
+                    <span className="font-medium">Số tiền thanh toán:</span> 
+                    <span>{formatPrice(totalPrice)} VNĐ</span>
+                  </div>
+                  <div className="flex justify-between font-medium text-blue-700 border-t border-blue-200 pt-2 mt-2">
+                    <span>Số dư còn lại:</span> 
+                    <span>{formatPrice(Math.max(0, walletBalance - totalPrice))} VNĐ</span>
+                  </div>
+                </div>
+              </div>
+              
+              <button
+                onClick={() => setIsPinModalOpen(true)}
+                className="w-full bg-accent hover:bg-blue-700 text-white font-medium py-3 rounded-md transition-colors"
+              >
+                Nhập mã PIN để thanh toán
+              </button>
+              
+              <div className="mt-4 text-xs text-gray-500 text-center">
+                Bạn sẽ cần nhập mã PIN 6 chữ số để xác nhận thanh toán
+              </div>
+            </div>
+          </div>
+        );
+        
       case "bank_transfer":
         return (
           <div className="flex flex-col gap-4">
@@ -442,6 +571,16 @@ function Step2({ onNext, onBack, paymentMethod, property, days, totalPrice, peop
           </button>
         </div>
       </div>
+
+      {/* PIN Verification Modal for Wallet Payments */}
+      <WalletPinVerificationModal
+        isOpen={isPinModalOpen}
+        onClose={() => setIsPinModalOpen(false)}
+        onSubmit={handlePinVerification}
+        amount={totalPrice}
+        loading={processingWalletPayment}
+        error={pinError}
+      />
     </div>
   );
 }

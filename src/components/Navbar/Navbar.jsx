@@ -288,10 +288,24 @@ function Navbar() {
                         </svg>
                         <span>Quản lý homestay</span>
                       </Link>
+                      <Link
+                      to="/statistics"
+                      className="block px-4 py-2 text-gray-700 hover:bg-gray-100 flex items-center gap-3"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-5 w-5 text-gray-500"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
+                      </svg>
+                      <span>Thống kê</span>
+                    </Link>
                     </>
                   )}
 
-                  {isAdmin() && (
+                  {/* {isAdmin() && (
                     <Link
                       to="/statistics"
                       className="block px-4 py-2 text-gray-700 hover:bg-gray-100 flex items-center gap-3"
@@ -306,7 +320,7 @@ function Navbar() {
                       </svg>
                       <span>Thống kê</span>
                     </Link>
-                  )}
+                  )} */}
 
                   <div className="border-t border-gray-100 mt-2 pt-2">
                     <button
