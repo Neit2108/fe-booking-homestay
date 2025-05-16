@@ -66,6 +66,8 @@ const UserProvider = ({ children }) => {
         bio: profileData.bio,
         identityCard: profileData.identityCard,
         role: profileData.role,
+        createAt: profileData.createAt,
+        passwordChangeAt: profileData.passwordChangeAt,
       };
 
       //console.log("Dữ liệu user sau khi cập nhật:", updatedUser);

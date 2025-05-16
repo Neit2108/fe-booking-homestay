@@ -9,16 +9,15 @@ import StatisticsSummaryCards from '../../components/Statistics/StatisticsSummar
 import RevenueChart from '../../components/Statistics/RevenueChart';
 import BookingStatsChart from '../../components/Statistics/BookingStatsChart';
 import getDummyStatisticsData from '../../components/Statistics/dummyStatisticsData';
-import DateRangePicker from '../../components/Statistics/DateRangePicker';
 
 const StatisticsPage = () => {
-  const { user, loading: userLoading } = useContext(UserContext);
+  const { user, loading: userLoading } = useContext(UserContext); // Giả sử UserContext cung cấp trạng thái loading
   const [statistics, setStatistics] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [dateRange, setDateRange] = useState({
-    startDate: new Date(2025, 1, 10), // 10/02/2025
-    endDate: new Date(2025, 4, 10)    // 10/05/2025
+    startDate: new Date(2025, 0, 1), // 10/02/2025
+    endDate: new Date(2025, 11, 31)    // 10/05/2025
   });
 
   // Check if user is admin or landlord
@@ -81,14 +80,18 @@ const StatisticsPage = () => {
     // Nếu user đang loading, giữ trạng thái loading
   }, [user, userLoading, dateRange]);
 
+  // Handle date input changes
+  const handleDateChange = (event) => {
+    const { name, value } = event.target;
+    setDateRange(prev => ({
+      ...prev,
+      [name]: new Date(value)
+    }));
+  };
+
   // Handle refresh data - luôn lấy dữ liệu thật
   const handleRefresh = () => {
     fetchStatistics();
-  };
-
-  // Xử lý khi DateRangePicker thay đổi
-  const handleDateRangeChange = (newRange) => {
-    setDateRange(newRange);
   };
 
   return (
@@ -107,13 +110,36 @@ const StatisticsPage = () => {
           </h1>
           
           <div className="flex items-center gap-3">
-            {/* Tách DateRangePicker thành component riêng */}
-            <DateRangePicker 
-              startDate={dateRange.startDate}
-              endDate={dateRange.endDate}
-              onChange={handleDateRangeChange}
-              disabled={loading || userLoading}
-            />
+            {/* Date range picker matching the UI in screenshot */}
+            <div className="relative">
+              <div className="bg-white border rounded-lg shadow-sm flex items-center px-4 py-2">
+                <svg className="w-5 h-5 text-gray-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <div className="flex items-center">
+                  <input
+                    type="date"
+                    name="startDate"
+                    value={dateRange.startDate.toISOString().split('T')[0]}
+                    onChange={handleDateChange}
+                    className="border-none outline-none"
+                    disabled={loading || userLoading}
+                  />
+                  <span className="mx-2">-</span>
+                  <input
+                    type="date"
+                    name="endDate"
+                    value={dateRange.endDate.toISOString().split('T')[0]}
+                    onChange={handleDateChange}
+                    className="border-none outline-none"
+                    disabled={loading || userLoading}
+                  />
+                </div>
+                <svg className="w-5 h-5 ml-2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+            </div>
             
             {/* Refresh button */}
             <button 

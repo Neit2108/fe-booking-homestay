@@ -2,9 +2,9 @@ import React from "react";
 import Button from "../../components/Button/Button";
 import styles from "./RegisterFailed.module.css";
 
-const RegisterFailed = ({ onClose, errorMessage, dataTestid }) => {
+const RegisterFailed = ({ onClose, errorMessage }) => {
   return (
-    <div className={styles.overlay} data-testid={dataTestid}>
+    <div className={styles.overlay} data-testid="register-error-modal">
       {/* Background overlay with image */}
       <div
         className={styles.backgroundLayer}

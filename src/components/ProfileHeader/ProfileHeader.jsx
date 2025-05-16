@@ -4,6 +4,7 @@ import Loader from "../../components/Loading/Loader";
 import { UserContext } from "../../context/UserContext";
 import { API_URL } from "../../../constant/config";
 import React from "react";
+import { formatDate } from "../../Utils/DateUtils";
 
 function ProfileHeader() {
   const { user, setUser } = useContext(UserContext);
@@ -59,7 +60,7 @@ function ProfileHeader() {
 
         <div className="flex flex-col">
           <h1 className="text-2xl font-bold text-primary">{user.fullName}</h1>
-          <p className="text-[#B0B0B0] mt-1">Member since January 2023</p>
+          <p className="text-[#B0B0B0] mt-1">Thành viên của Homies từ {formatDate(user.createAt)}</p>
 
           <div className="flex gap-4 mt-4">
             {/* Input file ẩn */}

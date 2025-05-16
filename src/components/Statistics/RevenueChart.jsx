@@ -30,7 +30,8 @@ const RevenueChart = ({ revenueByMonth }) => {
         
         // Format month name for display
         const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-        const displayName = `${monthNames[date.getMonth()]} ${year}`;
+        const monthNamesVi = ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6', 'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'];
+        const displayName = `${monthNamesVi[date.getMonth()]} / ${year}`;
         
         return {
           month: displayName,

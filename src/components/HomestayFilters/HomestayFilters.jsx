@@ -85,7 +85,7 @@ const HomestayFilters = ({
         ))}
         
         {/* Clear Filters button - only show when a filter is active */}
-        {activeFilter && (
+        {/* {activeFilter && (
           <button
             onClick={() => setActiveFilter('')}
             className="flex items-center gap-2 px-3 py-2 rounded-md text-sm bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
@@ -93,7 +93,7 @@ const HomestayFilters = ({
             <BiSortAlt2 />
             <span>Xóa sắp xếp</span>
           </button>
-        )}
+        )} */}
       </div>
     </div>
   );

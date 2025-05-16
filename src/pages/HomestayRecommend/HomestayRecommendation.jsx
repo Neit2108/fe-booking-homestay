@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Navbar from "../../components/Navbar/Navbar";
 import Footer from "../../components/Footer/Footer";
@@ -14,113 +14,8 @@ import { TbBulbFilled } from "react-icons/tb";
 import { PiStudentFill } from "react-icons/pi";
 import Loader from "../../components/Loading/Loader";
 import { formatPrice } from "../../Utils/PriceUtils";
-
-// Helper function to render star ratings
-const StarRating = ({ rating }) => {
-  const stars = [];
-  const fullStars = Math.floor(rating);
-  const hasHalfStar = rating % 1 >= 0.5;
-
-  // Add full stars
-  for (let i = 0; i < fullStars; i++) {
-    stars.push(<FaStar key={`star-${i}`} className="text-yellow-400" />);
-  }
-
-  // Add half star if needed
-  if (hasHalfStar) {
-    stars.push(<FaStarHalfAlt key="half-star" className="text-yellow-400" />);
-  }
-
-  // Add empty stars to complete 5 stars
-  const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
-  for (let i = 0; i < emptyStars; i++) {
-    stars.push(
-      <FaRegStar key={`empty-star-${i}`} className="text-yellow-400" />
-    );
-  }
-
-  return <div className="flex">{stars}</div>;
-};
-
-// PlaceCard component
-const PlaceCard = ({ place, onNavigate }) => {
-  return (
-    <div
-      className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300 cursor-pointer"
-      onClick={() => onNavigate(place.id)}
-    >
-      <div className="relative">
-        {/* Image */}
-        <img
-          src={
-            place.images && place.images.length > 0
-              ? place.images[0].imageUrl
-              : "https://via.placeholder.com/300x200"
-          }
-          alt={place.name}
-          className="w-full h-48 object-cover"
-        />
-
-        {/* Save button */}
-        <button
-          className="absolute top-2 right-2 bg-white p-1 rounded-full shadow-md"
-          onClick={(e) => {
-            e.stopPropagation(); // Prevent triggering the parent onClick
-            // Add to favorites logic here
-          }}
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth={1.5}
-            stroke="currentColor"
-            className="w-5 h-5"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z"
-            />
-          </svg>
-        </button>
-      </div>
-
-      <div className="p-4">
-        {/* Title and Location */}
-        <h3 className="font-semibold text-lg mb-1 text-blue-800">
-          {place.name}
-        </h3>
-        <p className="text-gray-500 text-sm mb-2">{place.address}</p>
-
-        {/* Rating */}
-        <div className="flex items-center gap-2 mb-3">
-          <StarRating rating={place.rating || 0} />
-          <span className="text-sm text-gray-600">
-            ({place.numOfRating || 0})
-          </span>
-        </div>
-
-        {/* Price */}
-        <div className="flex justify-between items-center">
-          <div>
-            <span className="font-bold text-blue-600">{formatPrice(place.price)} VNĐ</span>
-            <span className="text-gray-500 text-sm">/ngày</span>
-          </div>
-          <button
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1 rounded-md text-sm font-medium transition-colors"
-            onClick={(e) => {
-              e.stopPropagation(); // Prevent triggering the parent onClick
-              onNavigate(place.id);
-            }}
-          >
-            Đặt ngay
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
+import PlaceCard from "../../components/Card/PlaceCard";
+import { UserContext } from "../../context/UserContext";
 
 const HomestayRecommendation = () => {
   const navigate = useNavigate();
@@ -128,6 +23,7 @@ const HomestayRecommendation = () => {
   const { places, loading, error } = usePlaces({ mode: "public" });
   const [viewMode, setViewMode] = useState("grid");
   const [placesPerPage] = useState(9);
+  const { user } = useContext(UserContext);
   
   const searchParams = new URLSearchParams(location.search);
   const urlSearchQuery = searchParams.get('search') || '';
@@ -338,19 +234,6 @@ const HomestayRecommendation = () => {
               </div>
             </div>
 
-            {/* Assistant Image */}
-            {/* <div className="hidden md:block relative mt-8">
-              <img
-                src="/src/assets/woman-illustration.png"
-                alt="Assistant"
-                className="mx-auto"
-                onError={(e) => {
-                  e.target.onerror = null;
-                  e.target.src =
-                    "https://via.placeholder.com/200x300?text=Assistant";
-                }}
-              />
-            </div> */}
           </div>
 
           {/* Right Content - Place Listings */}
@@ -470,6 +353,7 @@ const HomestayRecommendation = () => {
                     key={place.id}
                     place={place}
                     onNavigate={handleNavigateToProperty}
+                    user={user}
                   />
                 ))}
               </div>

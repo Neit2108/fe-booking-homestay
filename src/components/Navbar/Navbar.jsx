@@ -226,6 +226,21 @@ function Navbar() {
                   </Link>
 
                   <Link
+                    to="/saved-places"
+                    className="block px-4 py-2 text-gray-700 hover:bg-gray-100 flex items-center gap-3"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5 text-gray-500"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path d="M3.172 5.172a4.001 4.001 0 015.656 0L10 6.343l1.172-1.171a4.001 4.001 0 115.656 5.656L10 17.657l-6.828-6.829a4.001 4.001 0 010-5.656z" />
+                    </svg>
+                    <span>Địa điểm đã lưu</span>
+                  </Link>
+
+                  <Link
                     to="/wallet"
                     className="block px-4 py-2 text-gray-700 hover:bg-gray-100 flex items-center gap-3"
                   >
@@ -274,8 +289,9 @@ function Navbar() {
                           <span>Quản lý homestay</span>
                         </Link>
                       )}
+
                       <Link
-                        to="/homestay-management"
+                        to="/statistics"
                         className="block px-4 py-2 text-gray-700 hover:bg-gray-100 flex items-center gap-3"
                       >
                         <svg
@@ -284,24 +300,10 @@ function Navbar() {
                           viewBox="0 0 20 20"
                           fill="currentColor"
                         >
-                          <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
+                          <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
                         </svg>
-                        <span>Quản lý homestay</span>
+                        <span>Thống kê</span>
                       </Link>
-                      <Link
-                      to="/statistics"
-                      className="block px-4 py-2 text-gray-700 hover:bg-gray-100 flex items-center gap-3"
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-5 w-5 text-gray-500"
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                      >
-                        <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
-                      </svg>
-                      <span>Thống kê</span>
-                    </Link>
                     </>
                   )}
 

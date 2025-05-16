@@ -240,7 +240,7 @@ const Register = () => {
           onClick={handleRegister}
           disabled={loading}
           className={styles.registerButton}
-          dataTestid = "register-button"
+          data-testid='register-button'
         >
           {loading ? <Loader /> : "Đăng ký"}
         </Button>
@@ -270,7 +270,7 @@ const Register = () => {
             setShowSuccess(false);
             goToLogin();
           }}
-          dataTestid="register-success-modal"
+          data-testid='register-success-modal'
         />
       )}
 
@@ -278,7 +278,7 @@ const Register = () => {
         <RegisterFailed
           onClose={() => setShowFailed(false)}
           errorMessage={errorMessage}
-          dataTestid="register-error-modal"
+          data-testid='register-error-modal'
         />
       )}
     </div>

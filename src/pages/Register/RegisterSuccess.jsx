@@ -17,7 +17,7 @@ const RegisterSuccess = ({ onClose, dataTestid}) => {
   };
 
   return (
-    <div className={styles.overlay} data-testid={dataTestid} >
+    <div className={styles.overlay} data-testid='register-success-modal'>
       {/* Background overlay with image */}
       <div
         className={styles.backgroundLayer}
@@ -47,6 +47,7 @@ const RegisterSuccess = ({ onClose, dataTestid}) => {
         <Button
           onClick={handleClose}
           className={styles.closeButton}
+          data-testid='success-close-button'
         >
           Đăng nhập ngay
         </Button>

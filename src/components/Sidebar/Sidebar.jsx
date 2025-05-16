@@ -126,15 +126,11 @@ function Sidebar({ activePage }) {
             icon: <SearchIcon className="w-5 h-5" />,
           },
           {
-            to: "/favorites",
-            label: "Yêu thích",
+            to: "/saved-places",
+            label: "Địa điểm đã lưu",
             icon: <HeartIcon className="w-5 h-5" />,
           },
-          {
-            to: "/saved-searches",
-            label: "Tìm kiếm đã lưu",
-            icon: <BookmarkIcon className="w-5 h-5" />,
-          },
+          
         ];
       }
       

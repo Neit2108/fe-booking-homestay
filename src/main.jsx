@@ -32,6 +32,8 @@ import ContactPage from "./pages/Contact/ContactPage.jsx";
 import PromotionManagement from "./pages/Promotion/PromotionManagement.jsx";
 import WalletPage from "./pages/Wallet/WalletPage.jsx";
 import StatisticsPage from "./pages/Statistics/StatisticsPage.jsx";
+import SavedPlacesPage from "./pages/SavedPlaces/SavedPlacesPage.jsx";
+import IntroductionPage from "./pages/About/IntroductionPage.jsx";
 
 function AppLayout() {
   return (
@@ -74,7 +76,9 @@ const router = createBrowserRouter([
       { path: "/promotion", element: <PromotionsPage />},
       { path: "/promotion-management", element: <PromotionManagement />},
       { path: "/wallet", element: <WalletPage />},
-      { path: "/statistics", element: <StatisticsPage />}
+      { path: "/statistics", element: <StatisticsPage />},
+      { path: "/saved-places", element: <SavedPlacesPage /> },
+      { path: "/about", element: <IntroductionPage /> },
     ],
   },
 ]);

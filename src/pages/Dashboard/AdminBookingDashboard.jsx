@@ -55,9 +55,9 @@ const AdminBookingDashboard = () => {
     <div className="flex min-h-screen bg-neutral-100 max-sm:flex-col">
       <Sidebar activePage="admin-dashboard" />
       <div className="flex-1 pt-8 pr-6 pb-6 pl-11 max-md:px-4 max-md:py-6 max-sm:p-4 md:ml-80">
-        <DashboardHeader />
+        {/* <DashboardHeader /> */}
         <div className="mb-6 text-2xl font-bold text-accent">
-          Admin Dashboard
+          Quản lý đơn đặt
         </div>
 
         {/* Search Bar */}

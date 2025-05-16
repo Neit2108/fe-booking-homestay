@@ -289,7 +289,7 @@ const BookingList = ({ bookings, refreshBookings }) => {
                       </button>
                     )}
 
-                  {booking.status !== "Completed" && (<button
+                  {booking.status === "Pending" && (<button
                     onClick={() => handleDelete(booking)}
                     className="p-2 bg-red-100 text-red-700 rounded hover:bg-red-200 transition-colors"
                   >

@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext } from "react";
+import { useState, useEffect, useContext, useRef } from "react";
 import axios from "axios";
 import { UserContext } from "../context/UserContext";
 import { API_URL } from "../../constant/config";
@@ -23,9 +23,13 @@ export const usePlaces = (options = { mode: "managed" }) => {
 
       // If in public mode, fetch all places regardless of user role
       if (options.mode === "public") {
-        const response = await axios.get(
-          `${API_URL}/places/get-all`
-        );
+        
+        const response = await axios.get(`${API_URL}/places/get-all`, {
+            headers: {
+              Authorization: `Bearer ${user?.token}`,
+            },
+          });
+        
         const processedData = processResponse(response.data);
         setPlaces(processedData);
         return;
@@ -54,7 +58,12 @@ export const usePlaces = (options = { mode: "managed" }) => {
       if (isAdmin) {
         // Admin can see all places
         const response = await axios.get(
-          `${API_URL}/places/get-all`
+          `${API_URL}/places/get-all`,
+          {
+            headers: {
+              Authorization: `Bearer ${user.token}`,
+            },
+          }
         );
         processedData = processResponse(response.data);
         console.log("Admin fetched all places:", processedData.length);
@@ -101,7 +110,8 @@ export const usePlaces = (options = { mode: "managed" }) => {
       maxGuests: place.maxGuests || 0,
       status: place.status || "pending",
       ownerId: place.ownerId || "",
-      images: place.images || []
+      images: place.images || [],
+      isFavourite: place.isFavourite || false,
     }));
   };
 
@@ -110,12 +120,12 @@ export const usePlaces = (options = { mode: "managed" }) => {
     try {
       setLoading(true);
       const response = await axios.post(
-          `${API_URL}/places/add-place`,
+        `${API_URL}/places/add-place`,
         placeData,
         {
-          headers: { 
+          headers: {
             "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${user.token}`
+            Authorization: `Bearer ${user.token}`,
           },
         }
       );
@@ -139,8 +149,8 @@ export const usePlaces = (options = { mode: "managed" }) => {
         `${API_URL}/places/update/${id}`,
         placeData,
         {
-          headers: { 
-            Authorization: `Bearer ${user.token}`
+          headers: {
+            Authorization: `Bearer ${user.token}`,
           },
         }
       );
@@ -163,8 +173,8 @@ export const usePlaces = (options = { mode: "managed" }) => {
     try {
       setLoading(true);
       await axios.delete(`${API_URL}/places/delete/${id}`, {
-        headers: { 
-          Authorization: `Bearer ${user.token}`
+        headers: {
+          Authorization: `Bearer ${user.token}`,
         },
       });
       // Remove the place from the places state
@@ -179,20 +189,33 @@ export const usePlaces = (options = { mode: "managed" }) => {
     }
   };
 
+  const hasFetched = useRef(false);
+
   // Fetch places on component mount and when user data changes
+  // useEffect(() => {
+  //   if (options.mode === "public") {
+  //     fetchPlaces();
+  //   } else if (!userLoading && user) {
+      
+  //     fetchPlaces();
+  //   }
+  // }, [user, userLoading, options.mode]);
+
   useEffect(() => {
+    if (hasFetched.current || userLoading) return;
+
     if (options.mode === "public") {
-      // For public mode, fetch immediately without waiting for user
       fetchPlaces();
-    } else if (!userLoading) {
-      // For managed mode, only fetch when user context is fully loaded
+      hasFetched.current = true;
+    } else if (!userLoading && user) {
       fetchPlaces();
+      hasFetched.current = true;
     }
   }, [user, userLoading, options.mode]);
 
   return {
     places,
-    loading: options.mode === "managed" ? (loading || userLoading) : loading, 
+    loading: options.mode === "managed" ? loading || userLoading : loading,
     error,
     fetchPlaces,
     addPlace,

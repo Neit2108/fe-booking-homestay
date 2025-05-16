@@ -1,7 +1,7 @@
-// src/components/DateRangePicker/DateRangePicker.jsx
 import React, { useState, useRef, useEffect } from 'react';
 
-const DateRangePicker = ({ startDate, endDate, onChange, disabled = false }) => {
+// Sử dụng React.memo để tránh render lại khi props không đổi
+const DateRangePicker = React.memo(({ startDate, endDate, onChange, disabled = false }) => {
   const [showPicker, setShowPicker] = useState(false);
   const [activeField, setActiveField] = useState(null); // 'start' hoặc 'end'
   const pickerRef = useRef(null);
@@ -118,8 +118,8 @@ const DateRangePicker = ({ startDate, endDate, onChange, disabled = false }) => 
           </svg>
         </button>
         
-        {/* Date picker popup */}
-        {showPicker && (
+        {/* Date picker popup - sử dụng React.useMemo để tránh tạo lại cấu trúc phức tạp khi render */}
+        {showPicker && React.useMemo(() => (
           <div className="absolute mt-1 z-20 bg-white rounded-lg shadow-lg p-4 top-full left-0 min-w-[300px]">
             <div className="mb-2 text-sm font-medium text-gray-700">
               {activeField === 'start' 
@@ -145,29 +145,36 @@ const DateRangePicker = ({ startDate, endDate, onChange, disabled = false }) => 
               </div>
               
               <div className="flex gap-2">
-                <button
+                {/* <button
                   type="button"
-                  onClick={() => setShowPicker(false)}
+                  onClick={cancelChanges}
                   className="px-3 py-1 text-sm text-gray-600 hover:text-gray-800 border border-gray-300 rounded"
                 >
                   Hủy
+                </button> */}
+                <button
+                  type="button"
+                  onClick={onChange}
+                  className="px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600"
+                >
+                  Áp dụng
                 </button>
-                {activeField === 'end' && (
-                  <button
-                    type="button"
-                    onClick={() => setShowPicker(false)}
-                    className="px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600"
-                  >
-                    Áp dụng
-                  </button>
-                )}
               </div>
             </div>
           </div>
-        )}
+        ), [activeField, startDate, endDate, handleDateChange, onChange])}
       </div>
     </div>
   );
-};
+}, (prevProps, nextProps) => {
+  // Custom comparison function cho React.memo
+  // Chỉ re-render khi thực sự cần thiết
+  return (
+    prevProps.disabled === nextProps.disabled &&
+    prevProps.startDate.getTime() === nextProps.startDate.getTime() &&
+    prevProps.endDate.getTime() === nextProps.endDate.getTime()
+    // Không so sánh onChange vì đó là một reference function
+  );
+});
 
 export default DateRangePicker;

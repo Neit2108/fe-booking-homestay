@@ -31,7 +31,12 @@ const PromotionForm = ({
     if (isOpen && formData.promotionType === 'Personal') {
       const fetchPlaces = async () => {
         try {
-          const response = await axios.get(`${API_URL}/places/get-all`);
+          const response = await axios.get(`${API_URL}/places/get-all`,
+          {
+            headers: {
+              Authorization: `Bearer ${user.token}`,
+            },
+          });
           setPlaces(response.data || []);
         } catch (error) {
           console.error('Error fetching places:', error);
