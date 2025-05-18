@@ -15,6 +15,7 @@ function PaymentFlow() {
   const [bookingData, setBookingData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [paymentData, setPaymentData] = useState(null);
+  const discount = 0.9;
 
   useEffect(() => {
     try {
@@ -189,7 +190,7 @@ function PaymentFlow() {
           property={bookingData.property}
           people={bookingData.people}
           days={bookingData.days}
-          totalPrice={bookingData.totalPrice}
+          totalPrice={paymentMethod === "wallet" ? bookingData.totalPrice * discount : bookingData.totalPrice} // Adjust total price for wallet payment
           startDate={bookingData.startDate}
           endDate={bookingData.endDate}
         />
@@ -202,7 +203,7 @@ function PaymentFlow() {
           paymentMethod={paymentMethod}
           property={bookingData.property}
           days={bookingData.days}
-          totalPrice={bookingData.totalPrice}
+          totalPrice={paymentMethod === "wallet" ? bookingData.totalPrice * discount : bookingData.totalPrice} // Adjust total price for wallet payment
           people={bookingData.people}
           bookingId={bookingData.id} // Pass booking ID to Step2
         />
@@ -227,7 +228,7 @@ function PaymentFlow() {
             paymentData || {
               id: bookingData?.id,
               bookingId: bookingData?.id,
-              amount: bookingData?.totalPrice,
+              amount: paymentMethod === "wallet" ? bookingData?.totalPrice * discount : bookingData?.totalPrice, 
               status: paymentMethod === "wallet" ? "success" : "pending", // Set success for wallet payments
               transactionId: `Wallet-${Date.now().toString().substring(8)}`, // Create a pseudo transaction ID for wallet payments
               paymentMethod: paymentMethod, // Pass the payment method for context

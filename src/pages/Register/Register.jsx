@@ -167,8 +167,8 @@ const Register = () => {
               type={showPassword ? "text" : "password"}
               value={formData.Password}
               onChange={handleChange}
-              onFocus={() => setIsPasswordFocused(true)} // Khi focus
-              onBlur={() => setIsPasswordFocused(false)} // Khi blur
+              onFocus={() => setIsPasswordFocused(true)} 
+              onBlur={() => setIsPasswordFocused(false)} 
               className={styles.inputField}
             />
           

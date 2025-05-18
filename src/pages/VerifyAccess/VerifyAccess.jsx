@@ -59,6 +59,9 @@ function VerifyAccess() {
           case "PaymentFailure":
             navigate(`/user-booking-dashboard`);
             break;
+          case "PasswordReset":
+            navigate('/login');
+            break;
           default:
             setError("Không xác định hành động");
         }

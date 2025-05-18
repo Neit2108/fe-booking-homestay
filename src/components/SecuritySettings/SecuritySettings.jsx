@@ -1,9 +1,10 @@
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import Modal from "../Modal/Modal"; // đảm bảo import đúng đường dẫn modal
 import { API_URL } from "../../../constant/config";
 import { formatDate } from "../../Utils/DateUtils";
 import { UserContext } from "../../context/UserContext";
 import axios from "axios";
+import TwoFAModal from "../Modal/TwoFAModal";
 
 const PasswordCriteriaItem = ({ isMet, text }) => (
   <div
@@ -33,6 +34,11 @@ const PasswordCriteriaItem = ({ isMet, text }) => (
 );
 
 function SecuritySettings() {
+  const { user, loading: userLoading } = useContext(UserContext);
+  const token = user?.token;
+  const userId = user.id;
+
+
   const [showModalChangePassword, setShowModalChangePassword] = useState(false);
   const [showModalSuccess, setShowModalSuccess] = useState(false);
   const [showModalError, setShowModalError] = useState(false);
@@ -41,6 +47,7 @@ function SecuritySettings() {
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [timeChangePassword, setTimeChangePassword] = useState(null);
 
   const [showOldPassword, setShowOldPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
@@ -48,6 +55,103 @@ function SecuritySettings() {
   const [showNewPasswordCriteria, setShowNewPasswordCriteria] = useState(false);
   const [showConfirmPasswordCriteria, setShowConfirmPasswordCriteria] =
     useState(false);
+
+  const [openTwoFactor, setOpenTwoFactor] = useState(false);
+  const [otp2FA, setOtp2FA] = useState("");
+  const [show2FAModal, setShow2FAModal] = useState(false);
+
+  const [isLoading2FA, setIsLoading2FA] = useState(false);
+  const [enable2FAError, setEnable2FAError] = useState("");
+
+  useEffect(() => {
+    if (userLoading) {
+      console.log("User loading...");
+      return;
+    }
+    console.log("User twoFactor:", user.twoFactor);
+    if (user && typeof user.twoFactor === "boolean") {
+      setOpenTwoFactor(user.twoFactor);
+    }
+    console.log("Time ",user.passwordChangeAt)
+    if (user && user.passwordChangeAt) {
+      const date = formatDate(user.passwordChangeAt);
+      setTimeChangePassword(date);
+    }
+  }, [user]);
+
+  const handleTwoFactorToggle = async (e) => {
+    e.preventDefault();
+
+    if (openTwoFactor) {
+      setIsLoading2FA(true);
+      try {
+        await axios.post(
+          `${API_URL}/account/auth/disable-2fa`,
+          {},
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        setOpenTwoFactor(false);
+        setOtp2FA("");
+      } catch (error) {
+        alert("Tắt xác thực 2 lớp thất bại!");
+      } finally {
+        setIsLoading2FA(false);
+      }
+      return;
+    }
+
+    setIsLoading2FA(true);
+    try {
+      await axios.post(
+        `${API_URL}/account/auth/send-2fa-otp`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      setShow2FAModal(true);
+    } catch (error) {
+      alert("Không gửi được mã xác thực. Vui lòng thử lại sau.");
+    } finally {
+      setIsLoading2FA(false);
+    }
+  };
+
+  const handleEnable2FAConfirm = async () => {
+    if (!otp2FA) {
+      setEnable2FAError("Vui lòng nhập mã xác thực.");
+      return;
+    }
+    setIsLoading2FA(true);
+    try {
+      await axios.post(
+        `${API_URL}/account/auth/enable-2fa`,
+        { token: otp2FA },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+      setOpenTwoFactor(true);
+      setShow2FAModal(false);
+      setOtp2FA("");
+      setEnable2FAError("");
+    } catch (error) {
+      setEnable2FAError("Mã xác thực không đúng hoặc đã hết hạn.");
+    } finally {
+      setIsLoading2FA(false);
+    }
+  };
 
   const checkPasswordCriteria = (password, criterion) => {
     switch (criterion) {
@@ -59,6 +163,8 @@ function SecuritySettings() {
         return /[!@#$%^&*]/.test(password);
       case "minLength":
         return password.length >= 6;
+      case "oldMatchNew":
+        return !(password === oldPassword);
       default:
         return false;
     }
@@ -74,19 +180,20 @@ function SecuritySettings() {
     return !checkPasswordMatch(newPassword, confirmPassword);
   };
 
-  const { user } = useContext(UserContext);
-  const userId = user.id;
-  const timeChangePassword = user.passwordChangeAt;
-
   const handleChangePassword = async () => {
     try {
       const response = await axios.post(
         `${API_URL}/account/auth/change-password`,
         {
-          userId,
           oldPassword,
           newPassword,
           confirmPassword,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
         }
       );
 
@@ -94,14 +201,19 @@ function SecuritySettings() {
         setShowModalChangePassword(false);
         setShowModalSuccess(true);
       } else {
-        setErrorMessage(response.data.message || "Đổi mật khẩu không thành công. Vui lòng kiểm tra lại.");
+        setErrorMessage(
+          response.data.message ||
+            "Đổi mật khẩu không thành công. Vui lòng kiểm tra lại."
+        );
         setShowModalChangePassword(false);
         setShowModalError(true);
       }
     } catch (error) {
       console.error("Error changing password:", error);
       // Lấy message lỗi từ response
-      const errorMsg = error.response?.data?.message || "Đổi mật khẩu không thành công. Vui lòng kiểm tra lại.";
+      const errorMsg =
+        error.response?.data?.message ||
+        "Đổi mật khẩu không thành công. Vui lòng kiểm tra lại.";
       setErrorMessage(errorMsg);
       setShowModalChangePassword(false);
       setShowModalError(true);
@@ -141,56 +253,47 @@ function SecuritySettings() {
         </div>
       </div>
       <div className="mb-6">
-        <h3 className="text-lg font-medium mb-3">Two-Factor Authentication</h3>
+        <h3 className="text-lg font-medium mb-3">Xác thực 2 lớp</h3>
         <div className="flex items-center justify-between">
           <div>
             <p className="text-gray-700">
-              Status: <span className="text-red-500">Not Enabled</span>
+              Trạng thái:
+              {openTwoFactor ? (
+                <span className="text-green-500">Đang bật</span>
+              ) : (
+                <span className="text-red-500">Chưa bật</span>
+              )}
             </p>
             <p className="text-sm text-gray-500">
-              Add an extra layer of security to your account by enabling
-              two-factor authentication.
+              Bảo vệ tài khoản bằng cách yêu cầu mã xác thực mỗi khi đănh nhập.
             </p>
           </div>
-          <button className="px-4 py-2 bg-accent text-white rounded-md hover:bg-blue-700 transition-colors duration-200">
-            Enable 2FA
+          <button
+            className="px-4 py-2 bg-accent text-white rounded-md hover:bg-blue-700 transition-colors duration-200"
+            onClick={handleTwoFactorToggle}
+            disabled={isLoading2FA}
+          >
+            {openTwoFactor ? "Tắt" : "Bật"}
           </button>
         </div>
       </div>
 
       <div>
-        <h3 className="text-lg font-medium mb-3">Login Sessions</h3>
+        <h3 className="text-lg font-medium mb-3">Phiên đăng nhập</h3>
         <div className="border rounded-md p-4 mb-3">
           <div className="flex justify-between items-center">
             <div>
-              <p className="font-medium">Current Session</p>
+              <p className="font-medium">Hiện tại</p>
               <p className="text-sm text-gray-500">
-                Chrome on Windows • New York, USA
+                Chrome trên Windows.
               </p>
               <p className="text-xs text-gray-400">
-                Started: Today at 10:23 AM
+                Đăng nhập : Hôm nay {formatDate(new Date())}
               </p>
             </div>
             <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
-              Active
+              Hoạt động
             </span>
-          </div>
-        </div>
-
-        <div className="border rounded-md p-4">
-          <div className="flex justify-between items-center">
-            <div>
-              <p className="font-medium">Previous Session</p>
-              <p className="text-sm text-gray-500">
-                Safari on iPhone • Boston, USA
-              </p>
-              <p className="text-xs text-gray-400">
-                Last active: Yesterday at 6:45 PM
-              </p>
-            </div>
-            <button className="text-red-500 text-sm hover:underline">
-              Revoke
-            </button>
           </div>
         </div>
       </div>
@@ -339,6 +442,10 @@ function SecuritySettings() {
                       isMet={checkPasswordCriteria(newPassword, "minLength")}
                       text="Tối thiểu 6 ký tự"
                     />
+                    <PasswordCriteriaItem
+                      isMet={checkPasswordCriteria(newPassword, "oldMatchNew")}
+                      text="Mật khẩu mới không trùng với mật khẩu cũ"
+                    />
                   </div>
                 )}
               </div>
@@ -457,6 +564,20 @@ function SecuritySettings() {
           confirmText="Đóng"
         />
       )}
+
+      <TwoFAModal
+        isOpen={show2FAModal}
+        onClose={() => {
+          setShow2FAModal(false);
+          setOtp2FA("");
+          setEnable2FAError("");
+        }}
+        otp={otp2FA}
+        setOtp={setOtp2FA}
+        onSubmit={handleEnable2FAConfirm}
+        error={enable2FAError}
+        isLoading={isLoading2FA}
+      />
     </div>
   );
 }

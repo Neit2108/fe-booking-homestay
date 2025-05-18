@@ -6,21 +6,33 @@ import Button from "../../components/Button/Button";
 import Card from "../../components/Card/Card";
 import styles from "./Login.module.css";
 import { UserContext } from "../../context/UserContext";
-import Modal from "../../components/Modal/Modal"; // Import your Modal component
+import Modal from "../../components/Modal/Modal";
+import ForgotPasswordModal from "../../components/Modal/ForgotPasswordModal";
 import { API_URL } from "../../../constant/config";
+import TwoFAModal from "../../components/Modal/TwoFAModal";
 
 const Login = () => {
   const [formData, setFormData] = useState({
-    EmailorUsername: "",
-    Password: "",
+    emailOrUsername: "",
+    password: "",
   });
+  const [isLoginFailed, setIsLoginFailed] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [forgotModalOpen, setForgotModalOpen] = useState(false);
+
+  const [show2FAModal, setShow2FAModal] = useState(false);
+  const [twoFAUserId, setTwoFAUserId] = useState("");
+  const [twoFAOtp, setTwoFAOtp] = useState("");
+  const [twoFAError, setTwoFAError] = useState("");
 
   const navigate = useNavigate();
   const { login } = useContext(UserContext);
-  const [IsLoginFailed, setIsLoginFailed] = useState(false);
 
   const goToRegister = () => {
-    console.log(`Navigation to register: 2025-03-24 10:10:47 by Neit2108`);
+    console.log(
+      `Navigation to register: ${new Date().toISOString()} by Neit2108`
+    );
     navigate("/register");
   };
 
@@ -32,17 +44,31 @@ const Login = () => {
     }));
   };
 
-  // In Login.jsx - make sure to fully wait for the login process
   const handleLogin = async () => {
-    console.log("Dữ liệu gửi lên:", formData);
+    if (!formData.emailOrUsername || !formData.password) {
+      setIsLoginFailed(true);
+      setErrorMessage("Vui lòng nhập đầy đủ email/tên đăng nhập và mật khẩu.");
+      return;
+    }
 
+    setIsLoading(true);
     try {
       const response = await axios.post(
-        `${API_URL}/Account/Auth/Login`,
+        `${API_URL}/account/auth/login`,
         formData,
         { headers: { "Content-Type": "application/json" } }
       );
 
+      if (response.data.requiresTwoFactor) {
+        setShow2FAModal(true);
+        setTwoFAUserId(response.data.userId);
+        setTwoFAOtp("");
+        setTwoFAError("");
+        setIsLoading(false);
+        return;
+      }
+
+      // Bình thường như cũ
       if (response.data.token) {
         const userData = {
           token: response.data.token,
@@ -50,16 +76,52 @@ const Login = () => {
           avatarUrl: response.data.avatarUrl,
         };
 
-        await login(userData); // Wait for login to complete
-
-        console.log("Đăng nhập thành công, đang chuyển hướng...");
-        navigate("/"); // Navigate after login is fully complete
+        await login(userData);
+        navigate("/");
       } else {
         setIsLoginFailed(true);
+        setErrorMessage("Đăng nhập thất bại. Vui lòng thử lại.");
       }
     } catch (error) {
       setIsLoginFailed(true);
-      console.log(error.response);
+      setErrorMessage(
+        error.response?.data?.message || "Đã có lỗi xảy ra. Vui lòng thử lại."
+      );
+      console.log("Login error:", error.response);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handle2FALogin = async () => {
+    if (!twoFAOtp) {
+      setTwoFAError("Vui lòng nhập mã xác thực.");
+      return;
+    }
+    setIsLoading(true);
+    try {
+      const res = await axios.post(`${API_URL}/account/auth/login-2fa`, {
+        userId: twoFAUserId,
+        otp: twoFAOtp,
+      });
+      if (res.data.token) {
+        await login({
+          token: res.data.token,
+          fullName: res.data.fullName,
+          avatarUrl: res.data.avatarUrl,
+        });
+        setShow2FAModal(false);
+        navigate("/");
+      } else {
+        setTwoFAError("Mã xác thực không đúng hoặc hết hạn.");
+      }
+    } catch (error) {
+      setTwoFAError(
+        error.response?.data?.message ||
+          "Mã xác thực không đúng hoặc đã hết hạn."
+      );
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -83,23 +145,38 @@ const Login = () => {
           <Input
             data-testid="email-input"
             label="Tên đăng nhập"
-            name="EmailorUsername"
+            name="emailOrUsername"
             placeholder="Email hoặc tên đăng nhập"
-            value={formData.EmailorUsername}
+            value={formData.emailOrUsername}
             onChange={handleChange}
             className={styles.inputField}
+            disabled={isLoading}
           />
 
           <Input
             data-testid="password-input"
             label="Mật khẩu"
-            name="Password"
+            name="password"
             placeholder="******"
             type="password"
-            value={formData.Password}
+            value={formData.password}
             onChange={handleChange}
             className={styles.inputField}
+            disabled={isLoading}
           />
+        </div>
+
+        <div style={{ textAlign: "right", marginTop: 8 }}>
+          <a
+            href="#"
+            className={styles.link}
+            onClick={(e) => {
+              e.preventDefault();
+              setForgotModalOpen(true);
+            }}
+          >
+            Quên mật khẩu?
+          </a>
         </div>
 
         <p className={styles.termsText}>
@@ -110,8 +187,13 @@ const Login = () => {
           tại HomiesStay.
         </p>
 
-        <Button onClick={handleLogin} className={styles.loginButton} data-testid = "login-button">
-          Đăng nhập
+        <Button
+          onClick={handleLogin}
+          className={styles.loginButton}
+          data-testid="login-button"
+          disabled={isLoading}
+        >
+          {isLoading ? "Đang đăng nhập..." : "Đăng nhập"}
         </Button>
 
         <p className={styles.signupText}>
@@ -128,15 +210,42 @@ const Login = () => {
           </a>
         </p>
       </div>
+
+      <ForgotPasswordModal
+        isOpen={forgotModalOpen}
+        onClose={() => setForgotModalOpen(false)}
+      />
+
       <Modal
-        isOpen={IsLoginFailed}
-        onClose={() => setIsLoginFailed(false)}
+        isOpen={isLoginFailed}
+        onClose={() => {
+          setIsLoginFailed(false);
+          setErrorMessage("");
+        }}
         status="error"
         title="Đăng nhập thất bại"
-        message="Tên đăng nhập hoặc mật khẩu không chính xác. Vui lòng thử lại."
+        message={
+          errorMessage ||
+          "Tên đăng nhập hoặc mật khẩu không chính xác. Vui lòng thử lại."
+        }
         confirmText="Đóng"
         data-testid="login-error-modal"
       />
+
+      <TwoFAModal
+        isOpen={show2FAModal}
+        onClose={() => {
+          setShow2FAModal(false);
+          setTwoFAOtp("");
+          setTwoFAError("");
+        }}
+        otp={twoFAOtp}
+        setOtp={setTwoFAOtp}
+        onSubmit={handle2FALogin}
+        error={twoFAError}
+        isLoading={isLoading}
+      />
+
     </div>
   );
 };

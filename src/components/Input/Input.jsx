@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import styles from './Input.module.css';
+import { Icon } from '@mui/material';
+import { EyeIcon } from "@heroicons/react/outline";
 
 const Input = ({
   id,
@@ -39,13 +41,11 @@ const Input = ({
             type="button"
             className="absolute inset-y-0 right-2 flex items-center justify-center"
             onClick={() => setShowPassword((prev) => !prev)}
-            tabIndex={-1} // tránh tab-focus vào nút
+            tabIndex={-1} 
           >
-            <img
-              src="/src/assets/Register/eye-icon.png"
-              alt={showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
-              className="w-4 h-4 object-contain"
-            />
+            
+            
+            <EyeIcon className="w-4 h-4 object-contain" />
           </button>
         )}
       </div>

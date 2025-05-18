@@ -5,6 +5,7 @@ import HostRegisterSuccess from "./HostRegisterSuccess";
 import HostRegisterFailed from "./HostRegisterFailed";
 import Loader from "../../components/Loading/Loader";
 import { API_URL } from "../../../constant/config";
+import { EyeIcon } from "lucide-react";
 
 const HostRegister = () => {
   const navigate = useNavigate();
@@ -279,11 +280,7 @@ const HostRegister = () => {
                     className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center justify-center"
                     onClick={() => setShowPassword(!showPassword)}
                   >
-                    <img
-                      src="/src/assets/Register/eye-icon.png"
-                      alt={showPassword ? "Hide password" : "Show password"}
-                      className="w-4 h-4 object-contain"
-                    />
+                    <EyeIcon className="h-4 w-4 object-contain" />
                   </button>
                 </div>
 

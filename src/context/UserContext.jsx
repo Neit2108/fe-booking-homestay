@@ -4,12 +4,10 @@ import { API_URL } from "../../constant/config";
 // Tạo Context
 const UserContext = createContext();
 
-// Provider Component
 const UserProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Khi ứng dụng khởi động, kiểm tra xem token có trong localStorage không
   useEffect(() => {
     const initializeUser = async () => {
       const storedUser = JSON.parse(localStorage.getItem("user"));
@@ -28,11 +26,6 @@ const UserProvider = ({ children }) => {
   
     initializeUser();
   }, []);
-
-  // Add this effect to log user changes
-  // useEffect(() => {
-  //   console.log("User state updated:", user);
-  // }, [user]);
 
   async function fetchUserProfile() {
     try {
@@ -68,6 +61,7 @@ const UserProvider = ({ children }) => {
         role: profileData.role,
         createAt: profileData.createAt,
         passwordChangeAt: profileData.passwordChangeAt,
+        twoFactor: profileData.twoFactor,
       };
 
       //console.log("Dữ liệu user sau khi cập nhật:", updatedUser);
@@ -80,6 +74,7 @@ const UserProvider = ({ children }) => {
 
   const login = async (userData) => {
     localStorage.setItem("token", userData.token);
+    console.log("Two factor:", userData.twoFactor);
     await fetchUserProfile();
     
   };

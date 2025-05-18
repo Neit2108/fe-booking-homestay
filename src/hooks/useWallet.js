@@ -14,12 +14,14 @@ const useWallet = () => {
   const [loading, setLoading] = useState({
     balance: false,
     transactions: false,
-    deposit: false
+    deposit: false,
+    withdraw: false
   });
   const [error, setError] = useState({
     balance: null,
     transactions: null,
-    deposit: null
+    deposit: null,
+    withdraw: null
   });
   const [pagination, setPagination] = useState({
     page: 1,
@@ -149,6 +151,52 @@ const useWallet = () => {
   }, [user]);
 
   /**
+ * Withdraw money from wallet
+ * @param {Object} withdrawData - Withdraw data { amount, pin }
+ * @returns {Promise} - Withdraw response
+ */
+const withdraw = useCallback(async (withdrawData) => {
+  if (!user?.token) {
+    throw new Error('User is not authenticated');
+  }
+
+  setLoading(prev => ({ ...prev, withdraw: true }));
+  setError(prev => ({ ...prev, withdraw: null }));
+
+  try {
+    const requestData = {
+      amount: withdrawData.amount,
+      pin: withdrawData.pin
+    };
+
+    const response = await axios.post(
+      `${API_URL}/wallet/withdraw`,
+      requestData,
+      {
+        headers: { 
+          Authorization: `Bearer ${user.token}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+
+    // Nếu cần: cập nhật lại balance và transactions sau khi rút thành công
+    await fetchBalance();
+    await fetchTransactions(pagination.page, pagination.pageSize);
+
+    return response.data;
+  } catch (err) {
+    console.error('Error withdrawing from wallet:', err);
+    const errorMessage = err.response?.data?.message || 'Failed to withdraw from wallet';
+    setError(prev => ({ ...prev, withdraw: errorMessage }));
+    throw new Error(errorMessage);
+  } finally {
+    setLoading(prev => ({ ...prev, withdraw: false }));
+  }
+}, [user, fetchBalance, fetchTransactions, pagination]);
+
+
+  /**
    * Check payment status
    * @param {number} paymentId - Payment ID
    * @returns {Promise} - Payment status
@@ -193,6 +241,7 @@ const useWallet = () => {
     pagination,
     loading,
     error,
+    withdraw,
     fetchBalance,
     fetchTransactions,
     deposit,

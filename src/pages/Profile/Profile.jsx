@@ -115,18 +115,18 @@ function Profile() {
               {activeTab === "notifications" && (
                 <div className="bg-white shadow-md rounded-lg p-6">
                   <h2 className="text-xl font-semibold text-primary mb-4">
-                    Notification Preferences
+                    Thông báo
                   </h2>
                   <p className="text-gray-500 mb-6">
-                    Manage how you receive notifications from our platform.
+                    Quản lý thông báo của bạn để nhận thông tin cập nhật và ưu đãi.
                   </p>
 
                   <div className="space-y-4">
                     <div className="flex items-center justify-between p-4 border rounded-md">
                       <div>
-                        <h3 className="font-medium">Email Notifications</h3>
+                        <h3 className="font-medium">Thông báo qua mail</h3>
                         <p className="text-sm text-gray-500">
-                          Receive updates about your bookings and account
+                          Nhận thông báo qua email về các cập nhật và ưu đãi
                         </p>
                       </div>
                       <label className="relative inline-flex items-center cursor-pointer">
@@ -141,9 +141,9 @@ function Profile() {
 
                     <div className="flex items-center justify-between p-4 border rounded-md">
                       <div>
-                        <h3 className="font-medium">Promotional Emails</h3>
+                        <h3 className="font-medium">Voucher</h3>
                         <p className="text-sm text-gray-500">
-                          Receive special offers and promotions
+                          Nhận thông báo về các voucher và ưu đãi mới
                         </p>
                       </div>
                       <label className="relative inline-flex items-center cursor-pointer">
@@ -154,9 +154,9 @@ function Profile() {
 
                     <div className="flex items-center justify-between p-4 border rounded-md">
                       <div>
-                        <h3 className="font-medium">SMS Notifications</h3>
+                        <h3 className="font-medium">Tin nhắn sms</h3>
                         <p className="text-sm text-gray-500">
-                          Receive booking confirmations and updates via text
+                          Nhận thông báo qua tin nhắn về các cập nhật và ưu đãi
                         </p>
                       </div>
                       <label className="relative inline-flex items-center cursor-pointer">
@@ -172,7 +172,7 @@ function Profile() {
 
                   <div className="mt-6 flex justify-end">
                     <button className="px-6 py-2 bg-accent text-white rounded-md hover:bg-blue-700 transition-colors duration-200">
-                      Save Preferences
+                      Lưu thay đổi
                     </button>
                   </div>
                 </div>
@@ -181,10 +181,11 @@ function Profile() {
               {activeTab === "payment" && (
                 <div className="bg-white shadow-md rounded-lg p-6">
                   <h2 className="text-xl font-semibold text-primary mb-4">
-                    Payment Methods
+                    Phương thức thanh toán
                   </h2>
                   <p className="text-gray-500 mb-6">
-                    Manage your payment methods for bookings and reservations.
+                    Quản lý phương thức thanh toán của bạn để dễ dàng thanh
+                    toán cho các đơn hàng trong tương lai.
                   </p>
 
                   <div className="space-y-4 mb-6">
@@ -206,15 +207,15 @@ function Profile() {
                         </svg>
                       </div>
                       <div className="flex-1">
-                        <p className="font-medium">Visa ending in 4242</p>
-                        <p className="text-sm text-gray-500">Expires 12/2025</p>
+                        <p className="font-medium">Ví Homies</p>
+                        <p className="text-sm text-gray-500"></p>
                       </div>
                       <div className="flex gap-2">
                         <button className="text-accent hover:underline">
-                          Edit
+                          Sửa
                         </button>
                         <button className="text-red-500 hover:underline">
-                          Remove
+                          Xóa
                         </button>
                       </div>
                     </div>
@@ -233,7 +234,7 @@ function Profile() {
                         clipRule="evenodd"
                       />
                     </svg>
-                    Add Payment Method
+                    Thêm
                   </button>
                 </div>
               )}

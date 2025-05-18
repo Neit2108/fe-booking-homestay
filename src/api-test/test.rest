@@ -1,0 +1,38 @@
+# login
+
+# POST https://localhost:7284/account/auth/login
+# Content-Type: application/json
+
+# {
+#   "emailOrUsername": "customer.test",
+#   "password": "Customer@123"
+# }
+
+
+# change pass
+
+# POST https://localhost:7284/account/auth/change-password HTTP/1.1
+# Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI5N2QzY2MxZi01ZGVmLTRkZWQtODM1Yi05NDExZDc0YTRhYmMiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6Ijk3ZDNjYzFmLTVkZWYtNGRlZC04MzViLTk0MTFkNzRhNGFiYyIsImVtYWlsIjoibGR0aWVuLjIxMDgwNEBnbWFpbC5jb20iLCJqdGkiOiI0NTI0OGY2Ni02YzFmLTQ4YWMtYTA4Yi0zN2RjY2UwZTE0ZjgiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiY3VzdG9tZXIudGVzdCIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IlRlbmFudCIsImV4cCI6MTc0NzU2NzIxMywiaXNzIjoiaHR0cHM6Ly9sb2NhbGhvc3Q6NzI4NCIsImF1ZCI6Imh0dHA6Ly9sb2NhbGhvc3Q6NTE3MyJ9.Y1EO5l14vQdqRd2vC9dY8NbtETYGo5V_qDDWLUWuW6M
+# Content-Type: application/json
+
+# {
+#     "oldPassword": "Customer@1234",
+#     "newPassword": "Customer@123",
+#     "confirmPassword": "Customer@123"
+# }
+
+# forgot pass
+# POST https://localhost:7284/account/auth/forgot-password HTTP/1.1
+# Content-Type: application/json
+
+# {
+#     "email": "customer.test"
+# }
+
+# send otp 2fa
+# POST https://localhost:7284/account/auth/send-2fa-otp HTTP/1.1
+# Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI5N2QzY2MxZi01ZGVmLTRkZWQtODM1Yi05NDExZDc0YTRhYmMiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6Ijk3ZDNjYzFmLTVkZWYtNGRlZC04MzViLTk0MTFkNzRhNGFiYyIsImVtYWlsIjoibGR0aWVuLjIxMDgwNEBnbWFpbC5jb20iLCJqdGkiOiJiYzI1YWEzZi01MjgyLTQ0NWItODI5OS05ZTM2Zjk4OWM2OTQiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiY3VzdG9tZXIudGVzdCIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IlRlbmFudCIsImV4cCI6MTc0NzU4NjU3NSwiaXNzIjoiaHR0cHM6Ly9sb2NhbGhvc3Q6NzI4NCIsImF1ZCI6Imh0dHA6Ly9sb2NhbGhvc3Q6NTE3MyJ9.PgjScBOnt0dTsSd9e_YXWG_zDZDnfbIIi5C-e4FQ3u0
+# Content-Type: application/json
+
+POST https://localhost:7284/account/auth/disable-2fa HTTP/1.1
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI5N2QzY2MxZi01ZGVmLTRkZWQtODM1Yi05NDExZDc0YTRhYmMiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6Ijk3ZDNjYzFmLTVkZWYtNGRlZC04MzViLTk0MTFkNzRhNGFiYyIsImVtYWlsIjoibGR0aWVuLjIxMDgwNEBnbWFpbC5jb20iLCJqdGkiOiI1YTg2MmRlZC0zZjM1LTQ1ZDgtYTZjZC01OGY2ZGQzYmMxZTgiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiY3VzdG9tZXIudGVzdCIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IlRlbmFudCIsImV4cCI6MTc0NzU4OTk5OCwiaXNzIjoiaHR0cHM6Ly9sb2NhbGhvc3Q6NzI4NCIsImF1ZCI6Imh0dHA6Ly9sb2NhbGhvc3Q6NTE3MyJ9.6qEw9-25B0lkbfTm7nciQ7F-MgvITU85GBbCANM89ms

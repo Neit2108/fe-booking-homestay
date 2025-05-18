@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { formatPrice } from '../../Utils/PriceUtils';
 import QRCodeService from '../../services/QRCodeService';
+import BankTransferQR from '../../services/BankTransferQR';
 
 /**
  * Component for displaying QR code for payment
@@ -100,15 +101,7 @@ const WalletQRPaymentModal = ({ isOpen, onClose, paymentData, onCheckStatus, amo
 
         <div className="p-6">
           {/* QR Code */}
-          <div className="flex justify-center mb-6">
-            <div className="p-4 border-2 border-gray-200 rounded-lg">
-              <img 
-                src={getQRImageSource()} 
-                alt="QR Code" 
-                className="w-64 h-64"
-              />
-            </div>
-          </div>
+          <BankTransferQR totalPrice={amount} paymentId={paymentData.paymentId}/>
           
           {/* Payment Info */}
           <div className="mb-6">

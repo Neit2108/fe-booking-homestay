@@ -7,6 +7,7 @@ import { QRCodeSVG } from 'qrcode.react'; // Make sure this is installed: npm in
 import QRCodeService from '../../services/QRCodeService';
 import { API_URL } from "../../../constant/config";
 import WalletPinVerificationModal from "../../components/Wallet/WalletPinVerificationModal";
+import BankTransferQR from "../../services/BankTransferQR";
 
 function Step2({ onNext, onBack, paymentMethod, property, days, totalPrice, people, bookingId }) {
   const [paymentData, setPaymentData] = useState(null);
@@ -21,55 +22,31 @@ function Step2({ onNext, onBack, paymentMethod, property, days, totalPrice, peop
   
   const redirectTimerRef = useRef(null);
 
-  // Function to generate QR code directly in frontend
-  const generateQRCode = (url) => {
-    return (
-      <div className="flex justify-center">
-        <QRCodeSVG
-          value={url}
-          size={200}
-          level={"H"}
-          marginSize={4}
-        />
-      </div>
-    );
-  };
-
-  // Extract the direct payment URL for QR code
   const extractDirectPaymentUrl = async (paymentUrl) => {
-    // This is a common URL pattern for VNPay payment links
-    // If the URL contains these parameters, it might be a redirect URL
     if (paymentUrl.includes('vnpayment') && paymentUrl.includes('vnp_')) {
-      // For VNPay, we may need to directly use this URL in the QR code
       setDirectQRValue(paymentUrl);
       return paymentUrl;
     }
     
     try {
-      // If we need to simulate a direct API call to get VNPay QR info
       const token = localStorage.getItem("token");
       if (!token) throw new Error("Authentication token missing");
       
-      // We could make an API call to get direct QR code data if needed
-      // For now, we'll use the payment URL directly
       setDirectQRValue(paymentUrl);
       return paymentUrl;
     } catch (err) {
       console.error("Error extracting direct payment URL:", err);
-      // Fallback to original URL
       setDirectQRValue(paymentUrl);
       return paymentUrl;
     }
   };
 
-  // Fetch wallet balance if payment method is wallet
   useEffect(() => {
     if (paymentMethod === 'wallet') {
       fetchWalletBalance();
     }
   }, [paymentMethod]);
 
-  // Fetch wallet balance
   const fetchWalletBalance = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -90,9 +67,7 @@ function Step2({ onNext, onBack, paymentMethod, property, days, totalPrice, peop
     }
   };
 
-  // Fetch payment data when component mounts
   useEffect(() => {
-    // Only fetch payment data for bank transfers and credit cards
     if (paymentMethod !== 'wallet' && paymentMethod !== 'paypal') {
       const fetchPaymentData = async () => {
         if (!bookingId) return;
@@ -102,10 +77,9 @@ function Step2({ onNext, onBack, paymentMethod, property, days, totalPrice, peop
           const token = localStorage.getItem("token");
           if (!token) throw new Error("Authentication token missing");
           
-          // For bank transfers, we need a different bankCode
           let bankCode = undefined;
           if (paymentMethod === 'credit_card') {
-            bankCode = 'NCB'; // Default for card payments
+            bankCode = 'NCB'; 
           } else if (paymentMethod === 'bank_transfer') {
             bankCode = '';
           }
@@ -291,94 +265,96 @@ function Step2({ onNext, onBack, paymentMethod, property, days, totalPrice, peop
         );
         
       case "bank_transfer":
-        return (
-          <div className="flex flex-col gap-4">
-            <div className="text-base text-primary font-semibold">Chuyển khoản - Mã QR</div>
+        return <BankTransferQR totalPrice={totalPrice} paymentId={bookingId} />
+
+        // return (
+        //   <div className="flex flex-col gap-4">
+        //     <div className="text-base text-primary font-semibold">Chuyển khoản - Mã QR</div>
             
-            {loading ? (
-              <div className="flex justify-center">
-                <Loader />
-              </div>
-            ) : error ? (
-              <div className="text-red-500 text-center">
-                {error}
-                <button
-                  onClick={() => window.location.reload()}
-                  className="block mx-auto mt-2 text-blue-500 underline"
-                >
-                  Thử lại
-                </button>
-              </div>
-            ) : paymentData ? (
-              <>
-                {/* QR Code Display */}
-                <div className="flex flex-col items-center border border-gray-200 rounded-lg p-4 bg-white">
-                  {/* Use direct QR rendering with the extracted URL */}
-                  {directQRValue ? (
-                    <QRCodeSVG
-                      value={directQRValue}
-                      size={200}
-                      level={"H"}
-                      includeMargin={true}
-                    />
-                  ) : (
-                    <img
-                      src={QRCodeService.getGoogleQRCodeUrl(paymentData.paymentUrl)}
-                      alt="QR Code"
-                      className="w-[200px] h-[200px]"
-                    />
-                  )}
-                  <p className="text-sm text-center mt-2 text-gray-600">
-                    Quét mã QR để thanh toán
-                  </p>
-                </div>
+        //     {loading ? (
+        //       <div className="flex justify-center">
+        //         <Loader />
+        //       </div>
+        //     ) : error ? (
+        //       <div className="text-red-500 text-center">
+        //         {error}
+        //         <button
+        //           onClick={() => window.location.reload()}
+        //           className="block mx-auto mt-2 text-blue-500 underline"
+        //         >
+        //           Thử lại
+        //         </button>
+        //       </div>
+        //     ) : paymentData ? (
+        //       <>
+        //         {/* QR Code Display */}
+        //         <div className="flex flex-col items-center border border-gray-200 rounded-lg p-4 bg-white">
+        //           {/* Use direct QR rendering with the extracted URL */}
+        //           {directQRValue ? (
+        //             <QRCodeSVG
+        //               value={directQRValue}
+        //               size={200}
+        //               level={"H"}
+        //               includeMargin={true}
+        //             />
+        //           ) : (
+        //             <img
+        //               src={QRCodeService.getGoogleQRCodeUrl(paymentData.paymentUrl)}
+        //               alt="QR Code"
+        //               className="w-[200px] h-[200px]"
+        //             />
+        //           )}
+        //           <p className="text-sm text-center mt-2 text-gray-600">
+        //             Quét mã QR để thanh toán
+        //           </p>
+        //         </div>
                 
-                {/* Payment Information */}
-                <div className="bg-gray-50 p-4 rounded-lg mt-4">
-                  <div className="text-sm text-gray-700 mb-2">
-                    <span className="font-medium">URL thanh toán:</span>
-                    <a 
-                      href={paymentData.paymentUrl} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="text-blue-500 ml-2 underline"
-                    >
-                      Thanh toán online
-                    </a>
-                  </div>
-                  <div className="text-sm text-gray-700 mb-2">
-                    <span className="font-medium">Mã thanh toán:</span> 
-                    <span className="ml-2">{paymentData.paymentId}</span>
-                  </div>
-                  <div className="text-sm text-gray-700 mb-2">
-                    <span className="font-medium">Hết hạn:</span> 
-                    <span className="ml-2">
-                      {new Date(paymentData.expireDate).toLocaleString()}
-                    </span>
-                  </div>
-                  <div className="text-xs text-orange-500 mt-2">
-                    Vui lòng hoàn tất thanh toán trước thời hạn để đảm bảo đặt phòng thành công
-                  </div>
-                </div>
+        //         {/* Payment Information */}
+        //         <div className="bg-gray-50 p-4 rounded-lg mt-4">
+        //           <div className="text-sm text-gray-700 mb-2">
+        //             <span className="font-medium">URL thanh toán:</span>
+        //             <a 
+        //               href={paymentData.paymentUrl} 
+        //               target="_blank" 
+        //               rel="noopener noreferrer"
+        //               className="text-blue-500 ml-2 underline"
+        //             >
+        //               Thanh toán online
+        //             </a>
+        //           </div>
+        //           <div className="text-sm text-gray-700 mb-2">
+        //             <span className="font-medium">Mã thanh toán:</span> 
+        //             <span className="ml-2">{paymentData.paymentId}</span>
+        //           </div>
+        //           <div className="text-sm text-gray-700 mb-2">
+        //             <span className="font-medium">Hết hạn:</span> 
+        //             <span className="ml-2">
+        //               {new Date(paymentData.expireDate).toLocaleString()}
+        //             </span>
+        //           </div>
+        //           <div className="text-xs text-orange-500 mt-2">
+        //             Vui lòng hoàn tất thanh toán trước thời hạn để đảm bảo đặt phòng thành công
+        //           </div>
+        //         </div>
                 
-                {/* Instructions */}
-                <div className="bg-blue-50 p-4 rounded-lg mt-4 text-sm">
-                  <h3 className="font-medium text-blue-700 mb-2">Hướng dẫn thanh toán:</h3>
-                  <ol className="list-decimal pl-4 text-blue-800 space-y-1">
-                    <li>Sử dụng ứng dụng ngân hàng hoặc ví điện tử hỗ trợ VNPay</li>
-                    <li>Quét mã QR hoặc nhấp vào liên kết thanh toán</li>
-                    <li>Xác nhận thông tin thanh toán</li>
-                    <li>Hoàn tất thanh toán theo hướng dẫn của ngân hàng</li>
-                  </ol>
-                </div>
-              </>
-            ) : (
-              <div className="text-center text-gray-500">
-                Không có thông tin thanh toán
-              </div>
-            )}
-          </div>
-        );
+        //         {/* Instructions */}
+        //         <div className="bg-blue-50 p-4 rounded-lg mt-4 text-sm">
+        //           <h3 className="font-medium text-blue-700 mb-2">Hướng dẫn thanh toán:</h3>
+        //           <ol className="list-decimal pl-4 text-blue-800 space-y-1">
+        //             <li>Sử dụng ứng dụng ngân hàng hoặc ví điện tử hỗ trợ VNPay</li>
+        //             <li>Quét mã QR hoặc nhấp vào liên kết thanh toán</li>
+        //             <li>Xác nhận thông tin thanh toán</li>
+        //             <li>Hoàn tất thanh toán theo hướng dẫn của ngân hàng</li>
+        //           </ol>
+        //         </div>
+        //       </>
+        //     ) : (
+        //       <div className="text-center text-gray-500">
+        //         Không có thông tin thanh toán
+        //       </div>
+        //     )}
+        //   </div>
+        // );
         
       case "credit_card":
         return (

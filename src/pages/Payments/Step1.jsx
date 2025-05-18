@@ -208,8 +208,8 @@ function Step1({ onNext, setPaymentMethod, property, people, days, totalPrice, s
                   </div>
                   <div className="flex-grow">
                     <div className="text-primary font-medium">Thanh toán bằng ví</div>
-                    <div className="text-xs text-gray-500">Thanh toán trực tiếp từ ví HomiesStay</div>
-                    
+                    <div className="text-xs text-gray-500">Thanh toán trực tiếp từ ví Homies</div>
+                    <div className="text-xs text-red-500">Giảm trực tiếp 10% khi thanh toán bằng ví Homies</div>
                     {/* Show balance if wallet payment is selected */}
                     {selectedPaymentMethod === PAYMENT_METHODS.WALLET && (
                       <div className="mt-2">
@@ -334,7 +334,7 @@ function Step1({ onNext, setPaymentMethod, property, people, days, totalPrice, s
 
             <div className="mt-6 text-2xl">
               <span className="text-zinc-400">Bạn cần trả </span>
-              <span className="text-primary font-semibold">{formatPrice(totalPrice)} VNĐ</span>
+              <span className="text-primary font-semibold">{selectedPaymentMethod === PAYMENT_METHODS.WALLET ? formatPrice(totalPrice*0.9) : formatPrice(totalPrice)} VNĐ</span>
               <span className="text-zinc-400"> cho </span>
               <span className="text-primary font-semibold">
                 {days} ngày
