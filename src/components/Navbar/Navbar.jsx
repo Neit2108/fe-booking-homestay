@@ -6,8 +6,11 @@ import NavLink from "../Navbar/Navlink";
 function Navbar() {
   const [isDropdownOpen, setDropdownOpen] = useState(false);
   const [isPromotionsDropdownOpen, setPromotionsDropdownOpen] = useState(false);
+  const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isMobileSubMenuOpen, setMobileSubMenuOpen] = useState(false);
   const dropdownRef = useRef(null);
   const promotionsDropdownRef = useRef(null);
+  const mobileMenuRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout, isAdmin, isLandlord } = useContext(UserContext);
@@ -29,6 +32,13 @@ function Navbar() {
       ) {
         setPromotionsDropdownOpen(false);
       }
+      if (
+        mobileMenuRef.current && 
+        !mobileMenuRef.current.contains(event.target) &&
+        !event.target.closest('button[aria-label="Toggle mobile menu"]')
+      ) {
+        setMobileMenuOpen(false);
+      }
     }
 
     document.addEventListener("click", handleClickOutside);
@@ -36,6 +46,11 @@ function Navbar() {
       document.removeEventListener("click", handleClickOutside);
     };
   }, []);
+
+  // Close mobile menu when changing routes
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [location.pathname]);
 
   const handleLogout = () => {
     logout();
@@ -56,6 +71,8 @@ function Navbar() {
     {
       title: "Khuyến mãi",
       path: "/promotion",
+      hasDropdown: true,
+      dropdown: promotions
     },
     { title: "Giới Thiệu", path: "/about" },
     { title: "Liên Hệ", path: "/contact" },
@@ -142,19 +159,32 @@ function Navbar() {
           </nav>
 
           {/* Mobile menu button */}
-          <button className="md:hidden p-2 rounded-md hover:bg-gray-100">
+          <button 
+            className="md:hidden p-2 rounded-md hover:bg-gray-100"
+            onClick={() => setMobileMenuOpen(!isMobileMenuOpen)}
+            aria-label="Toggle mobile menu"
+          >
             <svg
               className="w-6 h-6 text-gray-700"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M4 6h16M4 12h16M4 18h16"
-              />
+              {isMobileMenuOpen ? (
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              ) : (
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M4 6h16M4 12h16M4 18h16"
+                />
+              )}
             </svg>
           </button>
 
@@ -307,23 +337,6 @@ function Navbar() {
                     </>
                   )}
 
-                  {/* {isAdmin() && (
-                    <Link
-                      to="/statistics"
-                      className="block px-4 py-2 text-gray-700 hover:bg-gray-100 flex items-center gap-3"
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-5 w-5 text-gray-500"
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                      >
-                        <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
-                      </svg>
-                      <span>Thống kê</span>
-                    </Link>
-                  )} */}
-
                   <div className="border-t border-gray-100 mt-2 pt-2">
                     <button
                       onClick={handleLogout}
@@ -366,24 +379,29 @@ function Navbar() {
         </div>
       </div>
 
-      {/* Mobile navigation menu - hidden by default */}
-      <div className="md:hidden hidden px-4 py-2 mt-2 bg-gray-50">
+      {/* Mobile navigation menu */}
+      <div 
+        ref={mobileMenuRef}
+        className={`md:hidden px-4 py-3 mt-2 bg-gray-50 border-t border-gray-200 transition-all duration-300 overflow-hidden ${
+          isMobileMenuOpen ? "max-h-screen" : "max-h-0 py-0 border-t-0"
+        }`}
+      >
         {navLinks.map((link) =>
           link.hasDropdown ? (
-            <div key={link.path}>
+            <div key={link.path} className="mb-1">
               <div
-                className={`flex items-center justify-between py-2 px-4 text-gray-700 ${
+                className={`flex items-center justify-between py-2 px-2 rounded-md text-gray-700 ${
                   location.pathname.includes(link.path)
-                    ? "font-medium text-accent"
+                    ? "font-medium text-accent bg-blue-50"
                     : ""
                 }`}
-                onClick={() => {
-                  // This would toggle the mobile submenu in a real implementation
-                }}
+                onClick={() => setMobileSubMenuOpen(!isMobileSubMenuOpen)}
               >
                 {link.title}
                 <svg
-                  className="w-4 h-4"
+                  className={`w-4 h-4 transition-transform duration-200 ${
+                    isMobileSubMenuOpen ? "rotate-90" : ""
+                  }`}
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -396,13 +414,18 @@ function Navbar() {
                   />
                 </svg>
               </div>
-              {/* Mobile submenu - hidden by default */}
-              <div className="hidden pl-8">
+              
+              {/* Mobile submenu - conditionally shown */}
+              <div className={`pl-4 transition-all duration-300 overflow-hidden ${
+                isMobileSubMenuOpen ? "max-h-screen py-1" : "max-h-0"
+              }`}>
                 {link.dropdown.map((item) => (
                   <Link
                     key={item.path}
                     to={item.path}
-                    className="block py-2 px-4 text-gray-600"
+                    className={`block py-2 px-4 text-gray-600 rounded-md ${
+                      location.pathname === item.path ? "bg-blue-50 text-accent" : ""
+                    }`}
                   >
                     {item.title}
                   </Link>
@@ -413,13 +436,98 @@ function Navbar() {
             <Link
               key={link.path}
               to={link.path}
-              className={`block py-2 px-4 text-gray-700 ${
-                location.pathname === link.path ? "font-medium text-accent" : ""
+              className={`block py-2 px-2 mb-1 text-gray-700 rounded-md ${
+                location.pathname === link.path ? "font-medium text-accent bg-blue-50" : ""
               }`}
             >
               {link.title}
             </Link>
           )
+        )}
+
+        {/* Mobile user options */}
+        {user && (
+          <div className="mt-3 pt-3 border-t border-gray-200">
+            <div className="flex items-center space-x-3 px-2 py-2">
+              <div className="w-8 h-8 rounded-full overflow-hidden border border-gray-300 bg-gray-200">
+                {user.avatarUrl ? (
+                  <img
+                    src={user.avatarUrl}
+                    alt={user.fullName}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-accent text-white font-medium">
+                    {user.fullName?.charAt(0) || "U"}
+                  </div>
+                )}
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-medium text-gray-900 truncate">
+                  {user.fullName}
+                </p>
+                <p className="text-xs text-gray-500 truncate">
+                  {user.email}
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-2 space-y-1">
+              <Link
+                to="/profile"
+                className="block px-2 py-2 text-gray-700 hover:bg-gray-100 rounded-md flex items-center gap-3"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5 text-gray-500"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                <span>Tài khoản cá nhân</span>
+              </Link>
+              
+              <Link
+                to="/saved-places"
+                className="block px-2 py-2 text-gray-700 hover:bg-gray-100 rounded-md flex items-center gap-3"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5 text-gray-500"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path d="M3.172 5.172a4.001 4.001 0 015.656 0L10 6.343l1.172-1.171a4.001 4.001 0 115.656 5.656L10 17.657l-6.828-6.829a4.001 4.001 0 010-5.656z" />
+                </svg>
+                <span>Địa điểm đã lưu</span>
+              </Link>
+              
+              {/* More links... */}
+              <button
+                onClick={handleLogout}
+                className="w-full text-left px-2 py-2 text-red-600 hover:bg-gray-100 rounded-md flex items-center gap-3"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M3 3a1 1 0 00-1 1v12a1 1 0 001 1h12a1 1 0 001-1V4a1 1 0 00-1-1H3zm11 4a1 1 0 10-2 0v4a1 1 0 102 0V7zm-8 1a1 1 0 00-1 1v2a1 1 0 001 1h3a1 1 0 001-1V9a1 1 0 00-1-1H6z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                <span>Đăng xuất</span>
+              </button>
+            </div>
+          </div>
         )}
       </div>
     </div>
